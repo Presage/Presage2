@@ -3,6 +3,8 @@
  */
 package org.imperial.isn.presage2.core.participant;
 
+import org.imperial.isn.presage2.core.messaging.Input;
+
 /**
  * 
  * This is the interface used by the simulator to interact with
