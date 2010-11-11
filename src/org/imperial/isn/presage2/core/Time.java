@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.imperial.isn.presage2.core.simulation;
+package org.imperial.isn.presage2.core;
 
 /**
  * This is a generic representation of a time within the simulation. Using

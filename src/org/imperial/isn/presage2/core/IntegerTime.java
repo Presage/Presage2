@@ -1,7 +1,8 @@
 /**
  * 
  */
-package org.imperial.isn.presage2.core.simulation;
+package org.imperial.isn.presage2.core;
+
 
 /**
  * @author Sam Macbeth
@@ -20,7 +21,7 @@ public class IntegerTime implements Time {
 	}
 
 	/**
-	 * @see org.imperial.isn.presage2.core.simulation.Time#equals()
+	 * @see org.imperial.isn.presage2.core.Time#equals()
 	 */
 	@Override
 	public boolean equals(Time t) {
@@ -32,7 +33,7 @@ public class IntegerTime implements Time {
 	}
 
 	/**
-	 * @see org.imperial.isn.presage2.core.simulation.Time#increment()
+	 * @see org.imperial.isn.presage2.core.Time#increment()
 	 */
 	@Override
 	public void increment() {

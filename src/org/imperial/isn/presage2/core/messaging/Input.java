@@ -3,7 +3,7 @@
  */
 package org.imperial.isn.presage2.core.messaging;
 
-import org.imperial.isn.presage2.core.simulation.Time;
+import org.imperial.isn.presage2.core.Time;
 
 /**
  * 
