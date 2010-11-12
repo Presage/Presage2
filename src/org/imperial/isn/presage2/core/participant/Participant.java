@@ -3,6 +3,9 @@
  */
 package org.imperial.isn.presage2.core.participant;
 
+import java.util.UUID;
+
+import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.messaging.Input;
 
 /**
@@ -16,10 +19,31 @@ import org.imperial.isn.presage2.core.messaging.Input;
 public interface Participant {
 
 	/**
+	 * Returns the participant's unique ID.
+	 * @return
+	 */
+	public UUID getID();
+	
+	/**
+	 * Returns a unique string identifier for this participant.
+	 * This is used purely for a human readable identifier of the
+	 * agent so the unique requirement is not mandatory. However it
+	 * is convenient.
+	 * @return
+	 */
+	public String getName();
+	
+	/**
+	 * Returns the agent's current perception of the simulation time.
+	 * @return
+	 */
+	public Time getTime();
+	
+	/**
 	 * Called by the simulator after creating your agent.
 	 * Allows you to initialise the agent before simulation cycle starts
 	 */
-	public void initialise();
+	public void initialise() throws ParticipantInitialisationException;
 	
 	/**
 	 * Analogous to step. 
@@ -32,7 +56,7 @@ public interface Participant {
 	 * Called once per simulation cycle. Gives the agent time to process
 	 * inputs, send message and perform actions.
 	 */
-	public void step();
+	public void step() throws ParticipantRunTimeException;
 	
 	/**
 	 * Adds a new input to be processed by this participant.
