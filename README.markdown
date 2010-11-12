@@ -6,4 +6,4 @@ This project is the core component of presage2, a rewrite of the [Presage][presa
 
   [presage]: http://www.springerlink.com/content/462231r6r1rq2466/
 	
-The platform is currently in a very early stage of development and is not yet usage. Once it is basic guides will be posted on here for building and running agents.
+The platform is currently in a very early stage of development and is not yet usable. Once it is basic guides will be posted on here for building and running agents.
