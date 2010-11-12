@@ -78,6 +78,9 @@ public class IntegerTimeTest {
 		
 		t1.setTime(t2);
 		assertTrue(t1.equals(t2));
+		
+		t1.setTime(null);
+		assertTrue(t1.equals(t2));
 	}
 	
 	/**
