@@ -15,10 +15,22 @@ import org.imperial.isn.presage2.core.Time;
  */
 public interface Input {
 
+	/**
+	 * Get the FIPA performative of this Input (if applicable).
+	 * @return
+	 */
 	public Performative getPerformative();
 	
+	/**
+	 * Get the timestamp of this Input.
+	 * @return
+	 */
 	public Time getTimestamp();
 	
+	/**
+	 * set the timestamp of this Input
+	 * @param t
+	 */
 	public void setTimestamp(Time t);
 	
 }
