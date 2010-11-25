@@ -65,5 +65,10 @@ public class IntegerTime implements Time {
 	public String toString() {
 		return new Integer(this.time).toString();
 	}
+	
+	@Override
+	public Time clone() {
+		return new IntegerTime(this.time);
+	}
 
 }

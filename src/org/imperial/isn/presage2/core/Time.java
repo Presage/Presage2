@@ -24,4 +24,10 @@ public interface Time {
 	
 	public void setTime(Time t);
 	
+	/**
+	 * Clone this time
+	 * @return
+	 */
+	public Time clone();
+	
 }
