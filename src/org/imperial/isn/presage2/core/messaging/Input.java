@@ -17,19 +17,19 @@ public interface Input {
 
 	/**
 	 * Get the FIPA performative of this Input (if applicable).
-	 * @return
+	 * @return {@link org.imperial.isn.presage2.core.messaging.Performative}
 	 */
 	public Performative getPerformative();
 	
 	/**
 	 * Get the timestamp of this Input.
-	 * @return
+	 * @return {@link Time}
 	 */
 	public Time getTimestamp();
 	
 	/**
 	 * set the timestamp of this Input
-	 * @param t
+	 * @param {@link Time} to set.
 	 */
 	public void setTimestamp(Time t);
 	

@@ -19,13 +19,22 @@ import org.imperial.isn.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  *
  */
-public class Message implements Input {
+public abstract class Message implements Input {
 
+	/**
+	 * FIPA performative of the message
+	 */
 	protected final Performative performative;
 	
+	/**
+	 * Timestamp of when this message was sent.
+	 */
 	protected Time timestamp;
 	
-	protected UUID to, from;
+	/**
+	 * Send of this message
+	 */
+	protected UUID from;
 	
 	/**
 	 * @param performative
@@ -33,11 +42,10 @@ public class Message implements Input {
 	 * @param to
 	 * @param from
 	 */
-	public Message(Performative performative, UUID to, UUID from, Time timestamp) {
+	public Message(Performative performative, UUID from, Time timestamp) {
 		super();
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
-		this.to = to;
 		this.from = from;
 	}
 
@@ -64,6 +72,14 @@ public class Message implements Input {
 	@Override
 	public void setTimestamp(Time t) {
 		this.timestamp = t;
+	}
+	
+	/**
+	 * Get the sender of this message
+	 * @return UUID of message sender.
+	 */
+	public UUID getFrom() {
+		return this.from;
 	}
 
 }
