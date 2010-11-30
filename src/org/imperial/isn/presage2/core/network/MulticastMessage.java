@@ -59,5 +59,8 @@ public class MulticastMessage extends Message {
 		this.to.addAll(recipients);
 	}
 	
+	public List<UUID> getTo() {
+		return this.to;
+	}
 	
 }
