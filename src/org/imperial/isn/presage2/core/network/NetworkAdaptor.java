@@ -4,6 +4,7 @@
 package org.imperial.isn.presage2.core.network;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.imperial.isn.presage2.core.messaging.Input;
 
@@ -28,5 +29,12 @@ public interface NetworkAdaptor {
 	 */
 	public void sendMessage(Message m) throws NetworkException;
 	
+	/**
+	 * The network adaptor may also provide a network node discovery
+	 * service which we describe in the following form.
+	 * @return List of UUIDs of connected nodes.
+	 * @throws NetworkException
+	 */
+	public List<UUID> getConnectedNodes() throws NetworkException;
 	
 }
