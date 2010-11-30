@@ -6,6 +6,7 @@ package org.imperial.isn.presage2.core.participant;
 import java.util.UUID;
 
 import org.imperial.isn.presage2.core.Time;
+import org.imperial.isn.presage2.core.TimeDriven;
 import org.imperial.isn.presage2.core.messaging.Input;
 
 /**
@@ -16,7 +17,7 @@ import org.imperial.isn.presage2.core.messaging.Input;
  * @author Sam Macbeth
  *
  */
-public interface Participant {
+public interface Participant extends TimeDriven {
 
 	/**
 	 * Returns the participant's unique ID.

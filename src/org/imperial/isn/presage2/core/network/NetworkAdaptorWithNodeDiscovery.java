@@ -6,6 +6,8 @@ package org.imperial.isn.presage2.core.network;
 import java.util.List;
 import java.util.UUID;
 
+import org.imperial.isn.presage2.core.TimeDriven;
+
 /**
  * <p>A network adaptor which provides additional services for
  * discovering nodes in the network</p>
@@ -13,7 +15,7 @@ import java.util.UUID;
  * @author Sam Macbeth
  *
  */
-public interface NetworkAdaptorWithNodeDiscovery extends NetworkAdaptor {
+public interface NetworkAdaptorWithNodeDiscovery extends NetworkAdaptor, TimeDriven {
 
 	/**
 	 * The network adaptor may also provide a network node discovery
