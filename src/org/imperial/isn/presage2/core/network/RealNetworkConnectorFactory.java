@@ -21,6 +21,9 @@ public class RealNetworkConnectorFactory implements NetworkConnectorFactory {
 		/* 
 		 * TODO This method should pull the spec for the participant given by
 		 * the given UUID from the simulation config and instantiate it.
+		 * 
+		 * This would also be a good time to register the NetworkConnector with the 
+		 * NetworkController.
 		 */
 		return null;
 	}
