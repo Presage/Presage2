@@ -29,12 +29,4 @@ public interface NetworkAdaptor {
 	 */
 	public void sendMessage(Message m) throws NetworkException;
 	
-	/**
-	 * The network adaptor may also provide a network node discovery
-	 * service which we describe in the following form.
-	 * @return List of UUIDs of connected nodes.
-	 * @throws NetworkException
-	 */
-	public List<UUID> getConnectedNodes() throws NetworkException;
-	
 }
