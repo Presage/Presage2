@@ -43,5 +43,15 @@ public class UnicastMessage extends Message {
 	public NetworkAddress getTo() {
 		return this.to;
 	}
+
+	/**
+	 * @see org.imperial.isn.presage2.core.network.Message#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() +": (Time: "+this.timestamp.toString()+", from: "+this.from.toString()+", to: "+this.to.toString()+", perf: "+this.performative.toString() +")";
+	}
+	
+	
 	
 }
