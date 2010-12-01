@@ -4,9 +4,6 @@
 package org.imperial.isn.presage2.core.network;
 
 import java.util.List;
-import java.util.UUID;
-
-import org.imperial.isn.presage2.core.messaging.Input;
 
 /**
  * <p>A network adaptor is a participant's perception
@@ -28,5 +25,11 @@ public interface NetworkAdaptor {
 	 * @param m
 	 */
 	public void sendMessage(Message m) throws NetworkException;
+	
+	/**
+	 * Gets this device's network address
+	 * @return this device's network address
+	 */
+	public NetworkAddress getAddress();
 	
 }

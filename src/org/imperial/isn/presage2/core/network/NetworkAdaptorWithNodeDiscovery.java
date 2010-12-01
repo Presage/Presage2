@@ -23,6 +23,6 @@ public interface NetworkAdaptorWithNodeDiscovery extends NetworkAdaptor, TimeDri
 	 * @return List of UUIDs of connected nodes.
 	 * @throws NetworkException
 	 */
-	public List<UUID> getConnectedNodes() throws NetworkException;
+	public List<NetworkAddress> getConnectedNodes() throws NetworkException;
 	
 }

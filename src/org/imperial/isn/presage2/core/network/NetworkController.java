@@ -33,7 +33,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	/**
 	 * Map of devices registered to this controller.
 	 */
-	protected Map<UUID, NetworkChannel> devices;
+	protected Map<NetworkAddress, NetworkChannel> devices;
 	
 	// TODO when environment connectors are done.
 	//protected EnvironmentConnector environment;
@@ -46,7 +46,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 		super();
 		this.logger = logger;
 		this.time = time;
-		this.devices = new HashMap<UUID, NetworkChannel>();
+		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
 		this.toDeliver = new LinkedList<Message>();
 	}
 	
@@ -109,8 +109,8 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param m
 	 */
 	protected void doMulticast(MulticastMessage m) throws NetworkException {
-		final List<UUID> recipients = m.getTo();
-		for(UUID to : recipients) {
+		final List<NetworkAddress> recipients = m.getTo();
+		for(NetworkAddress to : recipients) {
 			try {		
 				this.devices.get(to).deliverMessage(m);
 			} catch(NullPointerException e) {
@@ -125,7 +125,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param m
 	 */
 	protected void doBroadcast(BroadcastMessage m) throws NetworkException {
-		for(UUID to : this.devices.keySet()) {
+		for(NetworkAddress to : this.devices.keySet()) {
 			this.devices.get(to).deliverMessage(m);
 		}
 		this.logger.debug("Sent broadcast message: "+ m.toString());
@@ -138,11 +138,11 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 */
 	public void registerConnector(NetworkRegistrationRequest req) throws NetworkException {
 		// defensive programming
-		if(req == null || req.getId() == null || req.getLink() == null) {
+		if(req == null || req.getAddress() == null || req.getLink() == null) {
 				return; // TODO exception here
 		}
 
-		this.devices.put(req.getId(), req.getLink());
+		this.devices.put(req.getAddress(), req.getLink());
 	}
 
 }

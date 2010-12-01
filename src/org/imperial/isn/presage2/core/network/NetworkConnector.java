@@ -26,6 +26,8 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	
 	final protected UUID parentID;
 	
+	final protected NetworkAddress address;
+	
 	/**
 	 * <p>Create a NetworkConnector</p>
 	 * <p>This constructor uses Guice assisted inject to pass the participant's UUID
@@ -33,14 +35,19 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	 * what you are doing!</p>
 	 * @param controller
 	 * @param logger
+	 * @param networkAddressFactory factory for creating this connector's network address.
 	 * @param id
 	 */
 	@Inject
-	protected NetworkConnector(NetworkChannel controller, Logger logger, @Assisted UUID id) {
+	protected NetworkConnector(NetworkChannel controller, 
+			Logger logger, 
+			NetworkAddressFactory networkAddressFactory, 
+			@Assisted UUID id) {
 		super();
 		this.controller = controller;
 		this.logger = logger;
 		this.parentID = id;
+		this.address = networkAddressFactory.create(parentID);
 	}
 
 	/**

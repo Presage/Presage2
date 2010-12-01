@@ -3,8 +3,6 @@
  */
 package org.imperial.isn.presage2.core.network;
 
-import java.util.UUID;
-
 import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.messaging.Performative;
 
@@ -25,7 +23,7 @@ public class BroadcastMessage extends Message {
 	 * @param from
 	 * @param timestamp
 	 */
-	public BroadcastMessage(Performative performative, UUID from, Time timestamp) {
+	public BroadcastMessage(Performative performative, NetworkAddress from, Time timestamp) {
 		super(performative, from, timestamp);
 	}
 

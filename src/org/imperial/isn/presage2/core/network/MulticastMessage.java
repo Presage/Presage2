@@ -5,7 +5,6 @@ package org.imperial.isn.presage2.core.network;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.messaging.Performative;
@@ -21,7 +20,7 @@ import org.imperial.isn.presage2.core.messaging.Performative;
  */
 public class MulticastMessage extends Message {
 
-	protected List<UUID> to;
+	protected List<NetworkAddress> to;
 
 	/**
 	 * <p>Create a MulticastMessage with empty recipients list.</p>
@@ -29,9 +28,9 @@ public class MulticastMessage extends Message {
 	 * @param from
 	 * @param timestamp
 	 */
-	public MulticastMessage(Performative performative, UUID from, Time timestamp) {
+	public MulticastMessage(Performative performative, NetworkAddress from, Time timestamp) {
 		super(performative, from, timestamp);
-		this.to = new ArrayList<UUID>();
+		this.to = new ArrayList<NetworkAddress>();
 	}
 
 	/**
@@ -41,7 +40,7 @@ public class MulticastMessage extends Message {
 	 * @param to
 	 * @param timestamp
 	 */
-	public MulticastMessage(Performative performative, UUID from, List<UUID> to, 
+	public MulticastMessage(Performative performative, NetworkAddress from, List<NetworkAddress> to, 
 			Time timestamp) {
 		super(performative, from, timestamp);
 		this.to = to;
@@ -51,15 +50,15 @@ public class MulticastMessage extends Message {
 	 * Add a single recipient to the list.
 	 * @param recipient
 	 */
-	public void addRecipient(UUID recipient) {
+	public void addRecipient(NetworkAddress recipient) {
 		this.to.add(recipient);
 	}
 	
-	public void addRecipients(List<UUID> recipients) {
+	public void addRecipients(List<NetworkAddress> recipients) {
 		this.to.addAll(recipients);
 	}
 	
-	public List<UUID> getTo() {
+	public List<NetworkAddress> getTo() {
 		return this.to;
 	}
 	

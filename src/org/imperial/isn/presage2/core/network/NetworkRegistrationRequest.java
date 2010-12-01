@@ -14,14 +14,14 @@ import java.util.UUID;
  */
 public class NetworkRegistrationRequest {
 
-	protected UUID id;
+	protected NetworkAddress id;
 	
 	protected NetworkChannel link;
 
 	/**
 	 * @param id
 	 */
-	public NetworkRegistrationRequest(UUID id, NetworkChannel link) {
+	public NetworkRegistrationRequest(NetworkAddress id, NetworkChannel link) {
 		super();
 		this.id = id;
 		this.link = link;
@@ -30,7 +30,7 @@ public class NetworkRegistrationRequest {
 	/**
 	 * @return the id
 	 */
-	public UUID getId() {
+	public NetworkAddress getAddress() {
 		return id;
 	}
 

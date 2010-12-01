@@ -3,8 +3,6 @@
  */
 package org.imperial.isn.presage2.core.network;
 
-import java.util.UUID;
-
 import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.messaging.Input;
 import org.imperial.isn.presage2.core.messaging.Performative;
@@ -34,14 +32,14 @@ public abstract class Message implements Input {
 	/**
 	 * Send of this message
 	 */
-	protected UUID from;
+	protected NetworkAddress from;
 	
 	/**
 	 * @param performative
 	 * @param from
 	 * @param timestamp
 	 */
-	public Message(Performative performative, UUID from, Time timestamp) {
+	public Message(Performative performative, NetworkAddress from, Time timestamp) {
 		super();
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
@@ -77,7 +75,7 @@ public abstract class Message implements Input {
 	 * Get the sender of this message
 	 * @return UUID of message sender.
 	 */
-	public UUID getFrom() {
+	public NetworkAddress getFrom() {
 		return this.from;
 	}
 

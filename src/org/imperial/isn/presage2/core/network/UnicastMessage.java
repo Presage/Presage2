@@ -23,7 +23,7 @@ public class UnicastMessage extends Message {
 	/**
 	 * Intended recipient of this message.
 	 */
-	protected UUID to;
+	protected NetworkAddress to;
 
 	/**
 	 * @param performative
@@ -31,7 +31,7 @@ public class UnicastMessage extends Message {
 	 * @param timestamp
 	 * @param to
 	 */
-	public UnicastMessage(Performative performative, UUID from, UUID to, Time timestamp) {
+	public UnicastMessage(Performative performative, NetworkAddress from, NetworkAddress to, Time timestamp) {
 		super(performative, from, timestamp);
 		this.to = to;
 	}
@@ -40,7 +40,7 @@ public class UnicastMessage extends Message {
 	 * Gets the intended recipient of this message.
 	 * @return UUID recipient.
 	 */
-	public UUID getTo() {
+	public NetworkAddress getTo() {
 		return this.to;
 	}
 	
