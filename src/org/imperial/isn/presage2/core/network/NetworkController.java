@@ -131,8 +131,18 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 		this.logger.debug("Sent broadcast message: "+ m.toString());
 	}
 
-	public void registerConnector() throws NetworkException {
-		// TODO this function needs some registration object passed to it.
+	/**
+	 * Register a network device with this NetworkController
+	 * @param req
+	 * @throws NetworkException
+	 */
+	public void registerConnector(NetworkRegistrationRequest req) throws NetworkException {
+		// defensive programming
+		if(req == null || req.getId() == null || req.getLink() == null) {
+				return; // TODO exception here
+		}
+
+		this.devices.put(req.getId(), req.getLink());
 	}
 
 }
