@@ -39,5 +39,13 @@ public class NetworkAddress {
 	public UUID getId() {
 		return id;
 	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "NetworkAddress: "+this.id.toString();
+	}
 	
 }

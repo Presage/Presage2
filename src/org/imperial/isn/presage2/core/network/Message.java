@@ -79,4 +79,12 @@ public abstract class Message implements Input {
 		return this.from;
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() +": (Time: "+this.timestamp.toString()+", from: "+this.from.toString()+", perf: "+this.performative.toString() +")";
+	}
+	
 }
