@@ -29,7 +29,7 @@ public interface Input {
 	
 	/**
 	 * set the timestamp of this Input
-	 * @param {@link Time} to set.
+	 * @param Time to set.
 	 */
 	public void setTimestamp(Time t);
 	

@@ -15,6 +15,11 @@ public interface Time {
 
 	public String toString();
 	
+	/**
+	 * Check if two times are equal.
+	 * @param t
+	 * @return true if both Times represent the same discrete simulation time.
+	 */
 	public boolean equals(Time t);
 	
 	/**
@@ -26,7 +31,7 @@ public interface Time {
 	
 	/**
 	 * Clone this time
-	 * @return
+	 * @return clone of this time.
 	 */
 	public Time clone();
 	

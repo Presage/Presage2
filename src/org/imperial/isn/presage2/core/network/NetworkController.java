@@ -40,7 +40,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	
 	/**
 	 * @param logger
-	 * @param devices
+	 * @param time
 	 */
 	public NetworkController(Logger logger, Time time) {
 		super();

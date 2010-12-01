@@ -38,9 +38,8 @@ public abstract class Message implements Input {
 	
 	/**
 	 * @param performative
-	 * @param timestamp
-	 * @param to
 	 * @param from
+	 * @param timestamp
 	 */
 	public Message(Performative performative, UUID from, Time timestamp) {
 		super();

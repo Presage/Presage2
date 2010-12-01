@@ -19,7 +19,7 @@ public interface NetworkAdaptor {
 
 	/**
 	 * Gets inputs currently queued at this adaptor.
-	 * @return
+	 * @return list of messages received.
 	 */
 	public List<Message> getMessages();
 	

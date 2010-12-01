@@ -21,7 +21,7 @@ public interface Participant extends TimeDriven {
 
 	/**
 	 * Returns the participant's unique ID.
-	 * @return
+	 * @return This participant's unique UUID
 	 */
 	public UUID getID();
 	
@@ -30,13 +30,13 @@ public interface Participant extends TimeDriven {
 	 * This is used purely for a human readable identifier of the
 	 * agent so the unique requirement is not mandatory. However it
 	 * is convenient.
-	 * @return
+	 * @return unique string identifier for this participant
 	 */
 	public String getName();
 	
 	/**
 	 * Returns the agent's current perception of the simulation time.
-	 * @return
+	 * @return agent's current perception of the simulation time
 	 */
 	public Time getTime();
 	
