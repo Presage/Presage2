@@ -77,7 +77,6 @@ public abstract class ParticipantException extends Exception {
 	 */
 	@Override
 	public String getLocalizedMessage() {
-		// TODO Auto-generated method stub
 		return "Participant "+ this.participantName +" (UUID: "+ this.participantUUID +") " +
 		"at sim time: "+ this.participantTime.toString() +": "+ super.getLocalizedMessage();
 	}
