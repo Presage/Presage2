@@ -30,4 +30,11 @@ public interface Time {
 	 */
 	public Time clone();
 	
+	/**
+	 * 
+	 * @param t time to compare to.
+	 * @return true if this > t, false otherwise
+	 */
+	public boolean greaterThan(Time t);
+	
 }

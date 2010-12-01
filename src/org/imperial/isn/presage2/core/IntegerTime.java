@@ -70,5 +70,10 @@ public class IntegerTime implements Time {
 	public Time clone() {
 		return new IntegerTime(this.time);
 	}
+	
+	@Override
+	public boolean greaterThan(Time t) {
+		return this.time > ((IntegerTime) t).time;
+	}
 
 }
