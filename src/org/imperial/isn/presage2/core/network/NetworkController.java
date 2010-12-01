@@ -4,12 +4,14 @@
 package org.imperial.isn.presage2.core.network;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
+import org.imperial.isn.presage2.core.Time;
+import org.imperial.isn.presage2.core.TimeDriven;
 
 /**
  * <p>This is a central controller through which all messages go.</p>
@@ -20,9 +22,13 @@ import org.apache.log4j.Logger;
  * @author Sam Macbeth
  *
  */
-public abstract class NetworkController implements NetworkChannel {
+public abstract class NetworkController implements NetworkChannel, TimeDriven {
 
 	protected final Logger logger;
+	
+	protected Time time;
+	
+	protected List<Message> toDeliver;
 	
 	/**
 	 * Map of devices registered to this controller.
@@ -36,18 +42,42 @@ public abstract class NetworkController implements NetworkChannel {
 	 * @param logger
 	 * @param devices
 	 */
-	public NetworkController(Logger logger) {
+	public NetworkController(Logger logger, Time time) {
 		super();
 		this.logger = logger;
+		this.time = time;
 		this.devices = new HashMap<UUID, NetworkChannel>();
+		this.toDeliver = new LinkedList<Message>();
 	}
 	
 	/**
-	 * Invoked by a NetworkConnector when it wishes to send a message.
+	 * @see org.imperial.isn.presage2.core.TimeDriven#incrementTime()
+	 */
+	@Override
+	public void incrementTime() {
+		for(Message m : this.toDeliver) {
+			try {
+				this.handleMessage(m);
+			} catch(NetworkException e) {
+				this.logger.warn("Exception encountered when delivering messages: "+ e.getMessage());
+			}
+		}
+		this.toDeliver = new LinkedList<Message>();
+		this.time.increment();
+	}
+
+	/**
+	 * <p>Invoked by a NetworkConnector when it wishes to send a message.</p>
+	 * <p>In this implementation we deliver at the end of time cycle, therefore this function just adds
+	 * the message to the delivery queue</p>
 	 * @see org.imperial.isn.presage2.core.network.NetworkChannel#deliverMessage(org.imperial.isn.presage2.core.network.Message)
 	 */
 	@Override
 	public void deliverMessage(Message m) throws NetworkException {
+		this.toDeliver.add(m);
+	}
+	
+	protected void handleMessage(Message m) throws NetworkException {
 		// check message type
 		if(m instanceof UnicastMessage) {
 			doUnicast((UnicastMessage) m);
