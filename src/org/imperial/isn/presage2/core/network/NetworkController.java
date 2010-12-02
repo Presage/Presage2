@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 import org.apache.log4j.Logger;
 import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.TimeDriven;
@@ -55,11 +53,14 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 */
 	@Override
 	public void incrementTime() {
+		if(this.logger.isDebugEnabled()) {
+			this.logger.debug("Delivering messages for time "+this.time.toString());
+		}
 		for(Message m : this.toDeliver) {
 			try {
 				this.handleMessage(m);
 			} catch(NetworkException e) {
-				this.logger.warn("Exception encountered when delivering messages: "+ e.getMessage());
+				this.logger.warn(e.getMessage(), e);
 			}
 		}
 		this.toDeliver = new LinkedList<Message>();
@@ -86,7 +87,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 		} else if(m instanceof BroadcastMessage) {
 			doBroadcast((BroadcastMessage) m);
 		} else {
-			// TODO handling of other message types
+			throw new UnknownMessageTypeException(m);
 		}
 	}
 
@@ -98,9 +99,11 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	protected void doUnicast(UnicastMessage m) throws NetworkException {
 		try {
 			this.devices.get(m.getTo()).deliverMessage(m);
-			this.logger.debug("Dispatched unicast message: "+ m.toString());
+			if(this.logger.isDebugEnabled()) {
+				this.logger.debug("Dispatched unicast message: "+ m.toString());
+			}
 		} catch(NullPointerException e) {
-			this.logger.debug("Unicast message sent to unknown recipient: "+ m.toString());
+			throw new UnreachableRecipientException(m, m.getTo(), e);
 		}
 	}
 	
@@ -110,14 +113,20 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 */
 	protected void doMulticast(MulticastMessage m) throws NetworkException {
 		final List<NetworkAddress> recipients = m.getTo();
+		final List<NetworkAddress> unreachable = new LinkedList<NetworkAddress>();
 		for(NetworkAddress to : recipients) {
 			try {		
 				this.devices.get(to).deliverMessage(m);
 			} catch(NullPointerException e) {
-				this.logger.debug("Multicast message containing unknown recipient: "+ m.toString());
+				unreachable.add(to);
 			}
 		}
-		this.logger.debug("Sent multicast message: "+ m.toString());
+		if(this.logger.isDebugEnabled()) {
+			this.logger.debug("Sent multicast message: "+ m.toString());
+		}
+		if(unreachable.size() > 0) {
+			throw new UnreachableRecipientException(m, unreachable);
+		}
 	}
 	
 	/**
