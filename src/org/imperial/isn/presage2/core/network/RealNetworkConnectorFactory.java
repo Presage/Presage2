@@ -5,8 +5,6 @@ package org.imperial.isn.presage2.core.network;
 
 import java.util.UUID;
 
-import com.google.inject.Provider;
-
 /**
  * @author Sam Macbeth
  *
