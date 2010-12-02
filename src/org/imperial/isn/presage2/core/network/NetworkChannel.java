@@ -17,7 +17,7 @@ public interface NetworkChannel {
 	 * @param m
 	 * @throws NetworkException
 	 */
-	public void deliverMessage(Message m) throws NetworkException;
+	public void deliverMessage(Message m);
 	
 	
 }

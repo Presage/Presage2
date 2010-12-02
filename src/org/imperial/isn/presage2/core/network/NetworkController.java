@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 import org.apache.log4j.Logger;
 import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.TimeDriven;
@@ -55,11 +53,15 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 */
 	@Override
 	public void incrementTime() {
+		if(this.logger.isDebugEnabled()) {
+			this.logger.debug("Delivering messages for time "+this.time.toString());
+		}
 		for(Message m : this.toDeliver) {
 			try {
 				this.handleMessage(m);
 			} catch(NetworkException e) {
-				this.logger.warn("Exception encountered when delivering messages: "+ e.getMessage());
+				// log exceptions we encounter (unchecked runtime exceptions)
+				this.logger.warn(e.getMessage(), e);
 			}
 		}
 		this.toDeliver = new LinkedList<Message>();
@@ -73,11 +75,11 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @see org.imperial.isn.presage2.core.network.NetworkChannel#deliverMessage(org.imperial.isn.presage2.core.network.Message)
 	 */
 	@Override
-	public void deliverMessage(Message m) throws NetworkException {
+	public void deliverMessage(Message m) {
 		this.toDeliver.add(m);
 	}
 	
-	protected void handleMessage(Message m) throws NetworkException {
+	protected void handleMessage(Message m) {
 		// check message type
 		if(m instanceof UnicastMessage) {
 			doUnicast((UnicastMessage) m);
@@ -86,7 +88,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 		} else if(m instanceof BroadcastMessage) {
 			doBroadcast((BroadcastMessage) m);
 		} else {
-			// TODO handling of other message types
+			throw new UnknownMessageTypeException(m);
 		}
 	}
 
@@ -95,12 +97,14 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param m
 	 * @throws NetworkException
 	 */
-	protected void doUnicast(UnicastMessage m) throws NetworkException {
+	protected void doUnicast(UnicastMessage m) {
 		try {
 			this.devices.get(m.getTo()).deliverMessage(m);
-			this.logger.debug("Dispatched unicast message: "+ m.toString());
+			if(this.logger.isDebugEnabled()) {
+				this.logger.debug("Dispatched unicast message: "+ m.toString());
+			}
 		} catch(NullPointerException e) {
-			this.logger.debug("Unicast message sent to unknown recipient: "+ m.toString());
+			throw new UnreachableRecipientException(m, m.getTo(), e);
 		}
 	}
 	
@@ -108,23 +112,29 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * Send a multicast message
 	 * @param m
 	 */
-	protected void doMulticast(MulticastMessage m) throws NetworkException {
+	protected void doMulticast(MulticastMessage m) {
 		final List<NetworkAddress> recipients = m.getTo();
+		final List<NetworkAddress> unreachable = new LinkedList<NetworkAddress>();
 		for(NetworkAddress to : recipients) {
 			try {		
 				this.devices.get(to).deliverMessage(m);
 			} catch(NullPointerException e) {
-				this.logger.debug("Multicast message containing unknown recipient: "+ m.toString());
+				unreachable.add(to);
 			}
 		}
-		this.logger.debug("Sent multicast message: "+ m.toString());
+		if(this.logger.isDebugEnabled()) {
+			this.logger.debug("Sent multicast message: "+ m.toString());
+		}
+		if(unreachable.size() > 0) {
+			throw new UnreachableRecipientException(m, unreachable);
+		}
 	}
 	
 	/**
 	 * Send a broadcast message
 	 * @param m
 	 */
-	protected void doBroadcast(BroadcastMessage m) throws NetworkException {
+	protected void doBroadcast(BroadcastMessage m) {
 		for(NetworkAddress to : this.devices.keySet()) {
 			this.devices.get(to).deliverMessage(m);
 		}
@@ -136,7 +146,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param req
 	 * @throws NetworkException
 	 */
-	public void registerConnector(NetworkRegistrationRequest req) throws NetworkException {
+	public void registerConnector(NetworkRegistrationRequest req) {
 		// defensive programming
 		if(req == null || req.getAddress() == null || req.getLink() == null) {
 				return; // TODO exception here

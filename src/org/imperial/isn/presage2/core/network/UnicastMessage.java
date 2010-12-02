@@ -3,8 +3,6 @@
  */
 package org.imperial.isn.presage2.core.network;
 
-import java.util.UUID;
-
 import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.messaging.Performative;
 

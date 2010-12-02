@@ -4,8 +4,6 @@
 package org.imperial.isn.presage2.core.network;
 
 import java.util.List;
-import java.util.UUID;
-
 import org.imperial.isn.presage2.core.TimeDriven;
 
 /**
@@ -23,6 +21,6 @@ public interface NetworkAdaptorWithNodeDiscovery extends NetworkAdaptor, TimeDri
 	 * @return List of UUIDs of connected nodes.
 	 * @throws NetworkException
 	 */
-	public List<NetworkAddress> getConnectedNodes() throws NetworkException;
+	public List<NetworkAddress> getConnectedNodes();
 	
 }
