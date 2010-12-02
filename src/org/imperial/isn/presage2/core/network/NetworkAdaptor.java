@@ -24,7 +24,7 @@ public interface NetworkAdaptor {
 	 * Send a message
 	 * @param m
 	 */
-	public void sendMessage(Message m) throws NetworkException;
+	public void sendMessage(Message m);
 	
 	/**
 	 * Gets this device's network address

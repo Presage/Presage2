@@ -60,6 +60,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 			try {
 				this.handleMessage(m);
 			} catch(NetworkException e) {
+				// log exceptions we encounter (unchecked runtime exceptions)
 				this.logger.warn(e.getMessage(), e);
 			}
 		}
@@ -74,11 +75,11 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @see org.imperial.isn.presage2.core.network.NetworkChannel#deliverMessage(org.imperial.isn.presage2.core.network.Message)
 	 */
 	@Override
-	public void deliverMessage(Message m) throws NetworkException {
+	public void deliverMessage(Message m) {
 		this.toDeliver.add(m);
 	}
 	
-	protected void handleMessage(Message m) throws NetworkException {
+	protected void handleMessage(Message m) {
 		// check message type
 		if(m instanceof UnicastMessage) {
 			doUnicast((UnicastMessage) m);
@@ -96,7 +97,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param m
 	 * @throws NetworkException
 	 */
-	protected void doUnicast(UnicastMessage m) throws NetworkException {
+	protected void doUnicast(UnicastMessage m) {
 		try {
 			this.devices.get(m.getTo()).deliverMessage(m);
 			if(this.logger.isDebugEnabled()) {
@@ -111,7 +112,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * Send a multicast message
 	 * @param m
 	 */
-	protected void doMulticast(MulticastMessage m) throws NetworkException {
+	protected void doMulticast(MulticastMessage m) {
 		final List<NetworkAddress> recipients = m.getTo();
 		final List<NetworkAddress> unreachable = new LinkedList<NetworkAddress>();
 		for(NetworkAddress to : recipients) {
@@ -133,7 +134,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * Send a broadcast message
 	 * @param m
 	 */
-	protected void doBroadcast(BroadcastMessage m) throws NetworkException {
+	protected void doBroadcast(BroadcastMessage m) {
 		for(NetworkAddress to : this.devices.keySet()) {
 			this.devices.get(to).deliverMessage(m);
 		}
@@ -145,7 +146,7 @@ public abstract class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param req
 	 * @throws NetworkException
 	 */
-	public void registerConnector(NetworkRegistrationRequest req) throws NetworkException {
+	public void registerConnector(NetworkRegistrationRequest req) {
 		// defensive programming
 		if(req == null || req.getAddress() == null || req.getLink() == null) {
 				return; // TODO exception here
