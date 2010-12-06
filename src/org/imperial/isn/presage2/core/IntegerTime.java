@@ -73,7 +73,10 @@ public class IntegerTime implements Time {
 	
 	@Override
 	public boolean greaterThan(Time t) {
-		return this.time > ((IntegerTime) t).time;
+		if(t != null)
+			return this.time > ((IntegerTime) t).time;
+		else
+			return false;
 	}
 
 }
