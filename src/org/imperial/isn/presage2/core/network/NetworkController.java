@@ -20,7 +20,7 @@ import org.imperial.isn.presage2.core.TimeDriven;
  * @author Sam Macbeth
  *
  */
-public abstract class NetworkController implements NetworkChannel, TimeDriven {
+public class NetworkController implements NetworkChannel, TimeDriven {
 
 	protected final Logger logger;
 	

@@ -55,13 +55,21 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	 * @see org.imperial.isn.presage2.core.network.NetworkChannel#deliverMessage(org.imperial.isn.presage2.core.network.Message)
 	 */
 	@Override
-	public abstract void deliverMessage(Message m) throws NetworkException;
+	public abstract void deliverMessage(Message m);
 
 	/**
 	 * Participant requesting to send a message.
 	 * @see org.imperial.isn.presage2.core.network.NetworkAdaptor#sendMessage(org.imperial.isn.presage2.core.network.Message)
 	 */
 	@Override
-	public abstract void sendMessage(Message m) throws NetworkException;
+	public abstract void sendMessage(Message m);
+
+	/**
+	 * @see org.imperial.isn.presage2.core.network.NetworkAdaptor#getAddress()
+	 */
+	@Override
+	public NetworkAddress getAddress() {
+		return this.address;
+	}
 
 }
