@@ -30,6 +30,9 @@ public class NetworkAddress {
 	 */
 	@Inject
 	protected NetworkAddress( @Assisted UUID id) {
+		if(id == null) {
+			throw new NullPointerException("Attempting to instantiate a NetworkAddress with null id.");
+		}
 		this.id = id;
 	}
 
