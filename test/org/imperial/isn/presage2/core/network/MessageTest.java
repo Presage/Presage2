@@ -34,6 +34,30 @@ public abstract class MessageTest {
 	 * @return
 	 */
 	protected abstract Message getRandomMessage();
+	
+	/**
+	 * Generates a random instance of time for instantiating in a test message
+	 * @return random Time
+	 */
+	protected Time randomTime() {
+		return new IntegerTime(rand.nextInt());
+	}
+	
+	/**
+	 * Generates a random instance of NetworkAddress for instantiating in a test message
+	 * @return random NetworkAddress
+	 */
+	protected NetworkAddress randomAddress() {
+		return new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong()));
+	}
+	
+	/**
+	 * Generates a random Performative for instantiating in a test message
+	 * @return random Performative
+	 */
+	protected Performative randomPerformative() {
+		return Performative.values()[rand.nextInt(Performative.values().length -1)];
+	}
 
 	/**
 	 * Test method for {@link org.imperial.isn.presage2.core.network.Message#toString()}.
