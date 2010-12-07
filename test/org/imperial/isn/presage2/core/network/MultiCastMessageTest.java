@@ -26,13 +26,13 @@ public class MultiCastMessageTest extends MessageTest {
 	 */
 	@Override
 	protected MulticastMessage getRandomMessage() {
-		this.lastTime = new IntegerTime(rand.nextInt());
-		this.lastFrom = new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong()));
+		this.lastTime = this.randomTime();
+		this.lastFrom = this.randomAddress();
 		this.lastTo = new ArrayList<NetworkAddress>();
 		for(int i=0; i<rand.nextInt(10); i++) {
-			this.lastTo.add(new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong())));
+			this.lastTo.add(this.randomAddress());
 		}
-		this.lastPerf = Performative.values()[rand.nextInt(Performative.values().length -1)];
+		this.lastPerf = this.randomPerformative();
 		return new MulticastMessage(lastPerf, lastFrom, lastTo, lastTime);
 	}
 
@@ -67,7 +67,7 @@ public class MultiCastMessageTest extends MessageTest {
 	@Test
 	public void testaddRecipient() {
 		MulticastMessage m = this.getRandomMessage();
-		final NetworkAddress addrCheck = new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong()));
+		final NetworkAddress addrCheck = this.randomAddress();
 		assertFalse(m.getTo().contains(addrCheck));
 		
 		m.addRecipient(addrCheck);
@@ -79,7 +79,7 @@ public class MultiCastMessageTest extends MessageTest {
 		MulticastMessage m = this.getRandomMessage();
 		final List<NetworkAddress> addrs = new ArrayList<NetworkAddress>();
 		for(int i=0; i<rand.nextInt(10); i++) {
-			NetworkAddress ad = new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong()));
+			NetworkAddress ad = this.randomAddress();
 			addrs.add(ad);
 			assertFalse(m.getTo().contains(ad));
 		}

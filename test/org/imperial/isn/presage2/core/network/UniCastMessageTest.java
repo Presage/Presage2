@@ -35,10 +35,10 @@ public class UniCastMessageTest extends MessageTest {
 
 	@Override
 	protected UnicastMessage getRandomMessage() {
-		this.lastTime = new IntegerTime(rand.nextInt());
-		this.lastFrom = new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong()));
-		this.lastTo = new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong()));
-		this.lastPerf = Performative.values()[rand.nextInt(Performative.values().length -1)];
+		this.lastTime = this.randomTime();
+		this.lastFrom = this.randomAddress();
+		this.lastTo = this.randomAddress();
+		this.lastPerf = this.randomPerformative();
 		return new UnicastMessage(lastPerf, lastFrom, lastTo, lastTime);
 	}
 	
