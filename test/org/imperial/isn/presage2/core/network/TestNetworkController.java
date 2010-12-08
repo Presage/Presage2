@@ -345,9 +345,48 @@ public class TestNetworkController {
 		testController.deliverMessage(message);
 		testController.incrementTime();
 	}
-	/*
-	 * TODO:
-	 * Test register connector exception
-	 */
+	
+	@Test
+	public void testRegisterConnectorFailure() {
+		Mockery context = new Mockery();
+		final Time time = context.mock(Time.class);
+		
+		// create controller
+		NetworkController testController = new NetworkController(logger, time);
+		
+		try {
+			testController.registerConnector(null);
+			fail("NetworkController.registerConnector() should throw an exception when argument is null");
+		} catch(RuntimeException e) {	}
+		
+		final NetworkChannel channel = context.mock(NetworkChannel.class);
+		final NetworkAddress channelAddress = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		
+		// test reg request with null args
+		NetworkRegistrationRequest regRequest = new NetworkRegistrationRequest(null, null);
+		try {
+			testController.registerConnector(regRequest);
+			fail("NetworkController.registerConnector() should throw an exception when request has null args");
+		} catch(RuntimeException e) {	}
+		
+		// test reg request with null id
+		regRequest = new NetworkRegistrationRequest(null, channel);
+		try {
+			testController.registerConnector(regRequest);
+			fail("NetworkController.registerConnector() should throw an exception when request has null args");
+		} catch(RuntimeException e) {	}
+		
+		// test reg request with null channel
+		regRequest = new NetworkRegistrationRequest(channelAddress, null);
+		try {
+			testController.registerConnector(regRequest);
+			fail("NetworkController.registerConnector() should throw an exception when request has null args");
+		} catch(RuntimeException e) {	}
+		
+		// valid reg request
+		regRequest = new NetworkRegistrationRequest(channelAddress, channel);
+		testController.registerConnector(regRequest);
+	}
 
 }
