@@ -157,5 +157,197 @@ public class TestNetworkController {
 		testController.registerConnector(regRequest);
 		testController.incrementTime();
 	}
+	
+	@Test
+	public void testMessageNotDeliveredInSameCycle() {
+		// set up the mocks
+		Mockery context = new Mockery();
+		final Time time = context.mock(Time.class);
+		final NetworkChannel channel = context.mock(NetworkChannel.class);
+		
+		// create controller
+		NetworkController testController = new NetworkController(logger, time);
+		
+		// create the register request
+		final NetworkAddress channelAddress = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest = 
+			new NetworkRegistrationRequest(channelAddress, channel);
+		
+		// allow cloning of time by the message constructor
+		context.checking(new Expectations() {{
+			allowing(time).clone(); will(returnValue(time));
+		}});
+		final NetworkAddress messageSender = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final Message undeliveredMessage = new UnicastMessage(Performative.ACCEPT_PROPOSAL, messageSender, channelAddress, time);
+		context.checking(new Expectations() {{
+			// make sure time is incremented
+			never(time).increment();
+			never(channel).deliverMessage(undeliveredMessage);
+		}});
+		
+		testController.registerConnector(regRequest);
+		testController.deliverMessage(undeliveredMessage);
+	}
+	
+	@Test
+	public void testUniCastDelivery() {
+		// set up the mocks
+		Mockery context = new Mockery();
+		final Time time = context.mock(Time.class);
+		final NetworkChannel channel1 = context.mock(NetworkChannel.class, "networkchannel1");
+		final NetworkChannel channel2 = context.mock(NetworkChannel.class, "networkchannel2");
+		
+		// create controller
+		NetworkController testController = new NetworkController(logger, time);
+		
+		// create 2 register requests
+		final NetworkAddress channel1Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest1 = 
+			new NetworkRegistrationRequest(channel1Address, channel1);
+		// 
+		final NetworkAddress channel2Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest2 = 
+			new NetworkRegistrationRequest(channel2Address, channel2);
+		
+		// allow cloning of time by the message constructor
+		context.checking(new Expectations() {{
+			allowing(time).clone(); will(returnValue(time));
+		}});
+		// message from channel1 to channel2
+		final Message message = new UnicastMessage(Performative.ACCEPT_PROPOSAL, channel1Address, channel2Address, time);
+		
+		context.checking(new Expectations() {{
+			// make sure time is incremented
+			one(time).increment();
+			// channel1 should not receive, channel2 receives 1
+			never(channel1).deliverMessage(message);
+			one(channel2).deliverMessage(message);
+		}});
+		
+		testController.registerConnector(regRequest1);
+		testController.registerConnector(regRequest2);
+		testController.deliverMessage(message);
+		testController.incrementTime();
+	}
+	
+	@Test
+	public void testMultiCastDelivery() {
+		// set up the mocks
+		Mockery context = new Mockery();
+		final Time time = context.mock(Time.class);
+		final NetworkChannel channel1 = context.mock(NetworkChannel.class, "networkchannel1");
+		final NetworkChannel channel2 = context.mock(NetworkChannel.class, "networkchannel2");
+		final NetworkChannel channel3 = context.mock(NetworkChannel.class, "networkchannel3");
+		final NetworkChannel channel4 = context.mock(NetworkChannel.class, "networkchannel4");
+		
+		// create controller
+		NetworkController testController = new NetworkController(logger, time);
+		
+		// create 4 register requests
+		final NetworkAddress channel1Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest1 = 
+			new NetworkRegistrationRequest(channel1Address, channel1);
+		// 
+		final NetworkAddress channel2Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest2 = 
+			new NetworkRegistrationRequest(channel2Address, channel2);
+		//
+		final NetworkAddress channel3Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest3 = 
+			new NetworkRegistrationRequest(channel3Address, channel3);
+		//
+		final NetworkAddress channel4Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest4 = 
+			new NetworkRegistrationRequest(channel4Address, channel4);
+		
+		// allow cloning of time by the message constructor
+		context.checking(new Expectations() {{
+			allowing(time).clone(); will(returnValue(time));
+		}});
+		// message from channel1 to channel2 and 3
+		final MulticastMessage message = new MulticastMessage(Performative.ACCEPT_PROPOSAL, channel1Address, time);
+		message.addRecipient(channel2Address);
+		message.addRecipient(channel3Address);
+		
+		context.checking(new Expectations() {{
+			// make sure time is incremented
+			one(time).increment();
+			// channel1 should not receive, channel2 and 3 receives 1
+			never(channel1).deliverMessage(message);
+			one(channel2).deliverMessage(message);
+			one(channel3).deliverMessage(message);
+			never(channel4).deliverMessage(message);
+		}});
+		
+		testController.registerConnector(regRequest1);
+		testController.registerConnector(regRequest2);
+		testController.registerConnector(regRequest3);
+		testController.registerConnector(regRequest4);
+		testController.deliverMessage(message);
+		testController.incrementTime();
+	}
+	
+	@Test
+	public void testBroadCastDelivery() {
+		// set up the mocks
+		Mockery context = new Mockery();
+		final Time time = context.mock(Time.class);
+		final NetworkChannel channel1 = context.mock(NetworkChannel.class, "networkchannel1");
+		final NetworkChannel channel2 = context.mock(NetworkChannel.class, "networkchannel2");
+		final NetworkChannel channel3 = context.mock(NetworkChannel.class, "networkchannel3");
+		
+		// create controller
+		NetworkController testController = new NetworkController(logger, time);
+		
+		// create 3 register requests
+		final NetworkAddress channel1Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest1 = 
+			new NetworkRegistrationRequest(channel1Address, channel1);
+		// 
+		final NetworkAddress channel2Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest2 = 
+			new NetworkRegistrationRequest(channel2Address, channel2);
+		//
+		final NetworkAddress channel3Address = new NetworkAddress(
+				new UUID(new Random().nextLong(), new Random().nextLong()));
+		final NetworkRegistrationRequest regRequest3 = 
+			new NetworkRegistrationRequest(channel3Address, channel3);
+		
+		// allow cloning of time by the message constructor
+		context.checking(new Expectations() {{
+			allowing(time).clone(); will(returnValue(time));
+		}});
+		// message from channel1 to channel2 and 3
+		final Message message = new BroadcastMessage(Performative.ACCEPT_PROPOSAL, channel1Address, time);
+		
+		context.checking(new Expectations() {{
+			// make sure time is incremented
+			one(time).increment();
+			// channel1 should not receive, channel2 receives 1
+			never(channel1).deliverMessage(message);
+			one(channel2).deliverMessage(message);
+			one(channel3).deliverMessage(message);
+		}});
+		
+		testController.registerConnector(regRequest1);
+		testController.registerConnector(regRequest2);
+		testController.registerConnector(regRequest3);
+		testController.deliverMessage(message);
+		testController.incrementTime();
+	}
+	/*
+	 * TODO:
+	 * Test register connector exception
+	 */
 
 }
