@@ -136,7 +136,9 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	 */
 	protected void doBroadcast(BroadcastMessage m) {
 		for(NetworkAddress to : this.devices.keySet()) {
-			this.devices.get(to).deliverMessage(m);
+			// deliver to all but sender
+			if(m.getFrom() != to)
+				this.devices.get(to).deliverMessage(m);
 		}
 		this.logger.debug("Sent broadcast message: "+ m.toString());
 	}
