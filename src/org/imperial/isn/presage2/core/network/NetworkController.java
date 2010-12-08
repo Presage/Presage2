@@ -151,7 +151,7 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	public void registerConnector(NetworkRegistrationRequest req) {
 		// defensive programming
 		if(req == null || req.getAddress() == null || req.getLink() == null) {
-				return; // TODO exception here
+				throw new NullPointerException("NetworkRegistrationRequest null or containing null parameters");
 		}
 
 		this.devices.put(req.getAddress(), req.getLink());
