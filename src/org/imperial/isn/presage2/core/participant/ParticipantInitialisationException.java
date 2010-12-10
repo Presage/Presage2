@@ -11,4 +11,9 @@ package org.imperial.isn.presage2.core.participant;
  */
 public class ParticipantInitialisationException extends ParticipantException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1825589580652742800L;
+
 }

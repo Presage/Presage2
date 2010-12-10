@@ -12,6 +12,11 @@ import java.util.List;
  */
 public class UnreachableRecipientException extends NetworkException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4463569707723015287L;
+
 	final protected Message message;
 	
 	final protected List<NetworkAddress> recipients;

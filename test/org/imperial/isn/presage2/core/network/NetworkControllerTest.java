@@ -1,12 +1,12 @@
 package org.imperial.isn.presage2.core.network;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.util.Random;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
-import org.imperial.isn.presage2.core.IntegerTime;
 import org.imperial.isn.presage2.core.Time;
 import org.imperial.isn.presage2.core.messaging.Performative;
 import org.jmock.Expectations;

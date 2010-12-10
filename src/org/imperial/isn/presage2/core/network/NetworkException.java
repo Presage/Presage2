@@ -15,6 +15,11 @@ abstract class NetworkException extends RuntimeException {
 	/**
 	 * 
 	 */
+	private static final long serialVersionUID = -4763573206484504212L;
+
+	/**
+	 * 
+	 */
 	public NetworkException() {
 		super();
 	}

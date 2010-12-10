@@ -50,6 +50,7 @@ public class NetworkAddressTest {
 		
 		// we should not be allowed to pass null to a networkaddress.
 		try {
+			@SuppressWarnings("unused")
 			final NetworkAddress nullAddr = new NetworkAddress(null);
 			fail("NetworkAddress allowed to instaniate with null ID, NullPointerException expected.");
 		} catch(NullPointerException e) {

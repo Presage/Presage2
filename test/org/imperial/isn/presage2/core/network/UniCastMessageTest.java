@@ -3,13 +3,10 @@
  */
 package org.imperial.isn.presage2.core.network;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import java.util.UUID;
-
-import org.imperial.isn.presage2.core.IntegerTime;
-import org.imperial.isn.presage2.core.Time;
-import org.imperial.isn.presage2.core.messaging.Performative;
 import org.junit.Test;
 
 /**

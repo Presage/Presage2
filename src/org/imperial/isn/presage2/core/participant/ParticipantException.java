@@ -17,6 +17,11 @@ import org.imperial.isn.presage2.core.Time;
 public abstract class ParticipantException extends Exception {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The UUID of the throwing participant.
 	 */
 	private UUID participantUUID;
