@@ -3,7 +3,6 @@
  */
 package org.imperial.isn.presage2.core.network;
 
-import java.util.UUID;
 
 /**
  * Object to pass parameters to the NetworkController

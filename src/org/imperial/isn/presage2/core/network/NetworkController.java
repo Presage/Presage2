@@ -136,7 +136,9 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	 */
 	protected void doBroadcast(BroadcastMessage m) {
 		for(NetworkAddress to : this.devices.keySet()) {
-			this.devices.get(to).deliverMessage(m);
+			// deliver to all but sender
+			if(m.getFrom() != to)
+				this.devices.get(to).deliverMessage(m);
 		}
 		this.logger.debug("Sent broadcast message: "+ m.toString());
 	}
@@ -149,7 +151,7 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	public void registerConnector(NetworkRegistrationRequest req) {
 		// defensive programming
 		if(req == null || req.getAddress() == null || req.getLink() == null) {
-				return; // TODO exception here
+				throw new NullPointerException("NetworkRegistrationRequest null or containing null parameters");
 		}
 
 		this.devices.put(req.getAddress(), req.getLink());
