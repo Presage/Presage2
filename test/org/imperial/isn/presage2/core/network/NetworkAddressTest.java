@@ -12,6 +12,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 /**
  * @author Sam Macbeth
  *
@@ -73,6 +76,25 @@ public class NetworkAddressTest {
 		final UUID id = new UUID(rand.nextLong(), rand.nextLong());
 		final NetworkAddress testAddr = new NetworkAddress(id);
 		assertNotSame(new String(""), testAddr.toString());
+	}
+	
+	/**
+	 * Test the guice generated NetworkAddressFactory
+	 */
+	@Test
+	public void testNetworkAddressFactory() {
+		// create injector
+		Injector injector = Guice.createInjector(new NetworkGuiceModule());
+		// create factory
+		NetworkAddressFactory factory = injector.getInstance(NetworkAddressFactory.class);
+		
+		// create UUID for address
+		final UUID id = new UUID(rand.nextLong(), rand.nextLong());
+		
+		// attempt to create address
+		final NetworkAddress generatedAddr = factory.create(id);
+		
+		assertEquals(id, generatedAddr.getId());
 	}
 
 }
