@@ -21,8 +21,8 @@ public class NetworkGuiceModule extends AbstractModule {
 		
 		bind(NetworkConnectorFactory.class).to(RealNetworkConnectorFactory.class);
 		
-		// we will bind to a basic NetworkAddress here via a FactoryProvider for the time being.
-		bind(NetworkAddressFactory.class).toProvider(FactoryProvider.newFactory(NetworkAddressFactory.class, NetworkAddress.class));
+		// we will bind to a basic NetworkAddress here via a FactoryModuleBuilder for the time being.
+		install(new FactoryModuleBuilder().build(NetworkAddressFactory.class));
 		
 	}
 
