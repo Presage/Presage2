@@ -33,9 +33,7 @@ abstract public class NetworkConnectorTest {
 	final Random rand = new Random();
 	
 	final Mockery context = new Mockery();
-	
-	final Logger logger = Logger.getLogger(NetworkConnector.class);
-	
+		
 	final Injector injector = Guice.createInjector(new NetworkGuiceModule());
 	
 	final NetworkChannel controller = context.mock(NetworkChannel.class);

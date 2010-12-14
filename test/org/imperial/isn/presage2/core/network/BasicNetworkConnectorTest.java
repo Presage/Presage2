@@ -12,7 +12,7 @@ public class BasicNetworkConnectorTest extends NetworkConnectorTest {
 
 	@Override
 	public void setUp() throws Exception {
-		this.testConnector = new BasicNetworkConnector(controller, logger, networkAddressFactory, addressUuid);
+		this.testConnector = new BasicNetworkConnector(controller, networkAddressFactory, addressUuid);
 	}
 	
 	@Test

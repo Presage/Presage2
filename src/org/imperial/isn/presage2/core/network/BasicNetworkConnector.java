@@ -23,12 +23,14 @@ import com.google.inject.Inject;
  */
 public class BasicNetworkConnector extends NetworkConnector {
 
+	final private Logger logger = Logger.getLogger(BasicNetworkConnector.class);
+	
 	protected List<Message> receivedMessages;
 	
 	@Inject
-	protected BasicNetworkConnector(NetworkChannel controller, Logger logger,
+	protected BasicNetworkConnector(NetworkChannel controller,
 			NetworkAddressFactory networkAddressFactory, UUID id) {
-		super(controller, logger, networkAddressFactory, id);
+		super(controller, networkAddressFactory, id);
 		receivedMessages = new LinkedList<Message>();
 	}
 
@@ -50,6 +52,8 @@ public class BasicNetworkConnector extends NetworkConnector {
 	 */
 	@Override
 	public void deliverMessage(Message m) {
+		if(logger.isDebugEnabled())
+			logger.debug("Received message: "+ m.toString());
 		this.receivedMessages.add(m);
 	}
 
@@ -58,6 +62,8 @@ public class BasicNetworkConnector extends NetworkConnector {
 	 */
 	@Override
 	public void sendMessage(Message m) {
+		if(logger.isDebugEnabled())
+			logger.debug("Sending message: "+ m.toString());
 		this.controller.deliverMessage(m);
 	}
 

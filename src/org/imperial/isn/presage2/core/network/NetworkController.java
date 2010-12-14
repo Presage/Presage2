@@ -22,7 +22,7 @@ import org.imperial.isn.presage2.core.TimeDriven;
  */
 public class NetworkController implements NetworkChannel, TimeDriven {
 
-	protected final Logger logger;
+	private final Logger logger = Logger.getLogger(NetworkController.class);
 	
 	protected Time time;
 	
@@ -40,9 +40,8 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param logger
 	 * @param time
 	 */
-	public NetworkController(Logger logger, Time time) {
+	public NetworkController(Time time) {
 		super();
-		this.logger = logger;
 		this.time = time;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
 		this.toDeliver = new LinkedList<Message>();
