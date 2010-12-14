@@ -74,7 +74,7 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	 * @see org.imperial.isn.presage2.core.network.NetworkChannel#deliverMessage(org.imperial.isn.presage2.core.network.Message)
 	 */
 	@Override
-	public void deliverMessage(Message m) {
+	synchronized public void deliverMessage(Message m) {
 		this.toDeliver.add(m);
 	}
 	
@@ -147,7 +147,7 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	 * @param req
 	 * @throws NetworkException
 	 */
-	public void registerConnector(NetworkRegistrationRequest req) {
+	synchronized public void registerConnector(NetworkRegistrationRequest req) {
 		// defensive programming
 		if(req == null || req.getAddress() == null || req.getLink() == null) {
 				throw new NullPointerException("NetworkRegistrationRequest null or containing null parameters");
