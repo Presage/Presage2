@@ -51,7 +51,7 @@ public class BasicNetworkConnector extends NetworkConnector {
 	 * @see org.imperial.isn.presage2.core.network.NetworkConnector#deliverMessage(org.imperial.isn.presage2.core.network.Message)
 	 */
 	@Override
-	public void deliverMessage(Message m) {
+	synchronized public void deliverMessage(Message m) {
 		if(logger.isDebugEnabled())
 			logger.debug("Received message: "+ m.toString());
 		this.receivedMessages.add(m);
