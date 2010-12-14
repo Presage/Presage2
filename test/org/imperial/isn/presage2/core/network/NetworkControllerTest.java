@@ -20,8 +20,6 @@ public class NetworkControllerTest {
 	// RNG
 	final Random rand = new Random();
 	
-	Logger logger = Logger.getLogger(NetworkController.class);
-	
 	Mockery context = new Mockery();
 	
 	// mocked time
@@ -59,7 +57,7 @@ public class NetworkControllerTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		testController = new NetworkController(logger, time);
+		testController = new NetworkController(time);
 		context.checking(new Expectations() {{
 			allowing(time).clone(); will(returnValue(time));
 		}});

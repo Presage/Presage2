@@ -20,7 +20,7 @@ import com.google.inject.assistedinject.Assisted;
 public abstract class NetworkConnector implements NetworkAdaptor,
 		NetworkChannel {
 
-	final protected Logger logger;
+	final private Logger logger = Logger.getLogger(NetworkConnector.class);
 	
 	final protected NetworkChannel controller;
 	
@@ -40,12 +40,10 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	 */
 	@Inject
 	protected NetworkConnector(NetworkChannel controller, 
-			Logger logger, 
 			NetworkAddressFactory networkAddressFactory, 
 			@Assisted UUID id) {
 		super();
 		this.controller = controller;
-		this.logger = logger;
 		this.parentID = id;
 		this.address = networkAddressFactory.create(parentID);
 	}
