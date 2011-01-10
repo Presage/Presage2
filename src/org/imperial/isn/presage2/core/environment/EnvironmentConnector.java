@@ -23,7 +23,7 @@ public interface EnvironmentConnector {
 	 * @param request
 	 * @return
 	 */
-	public EnvironmentRegistrationRespone register(EnvironmentRegistrationRequest request);
+	public EnvironmentRegistrationResponse register(EnvironmentRegistrationRequest request);
 	
 	/**
 	 * <p>Performs an action on the environment</p>

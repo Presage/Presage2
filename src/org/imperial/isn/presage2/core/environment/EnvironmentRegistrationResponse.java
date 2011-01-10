@@ -9,7 +9,7 @@ import java.util.UUID;
  * @author Sam Macbeth
  *
  */
-public class EnvironmentRegistrationRespone {
+public class EnvironmentRegistrationResponse {
 
 	private UUID authKey;
 }
