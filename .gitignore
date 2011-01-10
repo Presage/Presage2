@@ -1,2 +1,5 @@
 bin
 .settings
+.idea
+Presage2-core.iml
+out
