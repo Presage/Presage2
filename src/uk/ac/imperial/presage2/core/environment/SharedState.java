@@ -26,7 +26,7 @@ class SharedState<T> {
         this.value = value;
     }
 
-    public Class getValueType() {
+    public Class<? extends Object> getValueType() {
         return value.getClass();
     }
 
