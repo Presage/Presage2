@@ -14,7 +14,6 @@ public class SharedStateAccessException extends RuntimeException {
 	 */
 	public SharedStateAccessException() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -23,7 +22,6 @@ public class SharedStateAccessException extends RuntimeException {
 	 */
 	public SharedStateAccessException(String message, Throwable cause) {
 		super(message, cause);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -31,7 +29,6 @@ public class SharedStateAccessException extends RuntimeException {
 	 */
 	public SharedStateAccessException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -39,7 +36,6 @@ public class SharedStateAccessException extends RuntimeException {
 	 */
 	public SharedStateAccessException(Throwable cause) {
 		super(cause);
-		// TODO Auto-generated constructor stub
 	}
 	
 }
