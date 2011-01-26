@@ -10,7 +10,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+
 import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.network.NetworkController;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
 /**
@@ -22,6 +25,8 @@ import uk.ac.imperial.presage2.core.participant.Participant;
 public abstract class AbstractEnvironment implements EnvironmentConnector,
 		EnvironmentSharedStateAccess {
 
+	private final Logger logger = Logger.getLogger(AbstractEnvironment.class);
+	
 	/**
 	 * Map of Participants in the simulation
 	 */
@@ -60,9 +65,13 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		try {
 			participantUUID = request.getParticipant().getID();
 		} catch(NullPointerException e) {
+			this.logger.warn("Failed to register participant, invalid request.", e);
 			throw e;
 		}
 		// register participant
+		if(this.logger.isInfoEnabled()) {
+			this.logger.info("Registering participant "+ participantUUID +"");
+		}
 		registeredParticipants.put(participantUUID, request.getParticipant()); 
 		// generate authkey TODO Global RNG in here
 		synchronized(authkeys) {
@@ -84,6 +93,9 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		
 		// Create response
 		EnvironmentRegistrationResponse response = new EnvironmentRegistrationResponse(authkeys.get(participantUUID), services);
+		if(this.logger.isDebugEnabled()) {
+			this.logger.debug("Responding to environment registration request from "+participantUUID+" with "+services.size()+" services.");
+		}
 		
 		return response;
 	}
@@ -104,7 +116,9 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	public void act(Action action, UUID actor, UUID authkey) {
 		// verify authkey
 		if(authkeys.get(actor) != authkey) {
-			throw new InvalidAuthkeyException("Agent "+actor+" attempting to act with incorrect authkey!");
+			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "+actor+" attempting to act with incorrect authkey!");
+			this.logger.warn(e);
+			throw e;
 		}
 		// TODO Action processing
 	}
@@ -116,7 +130,12 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	@Override
 	public void deregister(UUID participantID, UUID authkey) {
 		if(authkeys.get(participantID) != authkey) {
-			throw new InvalidAuthkeyException("Agent "+participantID+" attempting to deregister with incorrect authkey!");
+			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "+participantID+" attempting to deregister with incorrect authkey!");
+			this.logger.warn(e);
+			throw e;
+		}
+		if(this.logger.isInfoEnabled()) {
+			this.logger.info("Deregistering participant "+ participantID +"");
 		}
 		registeredParticipants.remove(participantID);
 		synchronized(authkeys) {
@@ -132,8 +151,13 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	public SharedState<?> getGlobal(String name) {
 		SharedState<?> global = globalSharedState.get(name);
 		if(global == null) {
-			throw new SharedStateAccessException("Invalid global shared state access. State '"+name+"' does not exist!");
+			SharedStateAccessException e = new SharedStateAccessException("Invalid global shared state access. State '"+name+"' does not exist!");
+			this.logger.warn(e);
+			throw e;
 		} else {
+			if(this.logger.isDebugEnabled()) {
+				this.logger.debug("Returning global environment state '"+name+"'");
+			}
 			return global;
 		}
 	}
@@ -148,10 +172,17 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		try {
 			state = participantState.get(participantID).get(name);
 		} catch(NullPointerException e) {
-			throw new SharedStateAccessException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not exist", e);
+			SharedStateAccessException sse = new SharedStateAccessException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not exist", e);
+			this.logger.warn(sse);
+			throw sse;
 		}
 		if(state == null) {
-			throw new SharedStateAccessException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not have a state with this name");
+			SharedStateAccessException e = new SharedStateAccessException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not have a state with this name");
+			this.logger.warn(e);
+			throw e;
+		}
+		if(this.logger.isDebugEnabled()) {
+			this.logger.debug("Returning participant state '"+participantID+"."+name+"'");
 		}
 		return state;
 	}
