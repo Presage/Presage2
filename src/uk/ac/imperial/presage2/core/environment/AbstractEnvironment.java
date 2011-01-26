@@ -104,7 +104,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	public void act(Action action, UUID actor, UUID authkey) {
 		// verify authkey
 		if(authkeys.get(actor) != authkey) {
-			throw new RuntimeException("Agent "+actor+" attempting to act with incorrect authkey!"); // TODO strongly typed exception
+			throw new InvalidAuthkeyException("Agent "+actor+" attempting to act with incorrect authkey!");
 		}
 		// TODO Action processing
 	}
@@ -116,7 +116,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	@Override
 	public void deregister(UUID participantID, UUID authkey) {
 		if(authkeys.get(participantID) != authkey) {
-			throw new RuntimeException("Agent "+participantID+" attempting to act with incorrect authkey!"); // TODO strongly typed exception
+			throw new InvalidAuthkeyException("Agent "+participantID+" attempting to deregister with incorrect authkey!");
 		}
 		registeredParticipants.remove(participantID);
 		synchronized(authkeys) {
@@ -132,7 +132,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	public SharedState<?> getGlobal(String name) {
 		SharedState<?> global = globalSharedState.get(name);
 		if(global == null) {
-			throw new RuntimeException("Invalid global shared state access. State '"+name+"' does not exist!"); //TODO strongly type
+			throw new SharedStateAccessException("Invalid global shared state access. State '"+name+"' does not exist!");
 		} else {
 			return global;
 		}
@@ -148,10 +148,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		try {
 			state = participantState.get(participantID).get(name);
 		} catch(NullPointerException e) {
-			throw new RuntimeException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not exist", e); //TODO strongly type
+			throw new SharedStateAccessException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not exist", e);
 		}
 		if(state == null) {
-			throw new RuntimeException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not have a state with this name");
+			throw new SharedStateAccessException("Invalid shared state access: '"+participantID+"."+name+"'. Participant does not have a state with this name");
 		}
 		return state;
 	}
