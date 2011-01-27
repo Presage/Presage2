@@ -12,6 +12,11 @@ public class SharedStateAccessException extends RuntimeException {
 	/**
 	 * 
 	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	 */
 	public SharedStateAccessException() {
 		super();
 	}

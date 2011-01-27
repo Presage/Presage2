@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.After;
@@ -21,13 +20,6 @@ import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.messaging.Performative;
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.network.NetworkAddressFactory;
-import uk.ac.imperial.presage2.core.network.NetworkChannel;
-import uk.ac.imperial.presage2.core.network.NetworkConnector;
-import uk.ac.imperial.presage2.core.network.NetworkGuiceModule;
-import uk.ac.imperial.presage2.core.network.UnicastMessage;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;

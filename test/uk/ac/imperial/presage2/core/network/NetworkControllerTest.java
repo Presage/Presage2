@@ -6,7 +6,6 @@ import static org.junit.Assert.fail;
 import java.util.Random;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.After;
@@ -16,14 +15,6 @@ import org.junit.Test;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.messaging.Performative;
-import uk.ac.imperial.presage2.core.network.BroadcastMessage;
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.MulticastMessage;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.network.NetworkChannel;
-import uk.ac.imperial.presage2.core.network.NetworkController;
-import uk.ac.imperial.presage2.core.network.NetworkRegistrationRequest;
-import uk.ac.imperial.presage2.core.network.UnicastMessage;
 
 public class NetworkControllerTest {
 	

@@ -5,8 +5,6 @@ package uk.ac.imperial.presage2.core.network;
 
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
-
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
@@ -19,8 +17,6 @@ import com.google.inject.assistedinject.Assisted;
  */
 public abstract class NetworkConnector implements NetworkAdaptor,
 		NetworkChannel {
-
-	final private Logger logger = Logger.getLogger(NetworkConnector.class);
 	
 	final protected NetworkChannel controller;
 	

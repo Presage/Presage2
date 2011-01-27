@@ -9,6 +9,11 @@ package uk.ac.imperial.presage2.core.environment;
  */
 public class InvalidAuthkeyException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public InvalidAuthkeyException(String string) {
 		super(string);
 	}

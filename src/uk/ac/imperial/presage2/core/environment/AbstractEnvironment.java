@@ -5,7 +5,6 @@ package uk.ac.imperial.presage2.core.environment;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -13,7 +12,6 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Action;
-import uk.ac.imperial.presage2.core.network.NetworkController;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
 /**
