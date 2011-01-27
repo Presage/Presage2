@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 
 /**
  * <p>This is a central controller through which all messages go.</p>
@@ -34,16 +35,18 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	 */
 	protected Map<NetworkAddress, NetworkChannel> devices;
 	
-	// TODO when environment connectors are done.
-	//protected EnvironmentConnector environment;
+	/**
+	 * Access to environment shared state.
+	 */
+	protected EnvironmentSharedStateAccess environment;
 	
 	/**
-	 * @param logger
 	 * @param time
 	 */
-	public NetworkController(Time time) {
+	public NetworkController(Time time, EnvironmentSharedStateAccess environment) {
 		super();
 		this.time = time;
+		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
 		this.toDeliver = new LinkedList<Message>();
 	}

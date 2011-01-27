@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * This is the access layer to the shared state of the environment.
  */
-interface EnvironmentSharedStateAccess {
+public interface EnvironmentSharedStateAccess {
 
     public SharedState<?> getGlobal(String name);
 

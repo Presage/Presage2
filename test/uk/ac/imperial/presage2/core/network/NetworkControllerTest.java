@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.messaging.Performative;
 import uk.ac.imperial.presage2.core.network.BroadcastMessage;
 import uk.ac.imperial.presage2.core.network.Message;
@@ -59,14 +60,17 @@ public class NetworkControllerTest {
 	final NetworkRegistrationRequest regRequest3 = new NetworkRegistrationRequest(channel3Address, channel3);
 	final NetworkRegistrationRequest regRequest4 = new NetworkRegistrationRequest(channel4Address, channel4);
 	
+	// mock EnvironmentSharedStateAccess for NetworkController constructor
+	final EnvironmentSharedStateAccess env = context.mock(EnvironmentSharedStateAccess.class);
+	
 	/**
-	 * Creates a new NetworkController so we can guarentee it's state has been
+	 * Creates a new NetworkController so we can guarantee it's state has been
 	 * reset, and adds initial expectations.
 	 * @throws Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		testController = new NetworkController(time);
+		testController = new NetworkController(time, env);
 		context.checking(new Expectations() {{
 			allowing(time).clone(); will(returnValue(time));
 		}});
