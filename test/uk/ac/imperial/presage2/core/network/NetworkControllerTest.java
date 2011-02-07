@@ -3,7 +3,6 @@ package uk.ac.imperial.presage2.core.network;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.util.Random;
 import java.util.UUID;
 
 import org.jmock.Expectations;
@@ -15,11 +14,12 @@ import org.junit.Test;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.messaging.Performative;
+import uk.ac.imperial.presage2.core.util.random.Random;
 
 public class NetworkControllerTest {
 	
 	// RNG
-	final Random rand = new Random();
+	final Random rand = Random.getInstance();
 	
 	Mockery context = new Mockery();
 	

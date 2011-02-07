@@ -5,7 +5,6 @@ package uk.ac.imperial.presage2.core.network;
 
 import static org.junit.Assert.*;
 
-import java.util.Random;
 import java.util.UUID;
 
 import org.junit.After;
@@ -15,6 +14,7 @@ import org.junit.Test;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
 import uk.ac.imperial.presage2.core.network.NetworkAddressFactory;
 import uk.ac.imperial.presage2.core.network.NetworkGuiceModule;
+import uk.ac.imperial.presage2.core.util.random.Random;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -25,7 +25,7 @@ import com.google.inject.Injector;
  */
 public class NetworkAddressTest {
 
-	final private Random rand = new Random();
+	final private Random rand = Random.getInstance();
 	
 	/**
 	 * @throws java.lang.Exception

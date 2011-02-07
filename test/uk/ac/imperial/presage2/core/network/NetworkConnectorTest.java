@@ -9,7 +9,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import org.jmock.Expectations;
@@ -20,6 +19,7 @@ import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.messaging.Performative;
+import uk.ac.imperial.presage2.core.util.random.Random;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -30,7 +30,7 @@ import com.google.inject.Injector;
  */
 abstract public class NetworkConnectorTest {
 
-	final Random rand = new Random();
+	final Random rand = Random.getInstance();
 	
 	final Mockery context = new Mockery();
 		
