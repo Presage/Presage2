@@ -6,7 +6,6 @@ package uk.ac.imperial.presage2.core.environment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +16,7 @@ import org.apache.log4j.Logger;
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.core.util.random.Random;
 
 /**
  * Abstract implementation of an environment.
@@ -94,9 +94,9 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			this.logger.info("Registering participant "+ participantUUID +"");
 		}
 		registeredParticipants.put(participantUUID, request.getParticipant()); 
-		// generate authkey TODO Global RNG in here
+		// generate authkey
 		synchronized(authkeys) {
-			authkeys.put(participantUUID, new UUID(0, 0));
+			authkeys.put(participantUUID, Random.randomUUID());
 		}
 		// process shared state:
 		// We create a new Map to put shared state type -> object pairs
@@ -171,7 +171,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		if(canHandle.size() > 1) {
 			logger.warn("More than one ActionHandler.canhandle() returned true for " 
 					+ action.getClass().getCanonicalName() + " therefore I'm picking one at random.");
-			i = canHandle.get(0).handle(action, actor); // TODO random
+			i = canHandle.get(Random.randomInt(canHandle.size())).handle(action, actor);
 		} else {
 			i = canHandle.get(0).handle(action, actor);
 		}

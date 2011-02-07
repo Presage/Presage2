@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.util.Random;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -15,10 +14,11 @@ import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.messaging.Performative;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
+import uk.ac.imperial.presage2.core.util.random.Random;
 
 public abstract class MessageTest {
 
-	protected final Random rand = new Random();
+	protected final Random rand = Random.getInstance();
 	
 	protected Time lastTime;
 	
