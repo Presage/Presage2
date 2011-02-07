@@ -3,6 +3,8 @@
  */
 package uk.ac.imperial.presage2.core.environment;
 
+import java.util.UUID;
+
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.messaging.Input;
 
@@ -25,9 +27,9 @@ public interface ActionHandler {
 	/**
 	 * Handle the given action.
 	 * @param action action to handle
-	 * @param actorID actor performing this action
+	 * @param actor actor performing this action
 	 * @return May return a further Input to be returned to the actor, or null if not.
 	 */
-	public  Input handle(Action action, String actorID);
+	public Input handle(Action action, UUID actor);
 	
 }
