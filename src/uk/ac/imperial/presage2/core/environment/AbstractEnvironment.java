@@ -134,7 +134,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentConnector#act(uk.ac.imperial.presage2.core.Action, java.util.UUID, java.util.UUID)
 	 */
 	@Override
-	public void act(Action action, UUID actor, UUID authkey) {
+	public void act(Action action, UUID actor, UUID authkey) throws ActionHandlingException {
 		// verify authkey
 		if(authkeys.get(actor) != authkey) {
 			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "+actor+" attempting to act with incorrect authkey!");
@@ -144,7 +144,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		
 		// Action processing
 		if(actionHandlers.size() == 0) {
-			// TODO exception
+			ActionHandlingException e = new ActionHandlingException(this.getClass().getCanonicalName() 
+					+ " has no ActionHandlers cannot execute action request ");
+			logger.warn(e);
+			throw e;
 		}
 		
 		List<ActionHandler> canHandle = new ArrayList<ActionHandler>();
@@ -156,9 +159,14 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 		
 		if(canHandle.size() == 0) {
-			// TODO exception
+			ActionHandlingException e = new ActionHandlingException(this.getClass().getCanonicalName() 
+					+ " has no ActionHandlers which can handle " + action.getClass().getCanonicalName() 
+					+ " - cannot execute action request");
+			logger.warn(e);
+			throw e;
 		}
 		
+		// Handle the action and retrieve the resultant input (if there is one)
 		Input i;
 		if(canHandle.size() > 1) {
 			logger.warn("More than one ActionHandler.canhandle() returned true for " 
@@ -167,6 +175,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		} else {
 			i = canHandle.get(0).handle(action, actor);
 		}
+		// Give the input we got to the actor.
 		if(i != null) {
 			registeredParticipants.get(actor).enqueueInput(i);
 		}

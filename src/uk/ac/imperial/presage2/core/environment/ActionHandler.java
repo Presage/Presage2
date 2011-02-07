@@ -30,6 +30,6 @@ public interface ActionHandler {
 	 * @param actor actor performing this action
 	 * @return May return a further Input to be returned to the actor, or null if not.
 	 */
-	public Input handle(Action action, UUID actor);
+	public Input handle(Action action, UUID actor) throws ActionHandlingException;
 	
 }

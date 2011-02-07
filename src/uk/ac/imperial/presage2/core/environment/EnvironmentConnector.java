@@ -31,7 +31,7 @@ public interface EnvironmentConnector {
 	 * @param actor
 	 * @param authkey
 	 */
-	public void act(Action action, UUID actor, UUID authkey);
+	public void act(Action action, UUID actor, UUID authkey) throws ActionHandlingException;
 	
 	/**
 	 * <p>Deregisters a participant with the environment.</p>
