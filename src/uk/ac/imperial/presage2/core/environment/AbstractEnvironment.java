@@ -3,9 +3,11 @@
  */
 package uk.ac.imperial.presage2.core.environment;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +15,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
 /**
@@ -138,7 +141,35 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			this.logger.warn(e);
 			throw e;
 		}
-		// TODO Action processing
+		
+		// Action processing
+		if(actionHandlers.size() == 0) {
+			// TODO exception
+		}
+		
+		List<ActionHandler> canHandle = new ArrayList<ActionHandler>();
+		
+		for(ActionHandler h : actionHandlers) {
+			if(h.canHandle(action)) {
+				canHandle.add(h);
+			}
+		}
+		
+		if(canHandle.size() == 0) {
+			// TODO exception
+		}
+		
+		Input i;
+		if(canHandle.size() > 1) {
+			logger.warn("More than one ActionHandler.canhandle() returned true for " 
+					+ action.getClass().getCanonicalName() + " therefore I'm picking one at random.");
+			i = canHandle.get(0).handle(action, actor); // TODO random
+		} else {
+			i = canHandle.get(0).handle(action, actor);
+		}
+		if(i != null) {
+			registeredParticipants.get(actor).enqueueInput(i);
+		}
 	}
 
 	/**
