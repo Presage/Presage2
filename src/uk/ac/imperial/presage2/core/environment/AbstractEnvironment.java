@@ -3,8 +3,11 @@
  */
 package uk.ac.imperial.presage2.core.environment;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -12,6 +15,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
 /**
@@ -39,8 +43,18 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	
 	protected Map<UUID, Map<String, ParticipantSharedState<?>>> participantState;
 	
+	protected Set<ActionHandler> actionHandlers;
+	
 	/**
-	 * 
+	 * <p>Creates the Environment, initialising it ready for participants to register and act.</p>
+	 * <p>The following is initialised:</p>
+	 * <ul>
+	 * <li>Registered participants map</li>
+	 * <li>Global shared state</li>
+	 * <li>Participant shared state</li>
+	 * <li>Authkeys</li>
+	 * <li>Action handlers</li>
+	 * </ul>
 	 */
 	public AbstractEnvironment() {
 		super();
@@ -50,7 +64,16 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		participantState = Collections.synchronizedMap(new HashMap<UUID, Map<String, ParticipantSharedState<?>>>());
 		// for authkeys we don't synchronize, but we must remember to do so manually for insert/delete operations
 		authkeys = new HashMap<UUID, UUID>();
+		
+		actionHandlers = initialiseActionHandlers();
 	}
+	
+	/**
+	 * Initialise a set of {@link ActionHandler}s which the environment will use
+	 * to process {@link Action}s.
+	 * @return
+	 */
+	abstract protected Set<ActionHandler> initialiseActionHandlers();
 
 	/**
 	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentConnector#register(uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest)
@@ -111,14 +134,51 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentConnector#act(uk.ac.imperial.presage2.core.Action, java.util.UUID, java.util.UUID)
 	 */
 	@Override
-	public void act(Action action, UUID actor, UUID authkey) {
+	public void act(Action action, UUID actor, UUID authkey) throws ActionHandlingException {
 		// verify authkey
 		if(authkeys.get(actor) != authkey) {
 			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "+actor+" attempting to act with incorrect authkey!");
 			this.logger.warn(e);
 			throw e;
 		}
-		// TODO Action processing
+		
+		// Action processing
+		if(actionHandlers.size() == 0) {
+			ActionHandlingException e = new ActionHandlingException(this.getClass().getCanonicalName() 
+					+ " has no ActionHandlers cannot execute action request ");
+			logger.warn(e);
+			throw e;
+		}
+		
+		List<ActionHandler> canHandle = new ArrayList<ActionHandler>();
+		
+		for(ActionHandler h : actionHandlers) {
+			if(h.canHandle(action)) {
+				canHandle.add(h);
+			}
+		}
+		
+		if(canHandle.size() == 0) {
+			ActionHandlingException e = new ActionHandlingException(this.getClass().getCanonicalName() 
+					+ " has no ActionHandlers which can handle " + action.getClass().getCanonicalName() 
+					+ " - cannot execute action request");
+			logger.warn(e);
+			throw e;
+		}
+		
+		// Handle the action and retrieve the resultant input (if there is one)
+		Input i;
+		if(canHandle.size() > 1) {
+			logger.warn("More than one ActionHandler.canhandle() returned true for " 
+					+ action.getClass().getCanonicalName() + " therefore I'm picking one at random.");
+			i = canHandle.get(0).handle(action, actor); // TODO random
+		} else {
+			i = canHandle.get(0).handle(action, actor);
+		}
+		// Give the input we got to the actor.
+		if(i != null) {
+			registeredParticipants.get(actor).enqueueInput(i);
+		}
 	}
 
 	/**
