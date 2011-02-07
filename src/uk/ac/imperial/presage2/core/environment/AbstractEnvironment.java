@@ -5,6 +5,7 @@ package uk.ac.imperial.presage2.core.environment;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -39,8 +40,18 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	
 	protected Map<UUID, Map<String, ParticipantSharedState<?>>> participantState;
 	
+	protected Set<ActionHandler> actionHandlers;
+	
 	/**
-	 * 
+	 * <p>Creates the Environment, initialising it ready for participants to register and act.</p>
+	 * <p>The following is initialised:</p>
+	 * <ul>
+	 * <li>Registered participants map</li>
+	 * <li>Global shared state</li>
+	 * <li>Participant shared state</li>
+	 * <li>Authkeys</li>
+	 * <li>Action handlers</li>
+	 * </ul>
 	 */
 	public AbstractEnvironment() {
 		super();
@@ -50,7 +61,16 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		participantState = Collections.synchronizedMap(new HashMap<UUID, Map<String, ParticipantSharedState<?>>>());
 		// for authkeys we don't synchronize, but we must remember to do so manually for insert/delete operations
 		authkeys = new HashMap<UUID, UUID>();
+		
+		actionHandlers = initialiseActionHandlers();
 	}
+	
+	/**
+	 * Initialise a set of {@link ActionHandler}s which the environment will use
+	 * to process {@link Action}s.
+	 * @return
+	 */
+	abstract protected Set<ActionHandler> initialiseActionHandlers();
 
 	/**
 	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentConnector#register(uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest)
