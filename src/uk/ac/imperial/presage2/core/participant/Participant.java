@@ -3,6 +3,7 @@
  */
 package uk.ac.imperial.presage2.core.participant;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.Time;
@@ -57,6 +58,12 @@ public interface Participant extends TimeDriven {
 	 * @param input
 	 */
 	public void enqueueInput(Input input);
+	
+	/**
+	 * Adds multiple new inputs to be processed by this participant.
+	 * @param inputs
+	 */
+	public void enqueueInput(Collection<? extends Input> inputs);
 	
 	
 }
