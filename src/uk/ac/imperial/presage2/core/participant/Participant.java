@@ -3,6 +3,7 @@
  */
 package uk.ac.imperial.presage2.core.participant;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.Time;
@@ -44,26 +45,25 @@ public interface Participant extends TimeDriven {
 	 * Called by the simulator after creating your agent.
 	 * Allows you to initialise the agent before simulation cycle starts
 	 */
-	public void initialise() throws ParticipantInitialisationException;
-	
-	/**
-	 * Analogous to step. 
-	 * @see uk.ac.imperial.presage2.core.participant.Participant#step()
-	 */
-	@Deprecated
-	public void execute();
+	public void initialise();
 	
 	/**
 	 * Called once per simulation cycle. Gives the agent time to process
 	 * inputs, send message and perform actions.
 	 */
-	public void step() throws ParticipantRunTimeException;
+	public void execute();
 	
 	/**
 	 * Adds a new input to be processed by this participant.
 	 * @param input
 	 */
 	public void enqueueInput(Input input);
+	
+	/**
+	 * Adds multiple new inputs to be processed by this participant.
+	 * @param inputs
+	 */
+	public void enqueueInput(Collection<? extends Input> inputs);
 	
 	
 }
