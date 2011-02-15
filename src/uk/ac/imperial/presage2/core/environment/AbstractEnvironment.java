@@ -25,7 +25,7 @@ import uk.ac.imperial.presage2.core.util.random.Random;
  *
  */
 public abstract class AbstractEnvironment implements EnvironmentConnector,
-		EnvironmentSharedStateAccess {
+		EnvironmentSharedStateAccess, EnvironmentServiceProvider {
 
 	private final Logger logger = Logger.getLogger(AbstractEnvironment.class);
 	
