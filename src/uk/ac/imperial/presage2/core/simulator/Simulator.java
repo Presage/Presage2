@@ -4,18 +4,10 @@
 package uk.ac.imperial.presage2.core.simulator;
 
 import java.sql.Connection;
-import java.util.Set;
-
-import javax.jdo.PersistenceManager;
 
 import org.apache.log4j.Logger;
 
-import uk.ac.imperial.presage2.core.TimeDriven;
-import uk.ac.imperial.presage2.core.participant.Participant;
-import uk.ac.imperial.presage2.core.plugin.Plugin;
-
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * @author Sam Macbeth
