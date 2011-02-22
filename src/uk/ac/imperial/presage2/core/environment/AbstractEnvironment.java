@@ -89,6 +89,14 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			this.logger.warn("Failed to register participant, invalid request.", e);
 			throw e;
 		}
+		if(participantUUID == null && request.getParticipantID() != null) {
+			participantUUID = request.getParticipantID();
+			this.logger.warn("Participant.getID() returned null. Using UUID provided in request instead.");
+		} else if(participantUUID == null && request.getParticipantID() == null){
+			NullPointerException e = new NullPointerException("Null Participant UUID");
+			this.logger.warn("Failed to register participant, invalid request.", e);
+			throw e;
+		}
 		// register participant
 		if(this.logger.isInfoEnabled()) {
 			this.logger.info("Registering participant "+ participantUUID +"");
@@ -104,10 +112,16 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		// We then add our Map to the participantState Map referenced by the registerer's UUID.
 		HashMap<String, ParticipantSharedState<?>> stateMap = new HashMap<String, ParticipantSharedState<?>>();
 		Set<ParticipantSharedState<?>> pStates = request.getSharedState();
-		for(ParticipantSharedState<?> state : pStates) {
-			stateMap.put(state.getType(), state);
+		if(pStates != null) {
+			for(ParticipantSharedState<?> state : pStates) {
+				stateMap.put(state.getType(), state);
+			}
+			participantState.put(participantUUID, stateMap);
+		} else {
+			if(this.logger.isDebugEnabled()) {
+				this.logger.debug("Null shared state list in request.");
+			}
 		}
-		participantState.put(participantUUID, stateMap);
 		
 		// Generate EnvironmentServices we are providing in the response.
 		Set<EnvironmentService> services = generateServices(request.getParticipant());
@@ -136,9 +150,19 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	@Override
 	public void act(Action action, UUID actor, UUID authkey) throws ActionHandlingException {
 		// verify authkey
+		if(authkeys.get(actor) == null) {
+			UnregisteredParticipantException e = new UnregisteredParticipantException("Unregistered agent "+actor+" attempting to act");
+			this.logger.warn(e);
+			throw e;
+		}
 		if(authkeys.get(actor) != authkey) {
 			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "+actor+" attempting to act with incorrect authkey!");
 			this.logger.warn(e);
+			throw e;
+		}
+		if(action == null) {
+			ActionHandlingException e = new ActionHandlingException("Participant "+ authkey +" attempting to perform null action");
+			logger.warn(e);
 			throw e;
 		}
 		
@@ -187,7 +211,16 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 */
 	@Override
 	public void deregister(UUID participantID, UUID authkey) {
-		if(authkeys.get(participantID) != authkey) {
+		if(participantID == null) {
+			UnregisteredParticipantException e = new UnregisteredParticipantException("Attempted deregister with null participant ID");
+			this.logger.warn(e);
+			throw e;
+		}
+		if(authkeys.get(participantID) == null) {
+			UnregisteredParticipantException e = new UnregisteredParticipantException("Unregistered participant "+participantID+" attempting to deregister");
+			this.logger.warn(e);
+			throw e;
+		} else if(authkeys.get(participantID) != authkey) {
 			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "+participantID+" attempting to deregister with incorrect authkey!");
 			this.logger.warn(e);
 			throw e;
