@@ -50,7 +50,9 @@ public interface Participant extends TimeDriven {
 	/**
 	 * Called once per simulation cycle. Gives the agent time to process
 	 * inputs, send message and perform actions.
+	 * @deprecated Use {@link TimeDriven#incrementTime()} now.
 	 */
+	@Deprecated
 	public void execute();
 	
 	/**

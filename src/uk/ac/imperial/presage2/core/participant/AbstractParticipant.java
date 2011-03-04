@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
@@ -43,7 +44,7 @@ public abstract class AbstractParticipant implements Participant {
 	 * This Participant's authkey obtained when registering with
 	 * the environment.
 	 */
-	private UUID authkey;
+	protected UUID authkey;
 	
 	/**
 	 * Connector to the environment the participant is in.
@@ -100,11 +101,9 @@ public abstract class AbstractParticipant implements Participant {
 		return this.time;
 	}
 
-	/**
-	 * @see uk.ac.imperial.presage2.core.TimeDriven#incrementTime()
-	 */
 	@Override
 	public void incrementTime() {
+		this.execute();
 		this.getTime().increment();
 	}
 
@@ -188,8 +187,8 @@ public abstract class AbstractParticipant implements Participant {
 	}
 
 	/**
-	 * <p>This provides an example start to an agent's {@link Participant#execute()} method. You may
-	 * want to use this by using <code>super()</code> at the top of your implementation, or not use
+	 * <p>This provides an example start to an agent's {@link TimeDriven#incrementTime()} method. You may
+	 * want to use this by using <code>this.execute()</code> at the top of your implementation, or not use
 	 * it at all.</p>
 	 * <p>In this implementation we simply pull in any messages sent from the network, then process
 	 * our entire message queue. Obviously, in order for the agent to be anything more than purely reactive
