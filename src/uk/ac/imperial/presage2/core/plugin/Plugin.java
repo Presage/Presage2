@@ -13,6 +13,10 @@ public interface Plugin extends TimeDriven {
 
 	public void initialise();
 	
+	/**
+	 * @deprecated Use {@link TimeDriven#incrementTime()} now.
+	 */
+	@Deprecated
 	public void execute();
 	
 	public void onSimulationComplete();
