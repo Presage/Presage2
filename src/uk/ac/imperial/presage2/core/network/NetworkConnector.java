@@ -30,7 +30,6 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	 * as well injecting other required parameters. Do not override this unless you know
 	 * what you are doing!</p>
 	 * @param controller
-	 * @param logger
 	 * @param networkAddressFactory factory for creating this connector's network address.
 	 * @param id
 	 */
