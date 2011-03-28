@@ -21,19 +21,8 @@ public abstract class Simulator {
 	 */
 	protected Scenario scenario;
 	
-	/**
-	 * A database connection for the simulator to use.
-	 */
-	protected Connection db;
-	
 	@Inject
-	public Simulator(Connection db) {
-		this.db = db;
-	}
-	
-	@Inject
-	public Simulator(Connection db, Scenario scenario) {
-		this.db = db;
+	public Simulator(Scenario scenario) {
 		this.scenario = scenario;
 	}
 

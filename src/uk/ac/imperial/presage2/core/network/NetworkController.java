@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import org.apache.log4j.Logger;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
@@ -22,6 +25,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
  * @author Sam Macbeth
  *
  */
+@Singleton
 public class NetworkController implements NetworkChannel, TimeDriven {
 
 	private final Logger logger = Logger.getLogger(NetworkController.class);
@@ -43,6 +47,7 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	/**
 	 * @param time
 	 */
+	@Inject
 	public NetworkController(Time time, EnvironmentSharedStateAccess environment) {
 		super();
 		this.time = time;

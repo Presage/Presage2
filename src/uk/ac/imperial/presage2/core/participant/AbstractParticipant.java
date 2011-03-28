@@ -12,6 +12,9 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
@@ -73,7 +76,8 @@ public abstract class AbstractParticipant implements Participant {
 	 * @param network
 	 * @param time
 	 */
-	protected AbstractParticipant(UUID id, String name,
+	@Inject
+	protected AbstractParticipant(@Assisted UUID id, @Assisted String name,
 			EnvironmentConnector environment, NetworkAdaptor network, Time time) {
 		super();
 		this.id = id;

@@ -3,17 +3,24 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
+import java.io.File;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import javax.jdo.JDOHelper;
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+
 import org.apache.log4j.Logger;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
@@ -42,7 +49,7 @@ public class SimulatorModule extends AbstractModule {
 			 logger.fatal("Unable to retrieve simulation config properties from file config.properties", e);
 		}
 		
-		bind(Connection.class).toProvider(ConnectionProvider.class);
+		
 	}
 	
 	/**
@@ -58,44 +65,50 @@ public class SimulatorModule extends AbstractModule {
 		 return properties;
 	}
 	
-	private class ConnectionProvider implements Provider<Connection> {
-
-		private String connector;
-		private String url;
-		private String user;
-		private String password;
+	@Provides @JDO
+	protected Properties bindJDOProperties() {
+		Properties p = new Properties();
+		p.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
+		p.setProperty("javax.jdo.option.ConnectionURL",  "");
+		p.setProperty("javax.jdo.option.ConnectionDriverName", "");
+		p.setProperty("javax.jdo.option.ConnectionUserName", "");
+		p.setProperty("javax.jdo.option.ConnectionPassword", "");
+		return p;
+	}
+	
+	@Provides @ScenarioSource
+	Connection provideConnection(@Named("database.jdbcconnector") String connector,
+			@Named("database.url") String url,
+			@Named("database.username") String user,
+			@Named("database.password") String password) {
 		
-		@SuppressWarnings("unused")
-		@Inject
-		public ConnectionProvider(@Named("database.jdbcconnector") String connector,
-				@Named("database.url") String url,
-				@Named("database.username") String user,
-				@Named("database.password") String password) {
-			this.connector = connector;
-			this.url = url;
-			this.user = user;
-			this.password = password;
-		}
-		
-		@Override
-		public Connection get() {
 			try {
 				// init jdbc connector.
-				Class.forName(this.connector);
+				Class.forName(connector);
 				// create Properties for connection
 				Properties dbinfo = new Properties();
-				dbinfo.put("user", this.user);
-				dbinfo.put("password", this.password);
-				return DriverManager.getConnection(this.url, dbinfo);
+				dbinfo.put("user", user);
+				dbinfo.put("password", password);
+				return DriverManager.getConnection(url, dbinfo);
 			} catch(ClassNotFoundException e) {
-				logger.fatal("Could not load JDBC connector specified by: "+this.connector, e);
+				logger.fatal("Could not load JDBC connector specified by: "+connector, e);
 				return null;
 			} catch (SQLException e) {
 				logger.fatal("Could not connect to database.", e);
 				return null;
 			}
-		}
 
+	}
+	
+	@Provides @Singleton
+	PersistenceManagerFactory providePersistenceManagerFactory(@JDO Properties jdoProps) {
+		return JDOHelper.getPersistenceManagerFactory(jdoProps);
+	}
+	
+	@Provides
+	PersistenceManager providePersistence(PersistenceManagerFactory pmf) {
+		return pmf.getPersistenceManager();
+		
 	}
 
 }

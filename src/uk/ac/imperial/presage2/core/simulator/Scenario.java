@@ -5,6 +5,10 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
 
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
@@ -13,12 +17,17 @@ import uk.ac.imperial.presage2.core.plugin.Plugin;
  * @author Sam Macbeth
  *
  */
-public interface Scenario {
+@PersistenceCapable
+public abstract class Scenario {
+	
+	@PrimaryKey
+	@Persistent
+	protected int id;
 
-	public Set<Participant> getParticipants();
+	public abstract Set<Participant> getParticipants();
 	
-	public Set<TimeDriven> getTimeDriven();
+	public abstract Set<TimeDriven> getTimeDriven();
 	
-	public Set<Plugin> getPlugins();
+	public abstract Set<Plugin> getPlugins();
 	
 }

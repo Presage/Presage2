@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 /**
  * <p>Basic implementation of a network connector.</p>
@@ -28,8 +29,8 @@ public class BasicNetworkConnector extends NetworkConnector {
 	protected List<Message> receivedMessages;
 	
 	@Inject
-	protected BasicNetworkConnector(NetworkChannel controller,
-			NetworkAddressFactory networkAddressFactory, UUID id) {
+	protected BasicNetworkConnector(NetworkController controller,
+			NetworkAddressFactory networkAddressFactory, @Assisted UUID id) {
 		super(controller, networkAddressFactory, id);
 		receivedMessages = new LinkedList<Message>();
 	}

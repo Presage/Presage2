@@ -10,25 +10,10 @@
 			<attribute name="javadoc_location" value="http://logging.apache.org/log4j/1.2/apidocs/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/guice-3.0/guice-snapshot.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="http://google-guice.googlecode.com/svn/trunk/javadoc/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/guice-3.0/aopalliance.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="http://aopalliance.sourceforge.net/doc/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/guice-3.0/javax.inject.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="http://atinject.googlecode.com/svn/trunk/javadoc/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/guice-3.0/guice-assistedinject-snapshot.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="http://google-guice.googlecode.com/svn/trunk/javadoc/"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="lib" path="lib/datanucleus/jdo-api-3.1-SNAPSHOT.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Google Guice 3.0"/>
+	<classpathentry kind="lib" path="/home/sm1106/Dropbox/Work/Eclipse/lib/datanucleus-accessplatform-full-deps-3.0.0-m1/lib/datanucleus-enhancer-3.0.0-m1.jar"/>
+	<classpathentry kind="lib" path="/home/sm1106/Dropbox/Work/Eclipse/lib/datanucleus-accessplatform-full-deps-3.0.0-m1/lib/datanucleus-core-3.0.0-m1.jar"/>
+	<classpathentry kind="lib" path="/home/sm1106/Dropbox/Work/Eclipse/lib/datanucleus-accessplatform-full-deps-3.0.0-m1/deps/asm-3.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
