@@ -29,7 +29,7 @@ public class BasicNetworkConnector extends NetworkConnector {
 	protected List<Message> receivedMessages;
 	
 	@Inject
-	protected BasicNetworkConnector(NetworkController controller,
+	protected BasicNetworkConnector(NetworkChannel controller,
 			NetworkAddressFactory networkAddressFactory, @Assisted UUID id) {
 		super(controller, networkAddressFactory, id);
 		receivedMessages = new LinkedList<Message>();

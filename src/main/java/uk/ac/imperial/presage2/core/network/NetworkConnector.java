@@ -34,14 +34,14 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	 * @param id
 	 */
 	@Inject
-	protected NetworkConnector(NetworkController controller, 
+	protected NetworkConnector(NetworkChannel controller, 
 			NetworkAddressFactory networkAddressFactory, 
 			@Assisted UUID id) {
 		super();
 		this.controller = controller;
 		this.parentID = id;
 		this.address = networkAddressFactory.create(parentID);
-		controller.registerConnector(new NetworkRegistrationRequest(address, this));
+		//controller.registerConnector(new NetworkRegistrationRequest(address, this));
 	}
 
 	/**
