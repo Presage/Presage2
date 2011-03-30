@@ -5,27 +5,23 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 
+import com.google.inject.Inject;
+
 /**
  * 
- * Instance of a Scenario where elements are injected via
- * Guice.
+ * <p>Instance of a {@link Scenario} where elements are injected via
+ * Guice using a {@link ScenarioModule}.</p>
+ * 
+ * 
  * 
  * @author Sam Macbeth
  *
  */
-public class InjectedScenario extends Scenario {
+public class InjectedScenario implements Scenario {
 	
 	final private Set<Participant> participants;
 	
@@ -41,8 +37,6 @@ public class InjectedScenario extends Scenario {
 	@Inject
 	protected InjectedScenario(Set<Participant> participants, Set<Plugin> plugins,
 			Set<TimeDriven> timedriven) {
-		super();
-		this.id = 1;
 		this.participants = participants;
 		this.plugins = plugins;
 		this.timedriven = timedriven;

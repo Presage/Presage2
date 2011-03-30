@@ -27,10 +27,6 @@ import com.google.inject.name.Names;
 /**
  * <p>Global simulator level guice bindings</p>
  * 
- * <p>Currently these are:
- * 	<ul><li>Database connection (via config.properties)</li></ul>
- * </p>
- * 
  * 
  * @author Sam Macbeth
  *
@@ -42,12 +38,12 @@ public class SimulatorModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		// get properties for database binding
-		try {
+		/*try {
 			Properties props = loadProperties();
 			Names.bindProperties(binder(), props);
 		} catch (Exception e) {
 			 logger.fatal("Unable to retrieve simulation config properties from file config.properties", e);
-		}
+		}*/
 		
 		
 	}
@@ -74,30 +70,6 @@ public class SimulatorModule extends AbstractModule {
 		p.setProperty("javax.jdo.option.ConnectionUserName", "");
 		p.setProperty("javax.jdo.option.ConnectionPassword", "");
 		return p;
-	}
-	
-	@Provides @ScenarioSource
-	Connection provideConnection(@Named("database.jdbcconnector") String connector,
-			@Named("database.url") String url,
-			@Named("database.username") String user,
-			@Named("database.password") String password) {
-		
-			try {
-				// init jdbc connector.
-				Class.forName(connector);
-				// create Properties for connection
-				Properties dbinfo = new Properties();
-				dbinfo.put("user", user);
-				dbinfo.put("password", password);
-				return DriverManager.getConnection(url, dbinfo);
-			} catch(ClassNotFoundException e) {
-				logger.fatal("Could not load JDBC connector specified by: "+connector, e);
-				return null;
-			} catch (SQLException e) {
-				logger.fatal("Could not connect to database.", e);
-				return null;
-			}
-
 	}
 	
 	@Provides @Singleton

@@ -5,29 +5,27 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-import javax.jdo.annotations.PrimaryKey;
-
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 
 /**
+ * 
+ * <p>A Scenario describes the runtime components of a simulation which the
+ * simulator must interact with. These comprise of the {@link Participant}s of the
+ * system, the other {@link TimeDriven} elements, and the {@link Plugin}s. The Scenario
+ * will likely have to construct other elements which the above require such as network
+ * components and the environment.</p>
+ * 
  * @author Sam Macbeth
  *
  */
-@PersistenceCapable
-public abstract class Scenario {
-	
-	@PrimaryKey
-	@Persistent
-	protected int id;
+public interface Scenario {
 
-	public abstract Set<Participant> getParticipants();
+	public Set<Participant> getParticipants();
 	
-	public abstract Set<TimeDriven> getTimeDriven();
+	public Set<TimeDriven> getTimeDriven();
 	
-	public abstract Set<Plugin> getPlugins();
+	public Set<Plugin> getPlugins();
 	
 }
