@@ -4,7 +4,7 @@
 
   <groupId>uk.ac.imperial.presage2</groupId>
   <artifactId>presage2-core</artifactId>
-  <version>0.1.x</version>
+  <version>0.1.x-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>presage2-core</name>
@@ -65,40 +65,10 @@
       <scope>compile</scope>
     </dependency>
     
-    <dependency>
-      <groupId>javax.jdo</groupId>
-      <artifactId>jdo-api</artifactId>
-      <version>3.0</version>
-      <scope>compile</scope>
-    </dependency>
     
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-core</artifactId>
-      <version>3.0.0-m2</version>
-      <scope>compile</scope>
-    </dependency>
     
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-jdo</artifactId>
-      <version>3.0.0-m2</version>
-      <scope>compile</scope>
-    </dependency>
     
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-rdbms</artifactId>
-      <version>3.0.0-m2</version>
-      <scope>compile</scope>
-    </dependency>
     
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-enhancer</artifactId>
-      <version>3.0.0-m2</version>
-      <scope>compile</scope>
-    </dependency>
     
   </dependencies>
   
