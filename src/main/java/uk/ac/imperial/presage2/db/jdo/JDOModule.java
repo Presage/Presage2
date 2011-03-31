@@ -3,6 +3,7 @@
  */
 package uk.ac.imperial.presage2.db.jdo;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
@@ -12,6 +13,8 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 
 import org.apache.log4j.Logger;
+
+import uk.ac.imperial.presage2.db.DatabaseService;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -33,54 +36,43 @@ public class JDOModule extends AbstractModule {
 		public static String PASSWORD = "";
 	}
 	
+	protected Properties jdoProps = new Properties();
+	
 	@Override
 	protected void configure() {
-		// Our bindings are done through providers so we don't need anything here.
-	}
-	
-	@SuppressWarnings("unused")
-	@Provides @JDO
-	private static Properties loadProperties() {
-		 Properties properties = new Properties();
-		 ClassLoader loader = JDOModule.class.getClassLoader();
+		ClassLoader loader = JDOModule.class.getClassLoader();
 		 try {
 			 // look for defined jdo properties
 			 URL url = loader.getResource("jdo.properties");
-			 properties.load(url.openStream());
+			 jdoProps.load(url.openStream());
 			 logger.info("Using custom JDO properties from jdo.properties.");
-			 return properties;
+			 bind(DatabaseService.class).to(JDODatabaseService.class);
+			 bind(PersistenceManager.class).toProvider(JDODatabaseService.class);
 		 } catch(NullPointerException e) {
 			 // if no properties found, use defaults
 			 logger.info("Using default JDO properties (mysql Connector/MXJ)");
-			 return defaultJDOProperties();
+			 useMXJ();
 		 } catch(IOException e) {
 			 logger.info("Error loading custom JDO properties from jdo.properties, using defaults.");
-			 return defaultJDOProperties();
+			 useMXJ();
 		 }
+		 bind(Properties.class).annotatedWith(JDO.class).toInstance(jdoProps);
 	}
 	
-	protected static Properties defaultJDOProperties() {
-		Properties p = new Properties();
-		p.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
-		p.setProperty("javax.jdo.option.ConnectionURL", "jdbc:mysql:mxj://localhost"
+	protected void useMXJ() {
+		bind(DatabaseService.class).to(MxjJDODatabaseService.class);
+		bind(PersistenceManager.class).toProvider(MxjJDODatabaseService.class);
+		bind(File.class).annotatedWith(MXJDataDir.class).toInstance(new File(MXJ_DEFAULTS.DIR));
+		
+		jdoProps.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
+		jdoProps.setProperty("javax.jdo.option.ConnectionURL", "jdbc:mysql:mxj://localhost"
 			    +"/"+ MXJ_DEFAULTS.DBNAME 
 				+"?"+ "server.basedir=" + MXJ_DEFAULTS.DIR
 				+ "&" + "createDatabaseIfNotExist=true"
 				);
-		p.setProperty("javax.jdo.option.ConnectionDriverName", "com.mysql.jdbc.Driver");
-		p.setProperty("javax.jdo.option.ConnectionUserName", MXJ_DEFAULTS.USERNAME);
-		p.setProperty("javax.jdo.option.ConnectionPassword", MXJ_DEFAULTS.PASSWORD);
-		return p;
-	}
-	
-	@Provides @Singleton
-	PersistenceManagerFactory providePersistenceManagerFactory(@JDO Properties jdoProps) {
-		return JDOHelper.getPersistenceManagerFactory(jdoProps);
-	}
-	
-	@Provides
-	PersistenceManager providePersistence(PersistenceManagerFactory pmf) {
-		return pmf.getPersistenceManager();
+		jdoProps.setProperty("javax.jdo.option.ConnectionDriverName", "com.mysql.jdbc.Driver");
+		jdoProps.setProperty("javax.jdo.option.ConnectionUserName", MXJ_DEFAULTS.USERNAME);
+		jdoProps.setProperty("javax.jdo.option.ConnectionPassword", MXJ_DEFAULTS.PASSWORD);
 		
 	}
 

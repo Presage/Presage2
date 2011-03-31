@@ -75,7 +75,6 @@
   		<scope>compile</scope>
   		<optional>false</optional>
   	</dependency>
-  	
   	<dependency>
   		<groupId>log4j</groupId>
   		<artifactId>log4j</artifactId>
@@ -83,12 +82,11 @@
   		<scope>compile</scope>
   		<optional>false</optional>
   	</dependency>
-  	
   	<dependency>
   		<groupId>mysql</groupId>
   		<artifactId>mysql-connector-java</artifactId>
   		<version>5.1.15</version>
-  		<scope>compile</scope>
+  		<scope>runtime</scope>
   		<optional>false</optional>
   	</dependency>
   	<dependency>
