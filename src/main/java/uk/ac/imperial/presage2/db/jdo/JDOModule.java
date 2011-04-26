@@ -1,6 +1,3 @@
-/**
- * 
- */
 package uk.ac.imperial.presage2.db.jdo;
 
 import java.io.File;
@@ -10,17 +7,22 @@ import java.util.Properties;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
-import javax.jdo.PersistenceManagerFactory;
 
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.db.DatabaseService;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 
 /**
+ * <p>A Guice module which provides guice bindings for JDO entities.</p>
+ * 
+ * <p>By default we look for the file <code>jdo.properties</code> in the current
+ * classpath to provide the {@link Properties} to be passed to {@link JDOHelper#getPersistenceManagerFactory(java.util.Map)}
+ * (in {@link JDODatabaseService}). Otherwise we provide bindings to use an embedded
+ * MYSQL server using the Connector/MXJ driver which is creating in a 'db' folder in the
+ * current working directory.</p>
+ * 
  * @author sm1106
  *
  */
