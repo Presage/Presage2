@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <name>presage2-db</name>
-  <url>http://maven.apache.org</url>
+  <url></url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,7 +22,7 @@
   	<dependency>
   		<groupId>junit</groupId>
   		<artifactId>junit</artifactId>
-  		<version>3.8.1</version>
+  		<version>4.8.2</version>
   		<type>jar</type>
   		<scope>test</scope>
   		<optional>false</optional>
@@ -111,11 +111,48 @@
       </plugin>
       
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <docletArtifact>
+            <groupId>com.google.doclava</groupId>
+            <artifactId>doclava</artifactId>
+            <version>1.0.3</version>
+          </docletArtifact>
+          <doclet>com.google.doclava.Doclava</doclet>
+          <!--
+            | bootclasspath required by Sun's JVM 
+          -->
+          <bootclasspath>${sun.boot.class.path}</bootclasspath>
+          <additionalparam>
+             -federate JDK http://download.oracle.com/javase/6/docs/api/index.html?
+             -federationxml JDK http://doclava.googlecode.com/svn/static/api/openjdk-6.xml
+             -federate "Google Guice" http://google-guice.googlecode.com/svn/trunk/javadoc
+             -d ${project.build.directory}/site/apidocs
+             -title Presage2-db
+           </additionalparam>
+          <useStandardDocletOptions>false</useStandardDocletOptions>
+          <!--
+            | Apple's JVM sometimes requires more memory
+          -->
+          <additionalJOption>-J-Xmx1024m</additionalJOption>
+        </configuration>
+      </plugin>
+      
+      <plugin>
         <groupId>com.mycila.maven-license-plugin</groupId>
         <artifactId>maven-license-plugin</artifactId>
         <configuration>
            <header>header.txt</header>
         </configuration>
+        <executions>
+        	<execution>
+            	<goals>
+                	<goal>check</goal>
+                </goals>
+            </execution>
+        </executions>
       </plugin>
    </plugins>
   </build>
