@@ -146,13 +146,13 @@
         <configuration>
            <header>header.txt</header>
         </configuration>
-        <executions>
+        <!--<executions>
         	<execution>
             	<goals>
                 	<goal>check</goal>
                 </goals>
             </execution>
-        </executions>
+        </executions>-->
       </plugin>
    </plugins>
   </build>
