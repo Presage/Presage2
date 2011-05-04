@@ -1,0 +1,81 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>uk.ac.imperial.presage2</groupId>
+  <artifactId>presage2</artifactId>
+  <version>0.1.x-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  
+  <name>Presage2</name>
+  
+  <modules>
+    <module>core</module>
+    <module>db</module>
+  </modules>
+  
+  <url>http://github.com/sammacbeth/Presage</url>
+  <issueManagement>
+  	<system>The Lighthouse</system>
+  	<url>http://sammacbeth.lighthouseapp.com/projects/65108-presage2/overview</url>
+  </issueManagement>
+  <inceptionYear>2010</inceptionYear>
+  <developers>
+  	<developer>
+  		<id>sam</id>
+  		<name>Sam Macbeth</name>
+  		<email>sm1106@imperial.ac.uk</email>
+  		<organization>Imperial College London</organization>
+  		<timezone>(GMT) Greenwich Mean Time: Dublin, Edinburgh, Lisbon, London</timezone>
+  		<roles>
+  			<role>architect</role>
+  			<role>developer</role>
+  		</roles>
+  	</developer>
+  </developers>
+  <licenses>
+  	<license>
+  		<name>LGPL</name>
+  		<url>http://www.gnu.org/licenses/lgpl-3.0-standalone.html</url>
+  	</license>
+  </licenses>
+  <scm>
+  	<connection>scm:git:git://github.com/sammacbeth/Presage.git</connection>
+  	<tag>master</tag>
+  	<url>http://github.com/sammacbeth/Presage</url>
+  </scm>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <docletArtifact>
+            <groupId>com.google.doclava</groupId>
+            <artifactId>doclava</artifactId>
+            <version>1.0.3</version>
+          </docletArtifact>
+          <doclet>com.google.doclava.Doclava</doclet>
+          <!--
+            | bootclasspath required by Sun's JVM 
+          -->
+          <bootclasspath>${sun.boot.class.path}</bootclasspath>
+          <additionalparam>
+             -federate JDK http://download.oracle.com/javase/6/docs/api/index.html?
+             -federationxml JDK http://doclava.googlecode.com/svn/static/api/openjdk-6.xml
+             -federate "Google Guice" http://google-guice.googlecode.com/svn/trunk/javadoc
+             -d ${project.build.directory}/site/apidocs
+             -title Presage2
+           </additionalparam>
+          <useStandardDocletOptions>false</useStandardDocletOptions>
+          <!--
+            | Apple's JVM sometimes requires more memory
+          -->
+          <additionalJOption>-J-Xmx1024m</additionalJOption>
+        </configuration>
+      </plugin>
+    </plugins>    
+  </build>  
+</project>
+
