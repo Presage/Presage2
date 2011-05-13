@@ -42,7 +42,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
  *
  */
 @Singleton
-public class NetworkController implements NetworkChannel, TimeDriven {
+public class NetworkController implements NetworkChannel, TimeDriven, RequiresRegistration {
 
 	private final Logger logger = Logger.getLogger(NetworkController.class);
 	
@@ -170,9 +170,10 @@ public class NetworkController implements NetworkChannel, TimeDriven {
 	/**
 	 * Register a network device with this NetworkController
 	 * @param req
-	 * @throws NetworkException
+	 * @throws NetworkException If the request is null, or one of the
+	 * 		request's parameters is null (Address or link).
 	 */
-	synchronized public void registerConnector(NetworkRegistrationRequest req) {
+	synchronized public void register(NetworkRegistrationRequest req) {
 		// defensive programming
 		if(req == null || req.getAddress() == null || req.getLink() == null) {
 				throw new NullPointerException("NetworkRegistrationRequest null or containing null parameters");

@@ -57,7 +57,11 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 		this.controller = controller;
 		this.parentID = id;
 		this.address = networkAddressFactory.create(parentID);
-		//controller.registerConnector(new NetworkRegistrationRequest(address, this));
+		// check if we need to register.
+		if(controller instanceof RequiresRegistration) {
+			((RequiresRegistration) controller).register(new NetworkRegistrationRequest(address, this));
+		}
+		
 	}
 
 	/**

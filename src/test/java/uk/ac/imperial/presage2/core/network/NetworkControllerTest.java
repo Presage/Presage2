@@ -138,7 +138,7 @@ public class NetworkControllerTest {
 			one(channel1).deliverMessage(deliveredMessage);
 		}});
 		// test if we can send a message to this address
-		testController.registerConnector(regRequest1);
+		testController.register(regRequest1);
 		testController.deliverMessage(deliveredMessage);
 		testController.incrementTime();
 		
@@ -157,7 +157,7 @@ public class NetworkControllerTest {
 		// test if we can send a message to this address
 		testController.deliverMessage(undeliveredMessage);
 		testController.incrementTime();
-		testController.registerConnector(regRequest2);
+		testController.register(regRequest2);
 		testController.incrementTime();
 		
 		context.assertIsSatisfied();
@@ -172,7 +172,7 @@ public class NetworkControllerTest {
 			never(time).increment();
 			never(channel2).deliverMessage(undeliveredMessage);
 		}});
-		testController.registerConnector(regRequest2);
+		testController.register(regRequest2);
 		testController.deliverMessage(undeliveredMessage);
 		
 		context.assertIsSatisfied();
@@ -193,9 +193,9 @@ public class NetworkControllerTest {
 			never(channel3).deliverMessage(message);
 		}});
 		
-		testController.registerConnector(regRequest1);
-		testController.registerConnector(regRequest2);
-		testController.registerConnector(regRequest3);
+		testController.register(regRequest1);
+		testController.register(regRequest2);
+		testController.register(regRequest3);
 		testController.deliverMessage(message);
 		testController.incrementTime();
 		
@@ -220,10 +220,10 @@ public class NetworkControllerTest {
 			never(channel4).deliverMessage(message);
 		}});
 		
-		testController.registerConnector(regRequest1);
-		testController.registerConnector(regRequest2);
-		testController.registerConnector(regRequest3);
-		testController.registerConnector(regRequest4);
+		testController.register(regRequest1);
+		testController.register(regRequest2);
+		testController.register(regRequest3);
+		testController.register(regRequest4);
 		testController.deliverMessage(message);
 		testController.incrementTime();
 		
@@ -245,9 +245,9 @@ public class NetworkControllerTest {
 			one(channel3).deliverMessage(message);
 		}});
 		
-		testController.registerConnector(regRequest1);
-		testController.registerConnector(regRequest2);
-		testController.registerConnector(regRequest3);
+		testController.register(regRequest1);
+		testController.register(regRequest2);
+		testController.register(regRequest3);
 		testController.deliverMessage(message);
 		testController.incrementTime();
 		
@@ -255,37 +255,37 @@ public class NetworkControllerTest {
 	}
 	
 	@Test
-	public void testRegisterConnectorFailure() {
+	public void testRegisterFailure() {
 		
 		try {
-			testController.registerConnector(null);
-			fail("NetworkController.registerConnector() should throw an exception when argument is null");
+			testController.register(null);
+			fail("NetworkController.register() should throw an exception when argument is null");
 		} catch(RuntimeException e) {	}
 		
 		// test reg request with null args
 		NetworkRegistrationRequest regRequest = new NetworkRegistrationRequest(null, null);
 		try {
-			testController.registerConnector(regRequest);
-			fail("NetworkController.registerConnector() should throw an exception when request has null args");
+			testController.register(regRequest);
+			fail("NetworkController.register() should throw an exception when request has null args");
 		} catch(RuntimeException e) {	}
 		
 		// test reg request with null id
 		regRequest = new NetworkRegistrationRequest(null, channel1);
 		try {
-			testController.registerConnector(regRequest);
-			fail("NetworkController.registerConnector() should throw an exception when request has null args");
+			testController.register(regRequest);
+			fail("NetworkController.register() should throw an exception when request has null args");
 		} catch(RuntimeException e) {	}
 		
 		// test reg request with null channel
 		regRequest = new NetworkRegistrationRequest(channel1Address, null);
 		try {
-			testController.registerConnector(regRequest);
-			fail("NetworkController.registerConnector() should throw an exception when request has null args");
+			testController.register(regRequest);
+			fail("NetworkController.register() should throw an exception when request has null args");
 		} catch(RuntimeException e) {	}
 		
 		// valid reg request
 		regRequest = new NetworkRegistrationRequest(channel1Address, channel1);
-		testController.registerConnector(regRequest);
+		testController.register(regRequest);
 	}
 	
 	/**
@@ -296,8 +296,8 @@ public class NetworkControllerTest {
 	public void testMulticastToOneUnreachable() {
 		
 		// register connectors
-		testController.registerConnector(regRequest1);
-		testController.registerConnector(regRequest2);
+		testController.register(regRequest1);
+		testController.register(regRequest2);
 		
 		// build multicast message
 		final MulticastMessage message = new MulticastMessage(Performative.ACCEPT_PROPOSAL, channel1Address, time);
@@ -324,8 +324,8 @@ public class NetworkControllerTest {
 	@Test
 	public void testMulticastToMultipleUnreachable() {
 		// register connectors
-		testController.registerConnector(regRequest1);
-		testController.registerConnector(regRequest2);
+		testController.register(regRequest1);
+		testController.register(regRequest2);
 		
 		// build multicast message
 		final MulticastMessage message = new MulticastMessage(Performative.ACCEPT_PROPOSAL, channel1Address, time);
@@ -354,8 +354,8 @@ public class NetworkControllerTest {
 	@Test
 	public void testMulticastUnreachableDoesNotBlockValid() {
 		// register connectors
-		testController.registerConnector(regRequest1);
-		testController.registerConnector(regRequest2);
+		testController.register(regRequest1);
+		testController.register(regRequest2);
 		
 		// build multicast message
 		final MulticastMessage message = new MulticastMessage(Performative.ACCEPT_PROPOSAL, channel1Address, time);
