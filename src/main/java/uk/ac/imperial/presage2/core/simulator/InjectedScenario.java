@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
@@ -45,6 +46,8 @@ public class InjectedScenario implements Scenario {
 	
 	final private Set<TimeDriven> timedriven;
 	
+	final private Time finishTime;
+	
 	/**
 	 * @param participants
 	 * @param plugins
@@ -52,10 +55,11 @@ public class InjectedScenario implements Scenario {
 	 */
 	@Inject
 	protected InjectedScenario(Set<Participant> participants, Set<Plugin> plugins,
-			Set<TimeDriven> timedriven) {
+			Set<TimeDriven> timedriven, @FinishTime Time finish) {
 		this.participants = participants;
 		this.plugins = plugins;
 		this.timedriven = timedriven;
+		this.finishTime = finish;
 	}
 
 	@Override
@@ -65,14 +69,18 @@ public class InjectedScenario implements Scenario {
 
 	@Override
 	public Set<TimeDriven> getTimeDriven() {
-		// TODO Auto-generated method stub
 		return timedriven;
 	}
 
 	@Override
 	public Set<Plugin> getPlugins() {
-		// TODO Auto-generated method stub
 		return plugins;
 	}
+
+	@Override
+	public Time getFinishTime() {
+		return finishTime;
+	}
+	
 
 }

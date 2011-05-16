@@ -16,40 +16,17 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package uk.ac.imperial.presage2.core.simulator;
-
-import com.google.inject.Inject;
 
 /**
  * @author Sam Macbeth
  *
  */
-public abstract class Simulator {
+public class SingleThreadedSimulatorTest extends SimulatorTest {
 
-	/**
-	 * The Scenario to simulate
-	 */
-	protected Scenario scenario;
-	
-	@Inject
-	public Simulator(Scenario scenario) {
-		this.scenario = scenario;
+	@Override
+	public void setUp() throws Exception {
+		this.simulatorUnderTest = new SingleThreadedSimulator(scenario, time);
 	}
 
-	/**
-	 * Initialise simulation components.
-	 */
-	public abstract void initialise();
-	
-	/**
-	 * Run the core simulation
-	 */
-	public abstract void run();
-	
-	/**
-	 * Complete post simulation actions and tidy up.
-	 */
-	public abstract void complete();
-	
 }

@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
@@ -43,5 +44,11 @@ public interface Scenario {
 	public Set<TimeDriven> getTimeDriven();
 	
 	public Set<Plugin> getPlugins();
+	
+	/**
+	 * Get the time at which the simulation should finish
+	 * @return {@link Time} representing the last time step of the simulation
+	 */
+	public Time getFinishTime();
 	
 }
