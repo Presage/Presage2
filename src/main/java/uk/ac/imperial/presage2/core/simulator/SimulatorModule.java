@@ -40,6 +40,7 @@ public class SimulatorModule extends AbstractModule {
 	
 	@Override
 	protected void configure() {
+		// This section loads JDO support if the correct module is on the classpath.
 		try {
 			Module dbModule = (Module) Class.forName("uk.ac.imperial.presage2.db.jdo.JDOModule").newInstance();
 			logger.info("Found JDO storage module, loading JDO support.");
