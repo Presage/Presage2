@@ -18,15 +18,12 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import static org.junit.Assert.*;
-
 import java.util.HashSet;
 import java.util.Set;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
-import org.jmock.lib.action.ReturnValueAction;
 import org.junit.Before;
 import org.junit.Test;
 
