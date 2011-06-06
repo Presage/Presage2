@@ -1,6 +1,0 @@
-[submodule "core"]
-	path = core
-	url = git://github.com/sammacbeth/presage2-core.git
-[submodule "db"]
-	path = db
-	url = git://github.com/sammacbeth/presage2-db.git
