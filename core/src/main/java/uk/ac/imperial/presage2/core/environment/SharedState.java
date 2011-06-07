@@ -22,7 +22,7 @@ package uk.ac.imperial.presage2.core.environment;
 /**
  *  General shared state in the environment.
  */
-class SharedState<T> {
+public class SharedState<T> {
 
     protected String type;
 
