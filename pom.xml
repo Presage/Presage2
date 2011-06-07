@@ -12,6 +12,7 @@
   <modules>
     <module>core</module>
     <module>db</module>
+    <module>util</module>
   </modules>
   
   <url>http://github.com/sammacbeth/Presage</url>
