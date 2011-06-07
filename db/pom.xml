@@ -12,7 +12,7 @@
   <packaging>jar</packaging>
 
   <name>presage2-db</name>
-  <url></url>
+  <url>https://github.com/sammacbeth/Presage</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
