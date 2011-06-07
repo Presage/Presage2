@@ -28,6 +28,6 @@ public interface EnvironmentSharedStateAccess {
 
     public SharedState<?> getGlobal(String name);
 
-    public SharedState<?> get(String name, UUID participantID);
+    public ParticipantSharedState<?> get(String name, UUID participantID);
 
 }
