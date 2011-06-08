@@ -22,6 +22,7 @@ package uk.ac.imperial.presage2.core.environment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +62,8 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	
 	protected Set<ActionHandler> actionHandlers;
 	
+	protected Set<EnvironmentService> globalEnvironmentServices;
+
 	/**
 	 * <p>Creates the Environment, initialising it ready for participants to register and act.</p>
 	 * <p>The following is initialised:</p>
@@ -81,6 +84,15 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		// for authkeys we don't synchronize, but we must remember to do so manually for insert/delete operations
 		authkeys = new HashMap<UUID, UUID>();
 		
+		// Initialise global services and add EnvironmentMembersService
+		globalEnvironmentServices = new HashSet<EnvironmentService>();
+		globalEnvironmentServices.add(new EnvironmentMembersService(this));
+		/*
+		 * TODO the service itself should be able to deploy global shared state to the environment for it to use. Ideally some
+		 * method should automate the adding of a global service, then give it an opportunity to add to the global state map.
+		 */
+		globalSharedState.put("participants", new SharedState<Set<UUID>>("participants", registeredParticipants.keySet()));
+
 		actionHandlers = initialiseActionHandlers();
 	}
 	
@@ -90,6 +102,21 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * @return
 	 */
 	abstract protected Set<ActionHandler> initialiseActionHandlers();
+
+	/**
+	 * Return a global environment service for the given class name.
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends EnvironmentService> T getEnvironmentService(Class<T> type)
+			throws UnavailableServiceException {
+		for(EnvironmentService s : this.globalEnvironmentServices) {
+			if(s.getClass() == type) {
+				return (T) s;
+			}
+		}
+		throw new UnavailableServiceException(type);
+	}
 
 	/**
 	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentConnector#register(uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest)
