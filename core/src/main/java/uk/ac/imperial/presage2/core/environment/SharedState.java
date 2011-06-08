@@ -19,6 +19,7 @@
 
 package uk.ac.imperial.presage2.core.environment;
 
+
 /**
  *  General shared state in the environment.
  */
@@ -33,18 +34,35 @@ public class SharedState<T> {
         this.value = value;
     }
 
+    /**
+	 * Get the name of the type of this shared state. This is a string
+	 * identifier such that the environment can be queried for this state.
+	 * @return {@link String} identifier of this type of shared state.
+	 */
     public String getType() {
         return type;
     }
 
+    /**
+     * Get the value of this shared state.
+     * @return	Object representing this state. Type dicated by templated type.
+     */
     public T getValue() {
         return value;
     }
 
+    /**
+     * Set the value of this shared state to value.
+     * @param value
+     */
     public void setValue(T value) {
         this.value = value;
     }
 
+    /**
+     * Get the {@link Class} of this shared state.
+     * @return {@link Class} of the state's value.
+     */
     public Class<? extends Object> getValueType() {
         return value.getClass();
     }
