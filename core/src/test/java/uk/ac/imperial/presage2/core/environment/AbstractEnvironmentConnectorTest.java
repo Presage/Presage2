@@ -51,7 +51,7 @@ public class AbstractEnvironmentConnectorTest extends EnvironmentConnectorTest {
 
 			@Override
 			protected Set<EnvironmentService> generateServices(
-					Participant participant) {
+					EnvironmentRegistrationRequest request) {
 				return new HashSet<EnvironmentService>();
 			}
 			

@@ -166,7 +166,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 		
 		// Generate EnvironmentServices we are providing in the response.
-		Set<EnvironmentService> services = generateServices(request.getParticipant());
+		Set<EnvironmentService> services = generateServices(request);
 		// notify global environment services of the registration.
 		for(EnvironmentService ges : globalEnvironmentServices) {
 			ges.registerParticipant(request, globalSharedState);
@@ -183,10 +183,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	/**
 	 * <p>Generate a Set of {@link EnvironmentService}s for a participant to be sent.</p>
-	 * @param participant
+	 * @param request
 	 * @return
 	 */
-	abstract protected Set<EnvironmentService> generateServices(Participant participant);
+	abstract protected Set<EnvironmentService> generateServices(EnvironmentRegistrationRequest request);
 
 	/**
 	 * <p>Perform an {@link Action} on the environment.</p>
