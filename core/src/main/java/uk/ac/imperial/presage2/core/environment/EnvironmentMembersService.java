@@ -19,6 +19,8 @@
 package uk.ac.imperial.presage2.core.environment;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -52,6 +54,20 @@ public class EnvironmentMembersService extends EnvironmentService {
 		} catch(ClassCastException e) {
 			throw e;
 		}
+	}
+
+	@Override
+	public void initialise(Map<String, SharedState<?>> globalSharedState) {
+		// create the 'participants' attribute in global shared state.
+		globalSharedState.put("participants", new SharedState<Set<UUID>>("participants", new HashSet<UUID>()));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void registerParticipant(EnvironmentRegistrationRequest req,
+			Map<String, SharedState<?>> globalSharedState) {
+		// add entry in 'participants' global state attribute
+		((Set<UUID>) globalSharedState.get("participants")).add(req.participantID);
 	}
 
 }

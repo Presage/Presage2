@@ -19,6 +19,8 @@
 
 package uk.ac.imperial.presage2.core.environment;
 
+import java.util.Map;
+
 import com.google.inject.Inject;
 
 /**
@@ -39,6 +41,23 @@ abstract public class EnvironmentService {
 	protected EnvironmentService(EnvironmentSharedStateAccess sharedState) {
 		super();
 		this.sharedState = sharedState;
+	}
+
+	/**
+	 * Initialise global shared state required by this environmentservice (optional).
+	 * @param globalSharedState
+	 */
+	public void initialise(Map<String, SharedState<?>> globalSharedState) {
+
+	}
+
+	/**
+	 * Called when a participant is registered (optional).
+	 * @param req
+	 * @param globalSharedState
+	 */
+	public void registerParticipant(EnvironmentRegistrationRequest req, Map<String, SharedState<?>> globalSharedState) {
+
 	}
 
 }

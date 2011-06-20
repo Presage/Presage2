@@ -87,11 +87,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		// Initialise global services and add EnvironmentMembersService
 		globalEnvironmentServices = new HashSet<EnvironmentService>();
 		globalEnvironmentServices.add(new EnvironmentMembersService(this));
-		/*
-		 * TODO the service itself should be able to deploy global shared state to the environment for it to use. Ideally some
-		 * method should automate the adding of a global service, then give it an opportunity to add to the global state map.
-		 */
-		globalSharedState.put("participants", new SharedState<Set<UUID>>("participants", registeredParticipants.keySet()));
+
+		for(EnvironmentService es : globalEnvironmentServices) {
+			es.initialise(globalSharedState);
+		}
 
 		actionHandlers = initialiseActionHandlers();
 	}
@@ -168,6 +167,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		
 		// Generate EnvironmentServices we are providing in the response.
 		Set<EnvironmentService> services = generateServices(request.getParticipant());
+		// notify global environment services of the registration.
+		for(EnvironmentService ges : globalEnvironmentServices) {
+			ges.registerParticipant(request, globalSharedState);
+		}
 		
 		// Create response
 		EnvironmentRegistrationResponse response = new EnvironmentRegistrationResponse(authkeys.get(participantUUID), services);
