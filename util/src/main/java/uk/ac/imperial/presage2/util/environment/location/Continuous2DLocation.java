@@ -19,29 +19,11 @@
 package uk.ac.imperial.presage2.util.environment.location;
 
 /**
+ * A 2D Location consisting of double coordinates.
+ * 
  * @author Sam Macbeth
  *
  */
-public abstract class Location implements HasLocation {
-
-	/**
-	 * 
-	 * @return String representation of a Location
-	 */
-	public abstract String toString();
-
-	/**
-	 * Test whether the given location is equal to this one.
-	 * @param l Location to compare to
-	 * @return true iff this Location represents the same Location as l
-	 */
-	public abstract boolean equals(Location l);
-
-	/**
-	 * Get the distance between this Location and the location l
-	 * @param l
-	 * @return
-	 */
-	public abstract double distanceTo(Location l);
+public class Continuous2DLocation extends Location2D<Double> {
 
 }
