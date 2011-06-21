@@ -19,7 +19,10 @@
 package uk.ac.imperial.presage2.core.network;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.google.inject.Inject;
 
@@ -27,10 +30,18 @@ import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 
 /**
+ * <p>A {@link NetworkController} which allows the use of {@link NetworkConstraint}s.</p>
+ * 
+ * <p>
+ * {@link NetworkConstraint}s may modify messages when they are received from the sender, 
+ * or block the sending of a message at the point of delivery to an individual.</p>
+ * 
  * @author Sam Macbeth
  *
  */
 public class ConstrainedNetworkController extends NetworkController {
+
+	private final Logger logger = Logger.getLogger(ConstrainedNetworkController.class);
 
 	protected List<NetworkConstraint> constraints;
 	
@@ -44,9 +55,14 @@ public class ConstrainedNetworkController extends NetworkController {
 		super(time, environment);
 		constraints = new ArrayList<NetworkConstraint>();
 	}
-	
+
 	public void addConstraint(NetworkConstraint c) {
 		constraints.add(c);
+	}
+
+	@Inject(optional=true)
+	public void addConstaints(Collection<NetworkConstraint> cons) {
+		constraints.addAll(cons);
 	}
 
 	@Override
@@ -56,6 +72,22 @@ public class ConstrainedNetworkController extends NetworkController {
 			m = c.constrainMessage(m);
 		}
 		super.handleMessage(m);
+	}
+
+	@Override
+	protected void deliverMessageTo(NetworkAddress to, Message m) {
+		boolean blockMessage = false;
+		// ask all networkconstraints if they want to block
+		for(NetworkConstraint c : this.constraints) {
+			blockMessage = blockMessage || c.blockMessageDelivery(to, m);
+		}
+		if(blockMessage) {
+			if(logger.isDebugEnabled()) {
+				logger.debug("Delivery of message "+m+" to "+to+" was blocked by a constraint.");
+			}
+		} else {
+			super.deliverMessageTo(to, m);
+		}
 	}
 
 	
