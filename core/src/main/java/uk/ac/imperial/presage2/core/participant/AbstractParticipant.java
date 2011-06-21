@@ -75,16 +75,19 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	/**
 	 * Connector to the environment the participant is in.
 	 */
+	@Inject
 	protected EnvironmentConnector environment;
 	
 	/**
 	 * Connector to the network.
 	 */
+	@Inject
 	protected NetworkAdaptor network;
 	
 	/**
 	 * The agent's perception of time.
 	 */
+	@Inject
 	private Time time;
 	
 	/**
@@ -98,6 +101,8 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	protected final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
 
 	/**
+	 * Assisted Inject constructor.
+	 * 
 	 * @param id
 	 * @param name
 	 * @param environment
@@ -113,6 +118,31 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		this.environment = environment;
 		this.network = network;
 		this.time = time;
+		if(logger.isDebugEnabled()) {
+			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
+		}
+	}
+
+	/**
+	 * <p>Basic Participant constructor. </p>
+	 * 
+	 * <p>Requires environment & network to be injected by
+	 * field injection. This can be done either by creating this object
+	 * with a guice injector or by using on-demand injection:
+	 * <pre class="prettyprint">
+	 * Injector injector = Guice.createInjector(...);
+	 * 
+	 * RealParticipant participant = new RealParticipant(...);
+	 * injector.injectMembers(participant);</pre>
+	 * </p>
+	 * 
+	 * @param id
+	 * @param name
+	 */
+	public AbstractParticipant(UUID id, String name) {
+		super();
+		this.id = id;
+		this.name = name;
 		if(logger.isDebugEnabled()) {
 			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
 		}
