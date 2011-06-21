@@ -67,7 +67,7 @@ public class EnvironmentMembersService extends EnvironmentService {
 	public void registerParticipant(EnvironmentRegistrationRequest req,
 			Map<String, SharedState<?>> globalSharedState) {
 		// add entry in 'participants' global state attribute
-		((Set<UUID>) globalSharedState.get("participants")).add(req.participantID);
+		((Set<UUID>) globalSharedState.get("participants").getValue()).add(req.participantID);
 	}
 
 }
