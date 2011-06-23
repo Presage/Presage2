@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.util.environment.location;
 
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.network.Message;
@@ -36,6 +38,7 @@ public class NetworkRangeConstraint implements NetworkConstraint {
 		
 	private CommunicationRangeService commRangeService;
 	
+	@Inject
 	public NetworkRangeConstraint(EnvironmentServiceProvider serviceProvider) throws UnavailableServiceException {
 		locService = serviceProvider.getEnvironmentService(LocationService.class);
 		commRangeService = serviceProvider.getEnvironmentService(CommunicationRangeService.class);
