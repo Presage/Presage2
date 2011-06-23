@@ -37,12 +37,6 @@ public class AbstractEnvironmentConnectorTest extends EnvironmentConnectorTest {
 		return new AbstractEnvironment() {
 
 			@Override
-			public <T extends EnvironmentService> T getEnvironmentService(
-					Class<T> type) throws UnavailableServiceException {
-				return null;
-			}
-
-			@Override
 			protected Set<ActionHandler> initialiseActionHandlers() {
 				Set<ActionHandler> handlers = new HashSet<ActionHandler>();
 				handlers.add(aHandler);

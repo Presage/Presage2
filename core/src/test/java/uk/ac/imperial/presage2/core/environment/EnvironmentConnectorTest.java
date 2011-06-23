@@ -212,9 +212,11 @@ public abstract class EnvironmentConnectorTest {
 	
 	@Test
 	public void testValidUsageSuccess() throws ActionHandlingException {
+		final Action invalidAction = new Action() {};
 		// valid action
 		context.checking(new Expectations() {{
 			allowing(aHandler).canHandle(action); will(returnValue(true));
+			allowing(aHandler).canHandle(invalidAction); will(returnValue(false));
 			allowing(aHandler).handle(action, participant1ID); will(returnValue(null));
 			allowing(participant1).getID(); will(returnValue(participant1ID));
 		}});
@@ -240,6 +242,16 @@ public abstract class EnvironmentConnectorTest {
 		} catch(ActionHandlingException e) {
 			fail("Valid action failed to be handled");
 		}
+		// null action
+		try {
+			environment.act(null, participant1ID, authkey);
+			fail("Acting with null action did not raise an exception, ActionHandlingException expected");
+		} catch(ActionHandlingException e) {}
+		// unhandled action
+		try {
+			environment.act(invalidAction, participant1ID, authkey);
+			fail("Acting with unknown action did not raise an exception, ActionHandlingException expected");
+		} catch(ActionHandlingException e) {}
 		
 		// ensure we can deregister
 		environment.deregister(participant1ID, authkey);
@@ -272,5 +284,6 @@ public abstract class EnvironmentConnectorTest {
 			fail("Valid action failed to be handled");
 		}
 	}
+	
 
 }
