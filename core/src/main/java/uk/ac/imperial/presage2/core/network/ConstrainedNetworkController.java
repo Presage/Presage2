@@ -18,16 +18,15 @@
  */
 package uk.ac.imperial.presage2.core.network;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.google.inject.Inject;
-
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+
+import com.google.inject.Inject;
 
 /**
  * <p>A {@link NetworkController} which allows the use of {@link NetworkConstraint}s.</p>
@@ -43,7 +42,7 @@ public class ConstrainedNetworkController extends NetworkController {
 
 	private final Logger logger = Logger.getLogger(ConstrainedNetworkController.class);
 
-	protected List<NetworkConstraint> constraints;
+	protected Set<NetworkConstraint> constraints;
 	
 	/**
 	 * @param time
@@ -53,7 +52,7 @@ public class ConstrainedNetworkController extends NetworkController {
 	public ConstrainedNetworkController(Time time,
 			EnvironmentSharedStateAccess environment) {
 		super(time, environment);
-		constraints = new ArrayList<NetworkConstraint>();
+		constraints = new HashSet<NetworkConstraint>();
 	}
 
 	public void addConstraint(NetworkConstraint c) {
@@ -61,7 +60,7 @@ public class ConstrainedNetworkController extends NetworkController {
 	}
 
 	@Inject(optional=true)
-	public void addConstaints(Collection<NetworkConstraint> cons) {
+	public void addConstaints(Set<NetworkConstraint> cons) {
 		constraints.addAll(cons);
 	}
 
