@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 
 /**
  * An {@link EnvironmentService} to retrieve agents' communication ranges.
@@ -40,6 +41,16 @@ public class CommunicationRangeService extends EnvironmentService {
 
 	public double getAgentCommunicationRange(UUID participantID) {
 		return (Double) this.sharedState.get("network.commrange", participantID).getValue();
+	}
+
+	/**
+	 * Create the shared state required for this service.
+	 * @param pid	{@link UUID} of the participant to create shared state for.
+	 * @param range	{@link HasCommunicationRange} provider for this participant
+	 * @return	{@link ParticipantSharedState} on the type that this service uses.
+	 */
+	public static ParticipantSharedState<Double> createSharedState(UUID pid, HasCommunicationRange range) {
+		return new ParticipantSharedState<Double>("network.commrange", range.getCommunicationRange(), pid);
 	}
 
 }

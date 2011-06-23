@@ -204,4 +204,15 @@ public class ParticipantLocationService extends LocationService {
 		}
 	}
 
+	/**
+	 * Create the {@link ParticipantSharedState} required for this service.
+	 * 
+	 * @param pid	{@link UUID} of the participant to create sharedstate object for.
+	 * @param loc	{@link HasLocation} provider for this participant.
+	 * @return 	{@link ParticipantSharedState} on the type that this service uses.
+	 */
+	public static ParticipantSharedState<Location> createSharedState(UUID pid, HasLocation loc) {
+		return new ParticipantSharedState<Location>("util.location", loc.getLocation(), pid);
+	}
+
 }
