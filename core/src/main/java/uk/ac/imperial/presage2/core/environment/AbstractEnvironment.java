@@ -109,6 +109,9 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	@Override
 	public <T extends EnvironmentService> T getEnvironmentService(Class<T> type)
 			throws UnavailableServiceException {
+		// force NullPointerException if type is null
+		type.toString();
+
 		for(EnvironmentService s : this.globalEnvironmentServices) {
 			if(s.getClass() == type) {
 				return (T) s;
