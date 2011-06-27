@@ -39,6 +39,7 @@ import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
+import uk.ac.imperial.presage2.core.network.NetworkConnectorFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -75,19 +76,16 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	/**
 	 * Connector to the environment the participant is in.
 	 */
-	@Inject
 	protected EnvironmentConnector environment;
 	
 	/**
 	 * Connector to the network.
 	 */
-	@Inject
 	protected NetworkAdaptor network;
 	
 	/**
 	 * The agent's perception of time.
 	 */
-	@Inject
 	private Time time;
 	
 	/**
@@ -109,7 +107,6 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	 * @param network
 	 * @param time
 	 */
-	@Inject
 	protected AbstractParticipant(@Assisted UUID id, @Assisted String name,
 			EnvironmentConnector environment, NetworkAdaptor network, Time time) {
 		super();
@@ -174,6 +171,21 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		return this.getName();
 	}
 
+	@Inject(optional=true)
+	public void initialiseEnvironment(EnvironmentConnector e) {
+		this.environment = e;
+	}
+	
+	@Inject(optional=true)
+	public void initialiseNetwork(NetworkConnectorFactory networkFactory) {
+		this.network = networkFactory.create(this.getID());
+	}
+	
+	@Inject(optional=true)
+	public void initialiseTime(Time t) {
+		this.time = t;
+	}
+	
 	/**
 	 * <p>The initialisation process for the AbstractParticipant involves the following:</p>
 	 * <ul>
