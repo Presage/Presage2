@@ -18,13 +18,14 @@
  */
 package uk.ac.imperial.presage2.util.environment;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jmock.Mockery;
 import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
@@ -32,8 +33,6 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
-import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
-import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
 
 /**
  * @author Sam Macbeth

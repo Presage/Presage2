@@ -20,7 +20,7 @@
 /**
  * 
  */
-package uk.ac.imperial.presage2.core.environment;
+package uk.ac.imperial.presage2.util.environment;
 
 
 import static org.junit.Assert.assertNotNull;
@@ -38,6 +38,14 @@ import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.environment.ActionHandler;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
+import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
+import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.InvalidAuthkeyException;
+import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
