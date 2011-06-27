@@ -26,4 +26,9 @@ package uk.ac.imperial.presage2.util.environment.location;
  */
 public class Continuous2DLocation extends Location2D<Double> {
 
+	public Continuous2DLocation(double x, double y) {
+		this.x = x;
+		this.y = y;
+	}
+	
 }

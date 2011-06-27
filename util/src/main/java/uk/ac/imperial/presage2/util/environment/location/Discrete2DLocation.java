@@ -26,4 +26,9 @@ package uk.ac.imperial.presage2.util.environment.location;
  */
 public class Discrete2DLocation extends Location2D<Integer> {
 
+	public Discrete2DLocation(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+
 }
