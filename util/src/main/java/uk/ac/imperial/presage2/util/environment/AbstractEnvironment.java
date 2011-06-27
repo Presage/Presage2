@@ -17,7 +17,7 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.environment;
+package uk.ac.imperial.presage2.util.environment;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +31,20 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.environment.ActionHandler;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
+import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
+import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
+import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.InvalidAuthkeyException;
+import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.core.environment.SharedState;
+import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
+import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
+import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.util.random.Random;

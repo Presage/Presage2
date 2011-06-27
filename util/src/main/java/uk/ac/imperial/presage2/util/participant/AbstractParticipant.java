@@ -17,7 +17,7 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.participant;
+package uk.ac.imperial.presage2.util.participant;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,6 +40,7 @@ import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
 import uk.ac.imperial.presage2.core.network.NetworkConnectorFactory;
+import uk.ac.imperial.presage2.core.participant.Participant;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;

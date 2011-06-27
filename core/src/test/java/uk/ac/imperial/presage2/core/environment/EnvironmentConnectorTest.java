@@ -23,7 +23,8 @@
 package uk.ac.imperial.presage2.core.environment;
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Set;
@@ -58,12 +59,12 @@ public abstract class EnvironmentConnectorTest {
 	 * Generic {@link Action} you can use with {@link EnvironmentConnectorTest#aHandler} for mock
 	 * action handling.
 	 */
-	final Action action = new Action() {};
+	final protected Action action = new Action() {};
 	/**
 	 * Mocked {@link ActionHandler} for faking handle-able actions. Mock expectations with respect to
 	 * handling an {@link Action} will be done against {@link EnvironmentConnectorTest#action}.
 	 */
-	final ActionHandler aHandler = context.mock(ActionHandler.class);
+	final protected ActionHandler aHandler = context.mock(ActionHandler.class);
 	
 	final EnvironmentConnector environment = getEnvironmentConnector();
 	

@@ -17,7 +17,7 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.environment;
+package uk.ac.imperial.presage2.util.environment;
 
 import static org.junit.Assert.*;
 
@@ -28,7 +28,13 @@ import java.util.UUID;
 import org.junit.*;
 
 import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.environment.ActionHandler;
+import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
+import uk.ac.imperial.presage2.core.environment.EnvironmentConnectorTest;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
+import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
 
 public class AbstractEnvironmentConnectorTest extends EnvironmentConnectorTest {
 	

@@ -42,7 +42,7 @@ public class EnvironmentRegistrationResponse {
 	 * @param authKey
 	 * @param services
 	 */
-	protected EnvironmentRegistrationResponse(UUID authKey,
+	public EnvironmentRegistrationResponse(UUID authKey,
 			Set<EnvironmentService> services) {
 		super();
 		this.authKey = authKey;

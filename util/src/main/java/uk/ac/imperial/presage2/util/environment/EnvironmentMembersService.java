@@ -16,13 +16,18 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.environment;
+package uk.ac.imperial.presage2.util.environment;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
+import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.SharedState;
 
 
 /**
@@ -67,7 +72,7 @@ public class EnvironmentMembersService extends EnvironmentService {
 	public void registerParticipant(EnvironmentRegistrationRequest req,
 			Map<String, SharedState<?>> globalSharedState) {
 		// add entry in 'participants' global state attribute
-		((Set<UUID>) globalSharedState.get("participants").getValue()).add(req.participantID);
+		((Set<UUID>) globalSharedState.get("participants").getValue()).add(req.getParticipantID());
 	}
 
 }

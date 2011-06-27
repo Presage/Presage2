@@ -29,7 +29,7 @@ public class SharedState<T> {
 
     protected T value;
 
-    SharedState(String type, T value) {
+    public SharedState(String type, T value) {
         this.type = type;
         this.value = value;
     }
