@@ -24,13 +24,13 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import uk.ac.imperial.presage2.core.environment.EnvironmentMembersService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
 
 /**
  * <p>This is an extension of the {@link LocationService} to provide tools
@@ -127,6 +127,30 @@ public class ParticipantLocationService extends LocationService {
 		super(sharedState);
 		this.me = p;
 		this.state = locationState;
+		this.locationProvider = new HasLocation() {
+			@Override
+			public Location getLocation() {
+				return state.getValue();
+			}
+		};
+		if(p instanceof HasPerceptionRange) {
+			this.rangeProvider = (HasPerceptionRange) p;
+		} else {
+			this.rangeProvider = null;
+			if(this.logger.isDebugEnabled()) {
+				this.logger.debug("ParticipantLocationService created with no perception range. This agent is all seeing!");
+			}
+		}
+		this.membersService = getMembersService(serviceProvider);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public ParticipantLocationService(Participant p, 
+			EnvironmentSharedStateAccess sharedState, 
+			EnvironmentServiceProvider serviceProvider) {
+		super(sharedState);
+		this.me = p;
+		this.state = (ParticipantSharedState<Location>) sharedState.get("util.location", p.getID());
 		this.locationProvider = new HasLocation() {
 			@Override
 			public Location getLocation() {
