@@ -9,6 +9,10 @@
   
   <name>Presage2</name>
   
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
   <modules>
     <module>core</module>
     <module>db</module>
@@ -125,6 +129,14 @@
           -->
           <additionalJOption>-J-Xmx1024m</additionalJOption>
         </configuration>
+        <executions>
+          <execution>
+            <phase>site</phase>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       
       <plugin>
