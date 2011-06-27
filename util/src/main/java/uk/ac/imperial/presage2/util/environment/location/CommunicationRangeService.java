@@ -35,7 +35,7 @@ public class CommunicationRangeService extends EnvironmentService {
 	/**
 	 * @param sharedState
 	 */
-	protected CommunicationRangeService(EnvironmentSharedStateAccess sharedState) {
+	public CommunicationRangeService(EnvironmentSharedStateAccess sharedState) {
 		super(sharedState);
 	}
 

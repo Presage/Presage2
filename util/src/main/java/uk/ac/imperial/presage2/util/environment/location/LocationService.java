@@ -35,7 +35,7 @@ public class LocationService extends EnvironmentService {
 	/**
 	 * @param sharedState
 	 */
-	protected LocationService(EnvironmentSharedStateAccess sharedState) {
+	public LocationService(EnvironmentSharedStateAccess sharedState) {
 		super(sharedState);
 	}
 
