@@ -86,7 +86,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		
 		// Initialise global services and add EnvironmentMembersService
 		globalEnvironmentServices = new HashSet<EnvironmentService>();
-		globalEnvironmentServices.add(new EnvironmentMembersService(this));
+		globalEnvironmentServices.addAll(this.initialiseGlobalEnvironmentServices());
 
 		for(EnvironmentService es : globalEnvironmentServices) {
 			es.initialise(globalSharedState);
@@ -101,6 +101,19 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * @return
 	 */
 	abstract protected Set<ActionHandler> initialiseActionHandlers();
+	
+	/**
+	 * Initialise the global environment services this environment will provide.
+	 * 
+	 * This services will then be provided through the {@link EnvironmentServiceProvider}
+	 * interface.
+	 * @return	{@link Set} of global services to provide.
+	 */
+	protected Set<EnvironmentService> initialiseGlobalEnvironmentServices() {
+		final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
+		services.add(new EnvironmentMembersService(this));
+		return services;
+	}
 
 	/**
 	 * Return a global environment service for the given class name.
