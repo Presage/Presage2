@@ -16,13 +16,14 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+package uk.ac.imperial.presage2.util.environment;
 
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.util.participant.HasCommunicationRange;
 
 /**
  * An {@link EnvironmentService} to retrieve agents' communication ranges.

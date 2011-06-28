@@ -16,34 +16,33 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.util.location;
 
-package uk.ac.imperial.presage2.util.environment.location;
-
-import java.util.UUID;
 
 /**
- * 
- * Exception thrown when an agent requests directly for the {@link Location} of
- * another but the request agent is further away then the maximum distance the
- * former can perceive (as defined by {@link HasPerceptionRange}).
- *
  * @author Sam Macbeth
  *
  */
-class CannotSeeAgent extends Exception {
+public abstract class Location implements HasLocation {
 
-	private static final long serialVersionUID = -3653607438569242041L;
-	UUID me;
-	UUID them;
+	/**
+	 * 
+	 * @return String representation of a Location
+	 */
+	public abstract String toString();
 
-	CannotSeeAgent(UUID me, UUID them) {
-		this.me = me;
-		this.them = them;
-	}
+	/**
+	 * Test whether the given location is equal to this one.
+	 * @param l Location to compare to
+	 * @return true iff this Location represents the same Location as l
+	 */
+	public abstract boolean equals(Location l);
 
-	@Override
-	public String getLocalizedMessage() {
-		return "Agent "+ me +" cannot see "+ them +"";
-	}
+	/**
+	 * Get the distance between this Location and the location l
+	 * @param l
+	 * @return
+	 */
+	public abstract double distanceTo(Location l);
 
 }

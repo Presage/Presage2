@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+package uk.ac.imperial.presage2.util.location;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +31,7 @@ import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
+import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
 
 /**
  * <p>This is an extension of the {@link LocationService} to provide tools

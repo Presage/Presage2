@@ -16,19 +16,36 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+
+package uk.ac.imperial.presage2.util.location;
+
+import java.util.UUID;
+
+import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
 
 /**
- * A 2D Location consisting of integer coordinates.
  * 
+ * Exception thrown when an agent requests directly for the {@link Location} of
+ * another but the request agent is further away then the maximum distance the
+ * former can perceive (as defined by {@link HasPerceptionRange}).
+ *
  * @author Sam Macbeth
  *
  */
-public class Discrete2DLocation extends Location2D<Integer> {
+public class CannotSeeAgent extends Exception {
 
-	public Discrete2DLocation(int x, int y) {
-		this.x = x;
-		this.y = y;
+	private static final long serialVersionUID = -3653607438569242041L;
+	UUID me;
+	UUID them;
+
+	CannotSeeAgent(UUID me, UUID them) {
+		this.me = me;
+		this.them = them;
+	}
+
+	@Override
+	public String getLocalizedMessage() {
+		return "Agent "+ me +" cannot see "+ them +"";
 	}
 
 }

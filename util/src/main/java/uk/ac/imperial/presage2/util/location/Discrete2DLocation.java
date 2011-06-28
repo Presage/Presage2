@@ -16,14 +16,19 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+package uk.ac.imperial.presage2.util.location;
 
 /**
+ * A 2D Location consisting of integer coordinates.
+ * 
  * @author Sam Macbeth
  *
  */
-public interface HasLocation {
+public class Discrete2DLocation extends Location2D<Integer> {
 
-	public Location getLocation();
+	public Discrete2DLocation(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
 
 }

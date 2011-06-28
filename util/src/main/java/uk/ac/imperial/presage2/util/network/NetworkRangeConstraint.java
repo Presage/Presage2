@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+package uk.ac.imperial.presage2.util.network;
 
 import java.util.UUID;
 
@@ -27,6 +27,10 @@ import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
 import uk.ac.imperial.presage2.core.network.NetworkConstraint;
+import uk.ac.imperial.presage2.util.environment.CommunicationRangeService;
+import uk.ac.imperial.presage2.util.location.CannotSeeAgent;
+import uk.ac.imperial.presage2.util.location.Location;
+import uk.ac.imperial.presage2.util.location.LocationService;
 
 /**
  * @author Sam Macbeth

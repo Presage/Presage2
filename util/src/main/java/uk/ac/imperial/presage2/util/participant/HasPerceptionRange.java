@@ -16,32 +16,14 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+package uk.ac.imperial.presage2.util.participant;
 
 /**
  * @author Sam Macbeth
  *
  */
-public abstract class Location implements HasLocation {
+public interface HasPerceptionRange {
 
-	/**
-	 * 
-	 * @return String representation of a Location
-	 */
-	public abstract String toString();
-
-	/**
-	 * Test whether the given location is equal to this one.
-	 * @param l Location to compare to
-	 * @return true iff this Location represents the same Location as l
-	 */
-	public abstract boolean equals(Location l);
-
-	/**
-	 * Get the distance between this Location and the location l
-	 * @param l
-	 * @return
-	 */
-	public abstract double distanceTo(Location l);
+	public double getPerceptionRange();
 
 }

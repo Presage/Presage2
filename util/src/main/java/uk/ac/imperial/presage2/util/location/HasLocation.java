@@ -16,19 +16,15 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+package uk.ac.imperial.presage2.util.location;
+
 
 /**
- * A 2D Location consisting of double coordinates.
- * 
  * @author Sam Macbeth
  *
  */
-public class Continuous2DLocation extends Location2D<Double> {
+public interface HasLocation {
 
-	public Continuous2DLocation(double x, double y) {
-		this.x = x;
-		this.y = y;
-	}
-	
+	public Location getLocation();
+
 }

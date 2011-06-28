@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.environment.location;
+package uk.ac.imperial.presage2.util.location;
 
 /**
  * A {@link Location} which is represented by two numerical coordinates.
