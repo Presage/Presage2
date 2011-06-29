@@ -50,7 +50,11 @@ public abstract class Location2D<T extends Number> extends Location {
 	}
 	
 	public boolean equals(Location2D<?> l) {
-		return (l.x == this.x && l.y == this.y);
+		try {
+			return (this.x.equals(l.x) && this.y.equals(l.y));
+		} catch(NullPointerException e) {
+			return false;
+		}
 	}
 
 	@Override
@@ -62,9 +66,22 @@ public abstract class Location2D<T extends Number> extends Location {
 	}
 	
 	public double distanceTo(Location2D<?> l) {
-		final double dx = Math.abs((Double) l.x - (Double) this.x);
-		final double dy = Math.abs((Double) l.y - (Double) this.y);
-		return Math.sqrt(dx*dx + dy*dy);
+		if(l.x instanceof Integer) {
+			final int dx = Math.abs((Integer) l.x - (Integer) this.x);
+			final int dy = Math.abs((Integer) l.y - (Integer) this.y);
+			return Math.sqrt(dx*dx + dy*dy);
+		}
+		else if(l.x instanceof Double) {
+			final double dx = Math.abs((Double) l.x - (Double) this.x);
+			final double dy = Math.abs((Double) l.y - (Double) this.y);
+			return Math.sqrt(dx*dx + dy*dy);
+		} else {
+			throw new UnsupportedOperationException("Distance between Locations "+ 
+				this.getClass().getSimpleName() +
+				"<"+ this.x.getClass().getSimpleName() +"> and "+
+				l.getClass().getSimpleName() +
+				"<"+ this.x.getClass().getSimpleName() +">");
+		}
 	}
 
 }
