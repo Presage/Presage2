@@ -23,14 +23,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
@@ -56,7 +59,7 @@ import uk.ac.imperial.presage2.core.util.random.Random;
  *
  */
 public abstract class AbstractEnvironment implements EnvironmentConnector,
-		EnvironmentSharedStateAccess, EnvironmentServiceProvider {
+		EnvironmentSharedStateAccess, EnvironmentServiceProvider, TimeDriven {
 
 	private final Logger logger = Logger.getLogger(AbstractEnvironment.class);
 	
@@ -69,14 +72,43 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * Map of participant IDs to authkeys.
 	 */
 	protected Map<UUID, UUID> authkeys;
-	
+
 	protected Map<String, SharedState<?>> globalSharedState;
-	
+
 	protected Map<UUID, Map<String, ParticipantSharedState<?>>> participantState;
-	
+
 	protected Set<ActionHandler> actionHandlers;
-	
+
 	protected Set<EnvironmentService> globalEnvironmentServices;
+
+	final protected boolean deferActions;
+
+	protected Queue<DeferedAction> deferedActions;
+
+	class DeferedAction {
+
+		ActionHandler handler;
+		Action action;
+		UUID actor;
+
+		DeferedAction(ActionHandler handler, Action action, UUID actor) {
+			super();
+			this.handler = handler;
+			this.action = action;
+			this.actor = actor;
+		}
+
+		public void handle() {
+			try {
+				Input i = handler.handle(action, actor);
+				if(i != null)
+					registeredParticipants.get(actor).enqueueInput(i);
+			} catch(ActionHandlingException e) {
+				logger.warn("Exception when handling action "+action+" for "+actor, e);
+			}
+		}
+
+	}
 
 	/**
 	 * <p>Creates the Environment, initialising it ready for participants to register and act.</p>
@@ -107,6 +139,9 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 
 		actionHandlers = initialiseActionHandlers();
+
+		this.deferActions = true;
+		this.deferedActions = new LinkedList<DeferedAction>();
 	}
 	
 	/**
@@ -267,13 +302,21 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 		
 		// Handle the action and retrieve the resultant input (if there is one)
-		Input i;
+		Input i = null;
+		ActionHandler a;
 		if(canHandle.size() > 1) {
 			logger.warn("More than one ActionHandler.canhandle() returned true for " 
 					+ action.getClass().getCanonicalName() + " therefore I'm picking one at random.");
-			i = canHandle.get(Random.randomInt(canHandle.size())).handle(action, actor);
+			a = canHandle.get(Random.randomInt(canHandle.size()));
 		} else {
-			i = canHandle.get(0).handle(action, actor);
+			a = canHandle.get(0);
+		}
+		if(deferActions) {
+			synchronized(deferedActions) {
+				deferedActions.add(new DeferedAction(a, action, actor));
+			}
+		} else {
+			i = a.handle(action, actor);
 		}
 		// Give the input we got to the actor.
 		if(i != null) {
@@ -352,6 +395,17 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			this.logger.debug("Returning participant state '"+participantID+"."+name+"'");
 		}
 		return state;
+	}
+
+	@Override
+	public void incrementTime() {
+		// process deferred actions
+		while(true) {
+			DeferedAction a = deferedActions.poll();
+			if(a == null)
+				break;
+			a.handle();
+		}
 	}
 
 }
