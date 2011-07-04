@@ -19,6 +19,8 @@
 
 package uk.ac.imperial.presage2.util.location;
 
+import com.google.inject.Inject;
+
 /**
  * @author Sam Macbeth
  *
@@ -33,7 +35,8 @@ public class Area2D implements Area {
 	 * @param x
 	 * @param y
 	 */
-	public Area2D(int x, int y) {
+	@Inject
+	public Area2D(@SimSize.x int x, @SimSize.y int y) {
 		super();
 		this.x = x;
 		this.y = y;
@@ -43,8 +46,8 @@ public class Area2D implements Area {
 	public boolean contains(Location l) {
 		if(l instanceof Location2D) {
 			Location2D<?> l2 = (Location2D<?>) l;
-			double x = (Double) l2.x;
-			double y = (Double) l2.y;
+			double x = l2.x.doubleValue();
+			double y = l2.y.doubleValue();
 			return x <= this.x && y <= this.y
 					&& x >= 0 && y >= 0;
 		} else 
