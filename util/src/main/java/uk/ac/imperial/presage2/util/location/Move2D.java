@@ -33,5 +33,9 @@ public class Move2D<T extends Number> implements Move {
 		this.y = y;
 	}
 
-	
+	@Override
+	public String toString() {
+		return "Move2D: ("+x+","+y+")";
+	}
+
 }

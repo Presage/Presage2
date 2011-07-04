@@ -100,11 +100,15 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 		public void handle() {
 			try {
+				if(logger.isDebugEnabled())
+					logger.debug("Deferredly handling "+action+" from "+actor);
 				Input i = handler.handle(action, actor);
 				if(i != null)
 					registeredParticipants.get(actor).enqueueInput(i);
 			} catch(ActionHandlingException e) {
 				logger.warn("Exception when handling action "+action+" for "+actor, e);
+			} catch(RuntimeException e) {
+				logger.warn("Runtime exception thrown by handler "+handler+" with action "+action+" performed by "+actor, e);
 			}
 		}
 

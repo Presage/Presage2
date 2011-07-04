@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.util.location;
 
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
@@ -29,6 +31,8 @@ import uk.ac.imperial.presage2.core.messaging.Input;
 
 public class MoveHandler implements ActionHandler {
 
+	private final Logger logger = Logger.getLogger(MoveHandler.class);
+	
 	final protected HasArea environment;
 	final protected LocationService locationService;
 	
@@ -53,6 +57,8 @@ public class MoveHandler implements ActionHandler {
 	public Input handle(Action action, UUID actor)
 			throws ActionHandlingException {
 		if(action instanceof Move) {
+			if(logger.isDebugEnabled())
+				logger.debug("Handling move "+action+" from "+actor);
 			final Move m = (Move) action;
 			Location loc = null;
 			try {
@@ -65,6 +71,7 @@ public class MoveHandler implements ActionHandler {
 			} else {
 				throw new ActionHandlingException("Cannot handle move to location outside of environment area.");
 			}
+			return null;
 		}
 		throw new ActionHandlingException("MoveHandler was asked to handle non Move action!");
 	}
