@@ -35,6 +35,15 @@ import uk.ac.imperial.presage2.core.environment.SharedState;
  * simulation. This is a low level service to allow other services to do searches
  * on participants' shared states.</p>
  * 
+ * <p>This service acts as a global environment services, and requires it's data to
+ * be initialised through {@link #initialise(Map)} and {@link #registerParticipant(EnvironmentRegistrationRequest, Map)}
+ * in order to work correctly</p>
+ * 
+ * <h3>Usage</h3>
+ * 
+ * <p>If you're extending {@link AbstractEnvironment} this service is already initialised
+ * in {@link AbstractEnvironment#initialiseGlobalEnvironmentServices()}.</p>
+ * 
  * 
  * @author Sam Macbeth
  *

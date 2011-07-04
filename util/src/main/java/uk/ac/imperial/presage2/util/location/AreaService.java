@@ -23,7 +23,21 @@ import java.util.Map;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.SharedState;
+import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
 
+/**
+ * <p>Global environment service to get the simulation {@link Area} as defined 
+ * by the environment and provided through {@link HasArea}.</p>
+ * 
+ * <h3>Usage</h3>
+ * 
+ * <p>If you're extending {@link AbstractEnvironment} simply add an instance of
+ * this service to the global environment services in {@link AbstractEnvironment#initialiseGlobalEnvironmentServices}.
+ * </p>
+ * 
+ * @author Sam Macbeth
+ *
+ */
 public class AreaService extends EnvironmentService {
 
 	private HasArea area;
@@ -33,6 +47,10 @@ public class AreaService extends EnvironmentService {
 		this.area = area;
 	}
 
+	/**
+	 * Get the simulation {@link Area}
+	 * @return	simulation {@link Area}
+	 */
 	public Area getSimulationArea() {
 		return ((HasArea) sharedState.getGlobal("area").getValue()).getArea();
 	}

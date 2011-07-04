@@ -27,6 +27,10 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
  * An {@link EnvironmentService} to provide information
  * on the locations of agents.
  * 
+ * <h3>Usage</h3>
+ * 
+ * <p>Add as a global environment service in the environment<p>
+ * 
  * @author Sam Macbeth
  *
  */

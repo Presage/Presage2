@@ -26,7 +26,16 @@ import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.util.participant.HasCommunicationRange;
 
 /**
- * An {@link EnvironmentService} to retrieve agents' communication ranges.
+ * <p>An {@link EnvironmentService} to retrieve agents' communication ranges.</p>
+ * 
+ * <h3>Usage</h3>
+ * 
+ * <p>Agents which have communication range to share (implementing {@link HasCommunicationRange})
+ * can create shared state when registering with the environment with {@link #createSharedState(UUID, HasCommunicationRange)}:
+ * <pre class="prettyprint">
+ * ParticipantSharedState&lt;Double&gt; ss = CommunicationRangeService.createSharedState(myid, commRange);
+ * </pre></p>
+ * <p>In the environment we add this as a global environment service.</p>
  * 
  * @author Sam Macbeth
  *

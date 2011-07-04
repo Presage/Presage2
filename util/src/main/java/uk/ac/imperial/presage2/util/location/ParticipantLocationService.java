@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
@@ -40,6 +41,20 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
  * 
  * <p>Some functions depend on the environment having an {@link EnvironmentMembersService}
  * available</p>
+ * 
+ * <h3>Usage</h3>
+ * 
+ * <p>Agents who have {@link Location} to share (implementing {@link HasLocation}) can create
+ * shared state which registering with the environment with {@link #createSharedState(UUID, HasLocation)}:
+ * <pre class="prettyprint">
+ * ParticipantSharedState&lt;Location&gt; ss = ParticipantLocationService.createSharedState(myID, myLoc);
+ * </pre></p>
+ * 
+ * <p>The environment should provide this service in the {@link EnvironmentRegistrationResponse}:
+ * <pre class="prettyprint">
+ * ParticipantLocationService p = new ParticipantLocationService(participant, sharedState, serviceProvider);
+ * </pre>
+ * </p>
  * 
  * @author Sam Macbeth
  *
