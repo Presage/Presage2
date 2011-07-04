@@ -16,16 +16,22 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.util.location;
 
-package uk.ac.imperial.presage2.core;
+public class Move2D<T extends Number> implements Move {
 
-/**
- * <p>An Action is something an agent performs on the environment. It will generally
- * cause a change in the environment's state.</p>
- * 
- * @author Sam Macbeth
- *
- */
-abstract public interface Action {
+	protected T x;
+	protected T y;
 
+	/**
+	 * @param x
+	 * @param y
+	 */
+	public Move2D(T x, T y) {
+		super();
+		this.x = x;
+		this.y = y;
+	}
+
+	
 }

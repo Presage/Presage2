@@ -48,6 +48,10 @@ public class TestLocation2D {
 		public double distanceTo(Location l) {
 			return 0;
 		}
+		@Override
+		public Location add(Move m) {
+			return this;
+		}
 	};
 	
 	/**
@@ -174,6 +178,10 @@ public class TestLocation2D {
 		} catch (UnsupportedOperationException e) {}
 		try {
 			l1.distanceTo(new Location2D<Number>() {
+				@Override
+				public Location add(Move m) {
+					return this;
+				}
 			});
 			fail();
 		} catch (UnsupportedOperationException e) {}
@@ -211,6 +219,10 @@ public class TestLocation2D {
 		} catch (UnsupportedOperationException e) {}
 		try {
 			l1.distanceTo(new Location2D<Number>() {
+				@Override
+				public Location add(Move m) {
+					return this;
+				}
 			});
 			fail();
 		} catch (UnsupportedOperationException e) {}

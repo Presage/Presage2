@@ -23,7 +23,12 @@ package uk.ac.imperial.presage2.util.location;
  * @author Sam Macbeth
  *
  */
-public abstract class Location implements HasLocation {
+public abstract class Location implements HasLocation, Cloneable {
+
+	@Override
+	protected Location clone() throws CloneNotSupportedException {
+		return (Location) super.clone();
+	}
 
 	/**
 	 * 
@@ -44,5 +49,42 @@ public abstract class Location implements HasLocation {
 	 * @return
 	 */
 	public abstract double distanceTo(Location l);
+
+	/**
+	 * Modify this Location by the Move m.
+	 * @param m
+	 * @return	this (for operation chaining)
+	 */
+	public abstract Location add(Move m);
+	
+	/**
+	 * Returns the result of {@link Area#contains(Location)}
+	 * for a and this. Allows more intuitive syntax when 
+	 * changing that a {@link Location} is in an {@link Area}.
+	 * @param a
+	 * @return
+	 */
+	public boolean in(Area a) {
+		return a.contains(this);
+	}
+	
+	/**
+	 * Static application of a move to a location. This
+	 * implementation ensures no change to the location
+	 * provided.
+	 * @param loc
+	 * @param m
+	 * @return
+	 */
+	public static Location add(Location loc, Move m) {
+		Location newLoc;
+		try {
+			newLoc = loc.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e);
+		}
+		newLoc.add(m);
+		return newLoc;
+	}
 
 }

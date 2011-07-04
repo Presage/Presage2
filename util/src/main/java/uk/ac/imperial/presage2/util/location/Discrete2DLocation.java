@@ -31,4 +31,26 @@ public class Discrete2DLocation extends Location2D<Integer> {
 		this.y = y;
 	}
 
+	@Override
+	public Location add(Move m) {
+		if(m instanceof Move2D) {
+			if(((Move2D<?>) m).x instanceof Integer) {
+				@SuppressWarnings("unchecked")
+				final Move2D<Integer> m2 = (Move2D<Integer>) m;
+				this.x += m2.x;
+				this.y += m2.y;
+			} else if(((Move2D<?>) m).x instanceof Double) {
+				@SuppressWarnings("unchecked")
+				final Move2D<Double> m2 = (Move2D<Double>) m;
+				this.x = (int) Math.round(this.x.doubleValue() + m2.x);
+				this.y = (int) Math.round(this.y.doubleValue() + m2.y);
+			} else {
+				throw new UnsupportedOperationException("Cannot add "+ m.getClass().getSimpleName() +" to "+ this.getClass().getSimpleName());
+			}
+			return this;
+		} else {
+			throw new UnsupportedOperationException("Cannot add "+ m.getClass().getSimpleName() +" to "+ this.getClass().getSimpleName());
+		}
+	}
+	
 }
