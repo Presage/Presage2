@@ -38,6 +38,18 @@ public abstract class Simulator {
 	}
 
 	/**
+	 * <p>Start running this simulation. </p>
+	 * 
+	 * <p>Will run {@link #initialise()}, {@link #run()} and {@link #complete()}
+	 * in order.</p>
+	 */
+	public void start() {
+		this.initialise();
+		this.run();
+		this.complete();
+	}
+
+	/**
 	 * Initialise simulation components.
 	 */
 	public abstract void initialise();
