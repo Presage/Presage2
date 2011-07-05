@@ -18,8 +18,39 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
+import com.google.inject.AbstractModule;
+
 public interface Area {
 
 	public boolean contains(Location l);
-	
+
+
+	/**
+	 * Provides various {@link AbstractModule}s to bind different
+	 * types of {@link Area}.
+	 * @author Sam Macbeth
+	 *
+	 */
+	class Bind {
+
+		/**
+		 * Bind a 2D simulation area ({@link Area2D}) with size x, y.
+		 * @param x limit of area
+		 * @param y limit of area
+		 * @return {@link AbstractModule} which will bind {@link Area} to {@link Area2D}
+		 * 		and it's x & y values to the provided x and y.
+		 */
+		public static AbstractModule area2D(final int x, final int y) {
+			return new AbstractModule() {
+				@Override
+				protected void configure() {
+					bind(Area.class).to(Area2D.class);
+					bind(Integer.class).annotatedWith(SimSize.x.class).toInstance(x);
+					bind(Integer.class).annotatedWith(SimSize.y.class).toInstance(y);
+				}
+			};
+		}
+
+	}
+
 }
