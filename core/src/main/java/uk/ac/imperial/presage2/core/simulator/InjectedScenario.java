@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.FinishTime;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
@@ -80,6 +81,15 @@ public class InjectedScenario implements Scenario {
 	@Override
 	public Time getFinishTime() {
 		return finishTime;
+	}
+
+	public void addTimeDriven(TimeDriven t) {
+	}
+
+	public void addPlugin(Plugin p) {
+	}
+
+	public void addParticipant(Participant p) {
 	}
 	
 

@@ -17,7 +17,7 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.participant;
+package uk.ac.imperial.presage2.util.participant;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -28,24 +28,33 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
+import uk.ac.imperial.presage2.core.network.NetworkConnectorFactory;
+import uk.ac.imperial.presage2.core.participant.Participant;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 /**
+ * <p>This implements the core of a {@link Participant} to manage the majority of the
+ * mundane functions allowing the user to start writing the agent's behaviours sooner.
+ * It implements {@link EnvironmentServiceProvider} to provide an interface to {@link EnvironmentService}s
+ * that are available to the agent</p>
+ * 
  * @author Sam Macbeth
  *
  */
-public abstract class AbstractParticipant implements Participant {
+public abstract class AbstractParticipant implements Participant, EnvironmentServiceProvider {
 
 	private final Logger logger = Logger.getLogger(AbstractParticipant.class);
 	
@@ -86,13 +95,19 @@ public abstract class AbstractParticipant implements Participant {
 	protected Queue<Input> inputQueue;
 
 	/**
+	 * Set of {@link EnvironmentService}s available to the agent.
+	 */
+	protected final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
+
+	/**
+	 * Assisted Inject constructor.
+	 * 
 	 * @param id
 	 * @param name
 	 * @param environment
 	 * @param network
 	 * @param time
 	 */
-	@Inject
 	protected AbstractParticipant(@Assisted UUID id, @Assisted String name,
 			EnvironmentConnector environment, NetworkAdaptor network, Time time) {
 		super();
@@ -101,6 +116,31 @@ public abstract class AbstractParticipant implements Participant {
 		this.environment = environment;
 		this.network = network;
 		this.time = time;
+		if(logger.isDebugEnabled()) {
+			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
+		}
+	}
+
+	/**
+	 * <p>Basic Participant constructor. </p>
+	 * 
+	 * <p>Requires environment & network to be injected by
+	 * field injection. This can be done either by creating this object
+	 * with a guice injector or by using on-demand injection:
+	 * <pre class="prettyprint">
+	 * Injector injector = Guice.createInjector(...);
+	 * 
+	 * RealParticipant participant = new RealParticipant(...);
+	 * injector.injectMembers(participant);</pre>
+	 * </p>
+	 * 
+	 * @param id
+	 * @param name
+	 */
+	public AbstractParticipant(UUID id, String name) {
+		super();
+		this.id = id;
+		this.name = name;
 		if(logger.isDebugEnabled()) {
 			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
 		}
@@ -132,6 +172,21 @@ public abstract class AbstractParticipant implements Participant {
 		return this.getName();
 	}
 
+	@Inject(optional=true)
+	public void initialiseEnvironment(EnvironmentConnector e) {
+		this.environment = e;
+	}
+	
+	@Inject(optional=true)
+	public void initialiseNetwork(NetworkConnectorFactory networkFactory) {
+		this.network = networkFactory.create(this.getID());
+	}
+	
+	@Inject(optional=true)
+	public void initialiseTime(Time t) {
+		this.time = t;
+	}
+	
 	/**
 	 * <p>The initialisation process for the AbstractParticipant involves the following:</p>
 	 * <ul>
@@ -176,7 +231,11 @@ public abstract class AbstractParticipant implements Participant {
 	 * casting them to the correct type.</p>
 	 * @param services
 	 */
-	abstract protected void processEnvironmentServices(Set<EnvironmentService> services);
+	protected void processEnvironmentServices(Set<EnvironmentService> services) {
+		for(EnvironmentService s : services) {
+			this.services.add(s);
+		}
+	}
 
 	/**
 	 * Get the set of shared states that this Participant has. Used for the environment registration request
@@ -225,6 +284,18 @@ public abstract class AbstractParticipant implements Participant {
 			this.processInput(this.inputQueue.poll());
 		}
 		
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends EnvironmentService> T getEnvironmentService(Class<T> type)
+			throws UnavailableServiceException {
+		for(EnvironmentService s : this.services) {
+			if(s.getClass() == type) {
+				return (T) s;
+			}
+		}
+		throw new UnavailableServiceException(type);
 	}
 
 	/**

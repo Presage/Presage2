@@ -33,4 +33,13 @@ public class ParticipantSharedState<T> extends SharedState<T> {
         this.participantID = participantID;
     }
 
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof ParticipantSharedState) {
+			ParticipantSharedState<?> state = (ParticipantSharedState<?>) obj;
+			return this.participantID == state.participantID && this.type.equals(state.type);
+		}
+		return super.equals(obj);
+	}
+
 }

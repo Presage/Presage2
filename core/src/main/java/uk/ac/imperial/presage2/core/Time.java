@@ -19,6 +19,9 @@
 
 package uk.ac.imperial.presage2.core;
 
+
+import com.google.inject.AbstractModule;
+
 /**
  * This is a generic representation of a time within the simulation. Using
  * this representation allows more complex time structures to be used rather
@@ -58,4 +61,30 @@ public interface Time {
 	 */
 	public boolean greaterThan(Time t);
 	
+	/**
+	 * Provides various {@link AbstractModule}s to bind different
+	 * types of {@link Time}.
+	 * @author Sam Macbeth
+	 *
+	 */
+	class Bind {
+
+		/**
+		 * Bind {@link Time} to {@link IntegerTime} and set the simulation
+		 * finish time to finshTime.
+		 * @param finishTime
+		 * @return {@link AbstractModule}
+		 */
+		public static AbstractModule integerTime(final int finishTime) {
+			return new AbstractModule() {
+				@Override
+				protected void configure() {
+					bind(Time.class).to(IntegerTime.class);
+					bind(Time.class).annotatedWith(FinishTime.class).toInstance(new IntegerTime(finishTime));
+				}
+			};
+		}
+
+	}
+
 }

@@ -20,10 +20,11 @@
 /**
  * 
  */
-package uk.ac.imperial.presage2.core.environment;
+package uk.ac.imperial.presage2.util.environment;
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Set;
@@ -37,6 +38,14 @@ import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.environment.ActionHandler;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
+import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
+import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.InvalidAuthkeyException;
+import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
@@ -58,12 +67,12 @@ public abstract class EnvironmentConnectorTest {
 	 * Generic {@link Action} you can use with {@link EnvironmentConnectorTest#aHandler} for mock
 	 * action handling.
 	 */
-	final Action action = new Action() {};
+	final protected Action action = new Action() {};
 	/**
 	 * Mocked {@link ActionHandler} for faking handle-able actions. Mock expectations with respect to
 	 * handling an {@link Action} will be done against {@link EnvironmentConnectorTest#action}.
 	 */
-	final ActionHandler aHandler = context.mock(ActionHandler.class);
+	final protected ActionHandler aHandler = context.mock(ActionHandler.class);
 	
 	final EnvironmentConnector environment = getEnvironmentConnector();
 	
@@ -212,9 +221,11 @@ public abstract class EnvironmentConnectorTest {
 	
 	@Test
 	public void testValidUsageSuccess() throws ActionHandlingException {
+		final Action invalidAction = new Action() {};
 		// valid action
 		context.checking(new Expectations() {{
 			allowing(aHandler).canHandle(action); will(returnValue(true));
+			allowing(aHandler).canHandle(invalidAction); will(returnValue(false));
 			allowing(aHandler).handle(action, participant1ID); will(returnValue(null));
 			allowing(participant1).getID(); will(returnValue(participant1ID));
 		}});
@@ -240,6 +251,16 @@ public abstract class EnvironmentConnectorTest {
 		} catch(ActionHandlingException e) {
 			fail("Valid action failed to be handled");
 		}
+		// null action
+		try {
+			environment.act(null, participant1ID, authkey);
+			fail("Acting with null action did not raise an exception, ActionHandlingException expected");
+		} catch(ActionHandlingException e) {}
+		// unhandled action
+		try {
+			environment.act(invalidAction, participant1ID, authkey);
+			fail("Acting with unknown action did not raise an exception, ActionHandlingException expected");
+		} catch(ActionHandlingException e) {}
 		
 		// ensure we can deregister
 		environment.deregister(participant1ID, authkey);
@@ -254,7 +275,7 @@ public abstract class EnvironmentConnectorTest {
 		final EnvironmentRegistrationRequest req1 = getRegistrationRequest(participant1ID, participant1);
 		final EnvironmentRegistrationResponse resp = environment.register(req1);
 		assertNotNull(resp);
-		final UUID authkey = resp.getAuthKey();
+		//final UUID authkey = resp.getAuthKey();
 		// null authkey
 		try {
 			environment.act(getValidAction(), participant1ID, null);
@@ -272,5 +293,6 @@ public abstract class EnvironmentConnectorTest {
 			fail("Valid action failed to be handled");
 		}
 	}
+	
 
 }

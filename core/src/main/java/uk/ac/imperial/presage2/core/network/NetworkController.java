@@ -31,6 +31,7 @@ import com.google.inject.Singleton;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 /**
  * <p>This is a central controller through which all messages go.</p>
@@ -64,12 +65,13 @@ public class NetworkController implements NetworkChannel, TimeDriven, RequiresRe
 	 * @param time
 	 */
 	@Inject
-	public NetworkController(Time time, EnvironmentSharedStateAccess environment) {
+	public NetworkController(Time time, EnvironmentSharedStateAccess environment, Scenario s) {
 		super();
 		this.time = time;
 		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
 		this.toDeliver = new LinkedList<Message>();
+		s.addTimeDriven(this);
 	}
 	
 	/**
@@ -123,7 +125,7 @@ public class NetworkController implements NetworkChannel, TimeDriven, RequiresRe
 	 */
 	protected void doUnicast(UnicastMessage m) {
 		try {
-			this.devices.get(m.getTo()).deliverMessage(m);
+			this.deliverMessageTo(m.getTo(), m);
 			if(this.logger.isDebugEnabled()) {
 				this.logger.debug("Dispatched unicast message: "+ m.toString());
 			}
@@ -141,7 +143,7 @@ public class NetworkController implements NetworkChannel, TimeDriven, RequiresRe
 		final List<NetworkAddress> unreachable = new LinkedList<NetworkAddress>();
 		for(NetworkAddress to : recipients) {
 			try {		
-				this.devices.get(to).deliverMessage(m);
+				this.deliverMessageTo(to, m);
 			} catch(NullPointerException e) {
 				unreachable.add(to);
 			}
@@ -162,7 +164,7 @@ public class NetworkController implements NetworkChannel, TimeDriven, RequiresRe
 		for(NetworkAddress to : this.devices.keySet()) {
 			// deliver to all but sender
 			if(m.getFrom() != to)
-				this.devices.get(to).deliverMessage(m);
+				this.deliverMessageTo(to, m);
 		}
 		this.logger.debug("Sent broadcast message: "+ m.toString());
 	}
@@ -180,6 +182,15 @@ public class NetworkController implements NetworkChannel, TimeDriven, RequiresRe
 		}
 
 		this.devices.put(req.getAddress(), req.getLink());
+	}
+
+	/**
+	 * Deliver a message m to recipient to.
+	 * @param to
+	 * @param m
+	 */
+	protected void deliverMessageTo(NetworkAddress to, Message m) {
+		this.devices.get(to).deliverMessage(m);
 	}
 
 }

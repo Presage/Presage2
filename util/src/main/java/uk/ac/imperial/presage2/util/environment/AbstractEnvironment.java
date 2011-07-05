@@ -17,21 +17,42 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.environment;
+package uk.ac.imperial.presage2.util.environment;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.environment.ActionHandler;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
+import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
+import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
+import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
+import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.InvalidAuthkeyException;
+import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.core.environment.SharedState;
+import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
+import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
+import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 /**
@@ -41,7 +62,7 @@ import uk.ac.imperial.presage2.core.util.random.Random;
  *
  */
 public abstract class AbstractEnvironment implements EnvironmentConnector,
-		EnvironmentSharedStateAccess, EnvironmentServiceProvider {
+		EnvironmentSharedStateAccess, EnvironmentServiceProvider, TimeDriven {
 
 	private final Logger logger = Logger.getLogger(AbstractEnvironment.class);
 	
@@ -54,13 +75,48 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * Map of participant IDs to authkeys.
 	 */
 	protected Map<UUID, UUID> authkeys;
-	
+
 	protected Map<String, SharedState<?>> globalSharedState;
-	
+
 	protected Map<UUID, Map<String, ParticipantSharedState<?>>> participantState;
-	
+
 	protected Set<ActionHandler> actionHandlers;
-	
+
+	protected Set<EnvironmentService> globalEnvironmentServices;
+
+	final protected boolean deferActions;
+
+	protected Queue<DeferedAction> deferedActions;
+
+	class DeferedAction {
+
+		ActionHandler handler;
+		Action action;
+		UUID actor;
+
+		DeferedAction(ActionHandler handler, Action action, UUID actor) {
+			super();
+			this.handler = handler;
+			this.action = action;
+			this.actor = actor;
+		}
+
+		public void handle() {
+			try {
+				if(logger.isDebugEnabled())
+					logger.debug("Deferredly handling "+action+" from "+actor);
+				Input i = handler.handle(action, actor);
+				if(i != null)
+					registeredParticipants.get(actor).enqueueInput(i);
+			} catch(ActionHandlingException e) {
+				logger.warn("Exception when handling action "+action+" for "+actor, e);
+			} catch(RuntimeException e) {
+				logger.warn("Runtime exception thrown by handler "+handler+" with action "+action+" performed by "+actor, e);
+			}
+		}
+
+	}
+
 	/**
 	 * <p>Creates the Environment, initialising it ready for participants to register and act.</p>
 	 * <p>The following is initialised:</p>
@@ -72,6 +128,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * <li>Action handlers</li>
 	 * </ul>
 	 */
+	@Inject
 	public AbstractEnvironment() {
 		super();
 		// these data structures must be synchronised as synchronous access is probable.
@@ -81,15 +138,63 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		// for authkeys we don't synchronize, but we must remember to do so manually for insert/delete operations
 		authkeys = new HashMap<UUID, UUID>();
 		
+		// Initialise global services and add EnvironmentMembersService
+		globalEnvironmentServices = new HashSet<EnvironmentService>();
+		globalEnvironmentServices.addAll(this.initialiseGlobalEnvironmentServices());
+
+		for(EnvironmentService es : globalEnvironmentServices) {
+			es.initialise(globalSharedState);
+		}
+
 		actionHandlers = initialiseActionHandlers();
+
+		this.deferActions = true;
+		this.deferedActions = new LinkedList<DeferedAction>();
+
 	}
-	
+
+	@Inject
+	public void registerTimeDriven(Scenario s) {
+		s.addTimeDriven(this);
+	}
+
 	/**
 	 * Initialise a set of {@link ActionHandler}s which the environment will use
 	 * to process {@link Action}s.
 	 * @return
 	 */
 	abstract protected Set<ActionHandler> initialiseActionHandlers();
+	
+	/**
+	 * Initialise the global environment services this environment will provide.
+	 * 
+	 * This services will then be provided through the {@link EnvironmentServiceProvider}
+	 * interface.
+	 * @return	{@link Set} of global services to provide.
+	 */
+	protected Set<EnvironmentService> initialiseGlobalEnvironmentServices() {
+		final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
+		services.add(new EnvironmentMembersService(this));
+		return services;
+	}
+
+	/**
+	 * Return a global environment service for the given class name.
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends EnvironmentService> T getEnvironmentService(Class<T> type)
+			throws UnavailableServiceException {
+		// force NullPointerException if type is null
+		type.toString();
+
+		for(EnvironmentService s : this.globalEnvironmentServices) {
+			if(s.getClass() == type) {
+				return (T) s;
+			}
+		}
+		throw new UnavailableServiceException(type);
+	}
 
 	/**
 	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentConnector#register(uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest)
@@ -140,7 +245,11 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 		
 		// Generate EnvironmentServices we are providing in the response.
-		Set<EnvironmentService> services = generateServices(request.getParticipant());
+		Set<EnvironmentService> services = generateServices(request);
+		// notify global environment services of the registration.
+		for(EnvironmentService ges : globalEnvironmentServices) {
+			ges.registerParticipant(request, globalSharedState);
+		}
 		
 		// Create response
 		EnvironmentRegistrationResponse response = new EnvironmentRegistrationResponse(authkeys.get(participantUUID), services);
@@ -153,10 +262,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	/**
 	 * <p>Generate a Set of {@link EnvironmentService}s for a participant to be sent.</p>
-	 * @param participant
+	 * @param request
 	 * @return
 	 */
-	abstract protected Set<EnvironmentService> generateServices(Participant participant);
+	abstract protected Set<EnvironmentService> generateServices(EnvironmentRegistrationRequest request);
 
 	/**
 	 * <p>Perform an {@link Action} on the environment.</p>
@@ -207,13 +316,21 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 		
 		// Handle the action and retrieve the resultant input (if there is one)
-		Input i;
+		Input i = null;
+		ActionHandler a;
 		if(canHandle.size() > 1) {
 			logger.warn("More than one ActionHandler.canhandle() returned true for " 
 					+ action.getClass().getCanonicalName() + " therefore I'm picking one at random.");
-			i = canHandle.get(Random.randomInt(canHandle.size())).handle(action, actor);
+			a = canHandle.get(Random.randomInt(canHandle.size()));
 		} else {
-			i = canHandle.get(0).handle(action, actor);
+			a = canHandle.get(0);
+		}
+		if(deferActions) {
+			synchronized(deferedActions) {
+				deferedActions.add(new DeferedAction(a, action, actor));
+			}
+		} else {
+			i = a.handle(action, actor);
 		}
 		// Give the input we got to the actor.
 		if(i != null) {
@@ -292,6 +409,17 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			this.logger.debug("Returning participant state '"+participantID+"."+name+"'");
 		}
 		return state;
+	}
+
+	@Override
+	public void incrementTime() {
+		// process deferred actions
+		while(true) {
+			DeferedAction a = deferedActions.poll();
+			if(a == null)
+				break;
+			a.handle();
+		}
 	}
 
 }

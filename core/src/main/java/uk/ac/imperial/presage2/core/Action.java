@@ -26,6 +26,6 @@ package uk.ac.imperial.presage2.core;
  * @author Sam Macbeth
  *
  */
-abstract public class Action {
+abstract public interface Action {
 
 }

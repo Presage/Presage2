@@ -109,10 +109,12 @@ public class SingleThreadedSimulator extends Simulator {
 			
 		}
 		
+		logger.info("Simulation cycle complete.");
 	}
 
 	@Override
 	public void complete() {
+		logger.info("Running completion tasks and tidying up.");
 		for(Plugin pl : this.scenario.getPlugins()) {
 			try {
 				pl.onSimulationComplete();

@@ -24,7 +24,7 @@ import java.util.UUID;
 
 /**
  * <p>The response to a {@link EnvironmentRegistrationRequest}. This will
- * provide an {@link EnvironmentRegistrationResponse#authKey} which allows the
+ * provide an authKey which allows the
  * participant to act via the {@link EnvironmentConnector}.</p>
  * 
  * <p>It will also contain a set of {@link EnvironmentService}s for access of 
@@ -42,7 +42,7 @@ public class EnvironmentRegistrationResponse {
 	 * @param authKey
 	 * @param services
 	 */
-	protected EnvironmentRegistrationResponse(UUID authKey,
+	public EnvironmentRegistrationResponse(UUID authKey,
 			Set<EnvironmentService> services) {
 		super();
 		this.authKey = authKey;

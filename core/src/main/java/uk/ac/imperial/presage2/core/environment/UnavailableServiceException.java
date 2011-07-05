@@ -19,6 +19,29 @@
 
 package uk.ac.imperial.presage2.core.environment;
 
+/**
+ * Thrown when a requested {@link EnvironmentService} is not available.
+ * i.e. In cannot be given in the current context.
+ *
+ * @author Sam Macbeth
+ *
+ */
 public class UnavailableServiceException extends Exception {
+
+	private static final long serialVersionUID = -7343158956884292270L;
+
+	Class<? extends EnvironmentService> service;
+
+	/**
+	 * @param type
+	 */
+	public UnavailableServiceException(Class<? extends EnvironmentService> type) {
+		this.service = type;
+	}
+
+	@Override
+	public String getMessage() {
+		return this.service.getName();
+	}
 
 }
