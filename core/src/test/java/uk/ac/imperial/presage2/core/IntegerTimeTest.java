@@ -26,8 +26,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import uk.ac.imperial.presage2.core.IntegerTime;
-import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 /**

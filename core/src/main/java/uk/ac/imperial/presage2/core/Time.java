@@ -19,7 +19,6 @@
 
 package uk.ac.imperial.presage2.core;
 
-import uk.ac.imperial.presage2.core.simulator.FinishTime;
 
 import com.google.inject.AbstractModule;
 

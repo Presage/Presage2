@@ -22,6 +22,7 @@ package uk.ac.imperial.presage2.core.simulator;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.FinishTime;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
