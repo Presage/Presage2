@@ -31,6 +31,7 @@ import com.google.inject.Singleton;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 /**
  * <p>This is a central controller through which all messages go.</p>
@@ -64,12 +65,13 @@ public class NetworkController implements NetworkChannel, TimeDriven, RequiresRe
 	 * @param time
 	 */
 	@Inject
-	public NetworkController(Time time, EnvironmentSharedStateAccess environment) {
+	public NetworkController(Time time, EnvironmentSharedStateAccess environment, Scenario s) {
 		super();
 		this.time = time;
 		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
 		this.toDeliver = new LinkedList<Message>();
+		s.addTimeDriven(this);
 	}
 	
 	/**

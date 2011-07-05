@@ -29,41 +29,47 @@ import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+/**
+ * <p>This is a {@link Scenario} which allows you to build up
+ * your scenario step by step before submitting it to the {@link Simulator}.</p>
+ * 
+ * <p>
+ * This is created by {@link Scenario.Builder#createFromModules(AbstractModule...)}
+ * </p>
+ * @author Sam Macbeth
+ *
+ */
 public class ScenarioBuilder implements Scenario {
 
-	public Injector injector;
+	/**
+	 * {@link Injector} for scenario elements.
+	 */
+	final public Injector injector;
 	
-	private Set<Participant> participants;
+	final private Set<Participant> participants;
 	
-	private Set<Plugin> plugins;
+	final private Set<Plugin> plugins;
 	
-	private Set<TimeDriven> timedriven;
+	final private Set<TimeDriven> timedriven;
 	
 	private Time finishTime;
 	
-	public ScenarioBuilder() {
-		super();
-		this.injector = null;
+	/**
+	 * Injectable constructor used by {@link Scenario.Builder#createFromModules(AbstractModule...)}
+	 * @param injector
+	 */
+	@Inject
+	protected ScenarioBuilder(Injector injector) {
+		this.injector = injector;
 		this.participants = new HashSet<Participant>();
 		this.plugins = new HashSet<Plugin>();
 		this.timedriven = new HashSet<TimeDriven>();
 		this.finishTime = null;
 	}
-	
-	public ScenarioBuilder(AbstractModule... modules) {
-		this.injector = Guice.createInjector(modules);
-		this.participants = new HashSet<Participant>();
-		this.plugins = new HashSet<Plugin>();
-		this.timedriven = new HashSet<TimeDriven>();
-		this.finishTime = null;
-		
-		this.injector.injectMembers(this);
-	}
-	
+
 	@Inject(optional=true)
 	public void initialiseParticipants(Set<Participant> participants) {
 		this.participants.addAll(participants);
@@ -84,18 +90,18 @@ public class ScenarioBuilder implements Scenario {
 		this.finishTime = finish;
 	}
 	
+	@Override
 	public void addParticipant(Participant p) {
-		this.injector.injectMembers(p);
 		this.participants.add(p);
 	}
 	
+	@Override
 	public void addPlugin(Plugin p) {
-		this.injector.injectMembers(p);
 		this.plugins.add(p);
 	}
 	
+	@Override
 	public void addTimeDriven(TimeDriven t) {
-		this.injector.injectMembers(t);
 		this.timedriven.add(t);
 	}
 

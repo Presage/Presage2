@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 import com.google.inject.Inject;
 
@@ -50,8 +51,8 @@ public class ConstrainedNetworkController extends NetworkController {
 	 */
 	@Inject
 	public ConstrainedNetworkController(Time time,
-			EnvironmentSharedStateAccess environment) {
-		super(time, environment);
+			EnvironmentSharedStateAccess environment, Scenario s) {
+		super(time, environment, s);
 		constraints = new HashSet<NetworkConstraint>();
 	}
 

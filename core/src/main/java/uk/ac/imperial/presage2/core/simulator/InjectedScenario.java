@@ -82,6 +82,15 @@ public class InjectedScenario implements Scenario {
 	public Time getFinishTime() {
 		return finishTime;
 	}
+
+	public void addTimeDriven(TimeDriven t) {
+	}
+
+	public void addPlugin(Plugin p) {
+	}
+
+	public void addParticipant(Participant p) {
+	}
 	
 
 }

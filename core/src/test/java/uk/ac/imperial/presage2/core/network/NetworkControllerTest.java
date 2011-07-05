@@ -33,6 +33,7 @@ import org.junit.Test;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.messaging.Performative;
+import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 public class NetworkControllerTest {
@@ -73,6 +74,8 @@ public class NetworkControllerTest {
 	// mock EnvironmentSharedStateAccess for NetworkController constructor
 	final EnvironmentSharedStateAccess env = context.mock(EnvironmentSharedStateAccess.class);
 	
+	final Scenario scenario = context.mock(Scenario.class);
+	
 	/**
 	 * Creates a new NetworkController so we can guarantee it's state has been
 	 * reset, and adds initial expectations.
@@ -80,10 +83,11 @@ public class NetworkControllerTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		testController = new NetworkController(time, env);
 		context.checking(new Expectations() {{
 			allowing(time).clone(); will(returnValue(time));
+			one(scenario).addTimeDriven(with(any(NetworkController.class)));
 		}});
+		testController = new NetworkController(time, env, scenario);
 	}
 
 	@After

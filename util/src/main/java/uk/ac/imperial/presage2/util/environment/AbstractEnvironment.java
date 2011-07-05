@@ -32,6 +32,8 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
@@ -50,6 +52,7 @@ import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 /**
@@ -125,6 +128,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * <li>Action handlers</li>
 	 * </ul>
 	 */
+	@Inject
 	public AbstractEnvironment() {
 		super();
 		// these data structures must be synchronised as synchronous access is probable.
@@ -146,8 +150,14 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 		this.deferActions = true;
 		this.deferedActions = new LinkedList<DeferedAction>();
+
 	}
-	
+
+	@Inject
+	public void registerTimeDriven(Scenario s) {
+		s.addTimeDriven(this);
+	}
+
 	/**
 	 * Initialise a set of {@link ActionHandler}s which the environment will use
 	 * to process {@link Action}s.
