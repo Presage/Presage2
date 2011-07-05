@@ -4,3 +4,5 @@ bin
 Presage2-core.iml
 out
 target
+.project
+.classpath

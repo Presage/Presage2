@@ -38,7 +38,7 @@ public class MoveHandler implements ActionHandler {
 	
 	/**
 	 * @param environment
-	 * @param locationService
+	 * @param serviceProvider
 	 * @throws UnavailableServiceException 
 	 */
 	public MoveHandler(HasArea environment,

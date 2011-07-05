@@ -78,6 +78,7 @@ public class AbstractEnvironmentTest {
 	public void testGetEnvironmentServiceFailure() {
 		final TestAbstractEnvironment envUnderTest = new TestAbstractEnvironment();
 		try {
+			@SuppressWarnings("unused")
 			final EnvironmentService envService = envUnderTest.getEnvironmentService(null);
 			fail("No exception thrown by AbstractEnvironment.getEnvironmentService(null), NullPointerException expected.");
 		} catch(NullPointerException e) {
@@ -86,6 +87,7 @@ public class AbstractEnvironmentTest {
 			fail("UnavailableServiceException exception thrown by AbstractEnvironment.getEnvironmentService(null), NullPointerException expected.");
 		}
 		try {
+			@SuppressWarnings("unused")
 			final EnvironmentService envService = envUnderTest.getEnvironmentService(MockEnvironmentService.class);
 			fail("No exception thrown by AbstractEnvironment.getEnvironmentService(MockEnvironmentService.class), UnavailableServiceException expected.");
 		} catch (UnavailableServiceException e) {}

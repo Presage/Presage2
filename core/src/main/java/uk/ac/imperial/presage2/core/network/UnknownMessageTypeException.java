@@ -34,7 +34,6 @@ public class UnknownMessageTypeException extends NetworkException {
 
 	/**
 	 * @param message
-	 * @param message2
 	 */
 	public UnknownMessageTypeException(Message message) {
 		super("Unknown message: "+ message.toString());
