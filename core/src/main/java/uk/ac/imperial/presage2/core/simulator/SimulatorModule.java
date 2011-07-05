@@ -59,6 +59,7 @@ public class SimulatorModule extends AbstractModule {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unused")
 	private static Properties loadProperties() throws Exception {
 		 Properties properties = new Properties();
 		 ClassLoader loader = SimulatorModule.class.getClassLoader();

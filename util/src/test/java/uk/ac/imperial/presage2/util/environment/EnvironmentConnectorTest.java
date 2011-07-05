@@ -275,7 +275,7 @@ public abstract class EnvironmentConnectorTest {
 		final EnvironmentRegistrationRequest req1 = getRegistrationRequest(participant1ID, participant1);
 		final EnvironmentRegistrationResponse resp = environment.register(req1);
 		assertNotNull(resp);
-		final UUID authkey = resp.getAuthKey();
+		//final UUID authkey = resp.getAuthKey();
 		// null authkey
 		try {
 			environment.act(getValidAction(), participant1ID, null);
