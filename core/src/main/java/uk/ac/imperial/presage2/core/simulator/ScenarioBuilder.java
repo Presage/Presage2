@@ -53,8 +53,8 @@ public class ScenarioBuilder implements Scenario {
 		this.finishTime = null;
 	}
 	
-	public ScenarioBuilder(AbstractModule module) {
-		this.injector = Guice.createInjector(module);
+	public ScenarioBuilder(AbstractModule... modules) {
+		this.injector = Guice.createInjector(modules);
 		this.participants = new HashSet<Participant>();
 		this.plugins = new HashSet<Plugin>();
 		this.timedriven = new HashSet<TimeDriven>();
