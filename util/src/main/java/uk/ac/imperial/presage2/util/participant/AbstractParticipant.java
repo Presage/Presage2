@@ -56,7 +56,10 @@ import com.google.inject.assistedinject.Assisted;
  */
 public abstract class AbstractParticipant implements Participant, EnvironmentServiceProvider {
 
-	private final Logger logger = Logger.getLogger(AbstractParticipant.class);
+	/**
+	 * {@link Logger} for this agent.
+	 */
+	protected final Logger logger;
 	
 	/**
 	 * This Participant's unique ID.
@@ -116,6 +119,7 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		this.environment = environment;
 		this.network = network;
 		this.time = time;
+		this.logger = Logger.getLogger(this.getName() +"("+this.getID()+")");
 		if(logger.isDebugEnabled()) {
 			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
 		}
@@ -141,6 +145,7 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		super();
 		this.id = id;
 		this.name = name;
+		this.logger = Logger.getLogger(this.getName());
 		if(logger.isDebugEnabled()) {
 			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
 		}
