@@ -25,11 +25,11 @@ import com.google.inject.Inject;
  * @author Sam Macbeth
  *
  */
-public class Area2D implements Area {
+public final class Area2D implements Area {
 
-	private int x;
+	final private int x;
 	
-	private int y;
+	final private int y;
 	
 	/**
 	 * @param x
