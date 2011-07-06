@@ -32,11 +32,6 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.multibindings.Multibinder;
-
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
@@ -57,6 +52,8 @@ import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
+
+import com.google.inject.Inject;
 
 /**
  * Abstract implementation of an environment.
