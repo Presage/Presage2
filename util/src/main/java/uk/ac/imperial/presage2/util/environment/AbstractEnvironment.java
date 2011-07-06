@@ -32,6 +32,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
 import uk.ac.imperial.presage2.core.Action;
@@ -163,7 +164,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * to process {@link Action}s.
 	 * @return
 	 */
-	abstract protected Set<ActionHandler> initialiseActionHandlers();
+	protected Set<ActionHandler> initialiseActionHandlers() {
+		final Set<ActionHandler> handlers = new HashSet<ActionHandler>();
+		return handlers;
+	}
 	
 	/**
 	 * Initialise the global environment services this environment will provide.
@@ -176,6 +180,16 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
 		services.add(new EnvironmentMembersService(this));
 		return services;
+	}
+
+	@Inject(optional=true)
+	protected void addGlobalEnvironmentServices(Set<EnvironmentService> services) {
+		this.globalEnvironmentServices.addAll(services);
+	}
+
+	@Inject(optional=true)
+	protected void addActionHandlers(Set<ActionHandler> handlers) {
+		this.actionHandlers.addAll(handlers);
 	}
 
 	/**

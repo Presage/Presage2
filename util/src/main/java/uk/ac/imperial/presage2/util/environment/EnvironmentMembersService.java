@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
@@ -53,6 +55,7 @@ public class EnvironmentMembersService extends EnvironmentService {
 	/**
 	 * @param sharedState
 	 */
+	@Inject
 	public EnvironmentMembersService(EnvironmentSharedStateAccess sharedState) {
 		super(sharedState);
 	}

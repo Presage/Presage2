@@ -22,6 +22,8 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
@@ -41,6 +43,7 @@ public class MoveHandler implements ActionHandler {
 	 * @param serviceProvider
 	 * @throws UnavailableServiceException 
 	 */
+	@Inject
 	public MoveHandler(HasArea environment,
 			EnvironmentServiceProvider serviceProvider) throws UnavailableServiceException {
 		super();

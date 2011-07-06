@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.util.location;
 
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 
@@ -39,6 +41,7 @@ public class LocationService extends EnvironmentService {
 	/**
 	 * @param sharedState
 	 */
+	@Inject
 	public LocationService(EnvironmentSharedStateAccess sharedState) {
 		super(sharedState);
 	}

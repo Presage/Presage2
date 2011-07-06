@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.util.environment;
 
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
@@ -45,6 +47,7 @@ public class CommunicationRangeService extends EnvironmentService {
 	/**
 	 * @param sharedState
 	 */
+	@Inject
 	public CommunicationRangeService(EnvironmentSharedStateAccess sharedState) {
 		super(sharedState);
 	}
