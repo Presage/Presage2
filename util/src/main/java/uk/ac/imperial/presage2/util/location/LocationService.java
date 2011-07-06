@@ -46,11 +46,19 @@ public class LocationService extends EnvironmentService {
 	/**
 	 * Get the location of a given agent specified by it's participant UUID.
 	 * @param participantID {@link UUID} of participant to look up
-	 * @return	{@link Location} of participant.
-	 * @throws CannotSeeAgent
+	 * @return	{@link Location} of participants
 	 */
-	public Location getAgentLocation(UUID participantID) throws CannotSeeAgent {
-		return (Location) this.sharedState.get("util.location", participantID).getValue();
+	public Location getAgentLocation(UUID participantID) {
+		return ((HasLocation) this.sharedState.get("util.location", participantID).getValue()).getLocation();
+	}
+
+	/**
+	 * Update this agent's location to l.
+	 * @param participantID
+	 * @param l
+	 */
+	public void setAgentLocation(UUID participantID, Location l) {
+		((HasLocation) this.sharedState.get("util.location", participantID).getValue()).setLocation(l);
 	}
 
 }

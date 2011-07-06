@@ -176,16 +176,7 @@ public class TestLocation2D {
 			l2.distanceTo(testLoc);
 			fail();
 		} catch (UnsupportedOperationException e) {}
-		try {
-			l1.distanceTo(new Location2D<Number>() {
-				@Override
-				public Location add(Move m) {
-					return this;
-				}
-			});
-			fail();
-		} catch (UnsupportedOperationException e) {}
-		
+
 	}
 	
 	@Test
@@ -208,7 +199,7 @@ public class TestLocation2D {
 		
 		assertEquals(distance, l1.distanceTo((Location) l2), 0);
 		assertEquals(distance, l2.distanceTo((Location) l1), 0);
-		
+
 		try {
 			l1.distanceTo(testLoc);
 			fail();
@@ -217,15 +208,7 @@ public class TestLocation2D {
 			l2.distanceTo(testLoc);
 			fail();
 		} catch (UnsupportedOperationException e) {}
-		try {
-			l1.distanceTo(new Location2D<Number>() {
-				@Override
-				public Location add(Move m) {
-					return this;
-				}
-			});
-			fail();
-		} catch (UnsupportedOperationException e) {}
+
 	}
 	
 }

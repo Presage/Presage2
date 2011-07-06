@@ -26,10 +26,20 @@ package uk.ac.imperial.presage2.util.location;
  */
 public abstract class Location2D<T extends Number> extends Location {
 
-	protected T x;
+	final protected T x;
 	
-	protected T y;
+	final protected T y;
 	
+	/**
+	 * @param x
+	 * @param y
+	 */
+	public Location2D(T x, T y) {
+		super();
+		this.x = x;
+		this.y = y;
+	}
+
 	@Override
 	public Location getLocation() {
 		return this;
@@ -64,7 +74,7 @@ public abstract class Location2D<T extends Number> extends Location {
 		} else
 			throw new UnsupportedOperationException("Distance between Locations "+ this.getClass().getSimpleName() +" and "+ l.getClass().getSimpleName());
 	}
-	
+
 	public double distanceTo(Location2D<?> l) {
 		if(l.x instanceof Integer) {
 			final int dx = Math.abs((Integer) l.x - (Integer) this.x);
@@ -81,6 +91,16 @@ public abstract class Location2D<T extends Number> extends Location {
 				"<"+ this.x.getClass().getSimpleName() +"> and "+
 				l.getClass().getSimpleName() +
 				"<"+ this.x.getClass().getSimpleName() +">");
+		}
+	}
+
+	public static Location add(Location2D<?> loc, Move2D<?> m) {
+		final double x = loc.x.doubleValue() + m.x.doubleValue();
+		final double y = loc.y.doubleValue() + m.y.doubleValue();
+		if(Math.floor(x) == x && Math.floor(y) == y) {
+			return new Discrete2DLocation((int) x, (int) y);
+		} else {
+			return new Continuous2DLocation(x, y);
 		}
 	}
 

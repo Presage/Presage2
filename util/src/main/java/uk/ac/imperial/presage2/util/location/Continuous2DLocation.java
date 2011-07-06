@@ -26,31 +26,8 @@ package uk.ac.imperial.presage2.util.location;
  */
 public class Continuous2DLocation extends Location2D<Double> {
 
-	public Continuous2DLocation(double x, double y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	@Override
-	public Location add(Move m) {
-		if(m instanceof Move2D) {
-			if(((Move2D<?>) m).x instanceof Integer) {
-				@SuppressWarnings("unchecked")
-				final Move2D<Integer> m2 = (Move2D<Integer>) m;
-				this.x += m2.x;
-				this.y += m2.y;
-			} else if(((Move2D<?>) m).x instanceof Double) {
-				@SuppressWarnings("unchecked")
-				final Move2D<Double> m2 = (Move2D<Double>) m;
-				this.x += m2.x;
-				this.y += m2.y;
-			} else {
-				throw new UnsupportedOperationException("Cannot add "+ m.getClass().getSimpleName() +" to "+ this.getClass().getSimpleName());
-			}
-			return this;
-		} else {
-			throw new UnsupportedOperationException("Cannot add "+ m.getClass().getSimpleName() +" to "+ this.getClass().getSimpleName());
-		}
+	public Continuous2DLocation(Double x, Double y) {
+		super(x, y);
 	}
 	
 }

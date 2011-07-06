@@ -20,8 +20,8 @@ package uk.ac.imperial.presage2.util.location;
 
 public class Move2D<T extends Number> implements Move {
 
-	protected T x;
-	protected T y;
+	final protected T x;
+	final protected T y;
 
 	/**
 	 * @param x

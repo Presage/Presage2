@@ -66,8 +66,9 @@ public class MoveHandler implements ActionHandler {
 			} catch (CannotSeeAgent e) {
 				throw new ActionHandlingException(e);
 			}
-			if(Location.add(loc, m).in(environment.getArea())) {
-				loc.add(m);
+			final Location target = Location.add(loc, m);
+			if(target.in(environment.getArea())) {
+				this.locationService.setAgentLocation(actor, target);
 			} else {
 				throw new ActionHandlingException("Cannot handle move to location outside of environment area.");
 			}

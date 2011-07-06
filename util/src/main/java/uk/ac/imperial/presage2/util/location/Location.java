@@ -54,8 +54,10 @@ public abstract class Location implements HasLocation, Cloneable {
 	 * Modify this Location by the Move m.
 	 * @param m
 	 * @return	this (for operation chaining)
+	 * @deprecated Location is now immutable
 	 */
-	public abstract Location add(Move m);
+	@Deprecated
+	public Location add(Move m) {return this;};
 	
 	/**
 	 * Returns the result of {@link Area#contains(Location)}
@@ -69,6 +71,14 @@ public abstract class Location implements HasLocation, Cloneable {
 	}
 	
 	/**
+	 * Not available in Immutable Location class.
+	 */
+	@Override
+	public void setLocation(Location l) {
+		throw new UnsupportedOperationException("HasLocation#setLocation() not available in this context.");
+	}
+
+	/**
 	 * Static application of a move to a location. This
 	 * implementation ensures no change to the location
 	 * provided.
@@ -77,14 +87,11 @@ public abstract class Location implements HasLocation, Cloneable {
 	 * @return
 	 */
 	public static Location add(Location loc, Move m) {
-		Location newLoc;
-		try {
-			newLoc = loc.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e);
+		// 2D move
+		if(loc instanceof Location2D<?> && m instanceof Move2D<?>) {
+			return Location2D.add((Location2D<?>) loc, (Move2D<?>) m);
 		}
-		newLoc.add(m);
-		return newLoc;
+		throw new UnsupportedOperationException("Add "+loc.getClass().getSimpleName()+" and "+m.getClass().getSimpleName());
 	}
 
 }
