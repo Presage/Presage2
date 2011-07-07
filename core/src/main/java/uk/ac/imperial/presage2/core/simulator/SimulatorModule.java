@@ -19,53 +19,44 @@
 
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.net.URL;
-import java.util.Properties;
-
-import org.apache.log4j.Logger;
-
 import com.google.inject.AbstractModule;
-import com.google.inject.Module;
 
 /**
- * <p>Global simulator level guice bindings</p>
+ * <p>
+ * Global simulator level guice bindings
+ * </p>
  * 
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class SimulatorModule extends AbstractModule {
 
-	private static final Logger logger = Logger.getLogger(SimulatorModule.class);
-	
+	final private Class<? extends Simulator> simulatorImplementation;
+
+	private SimulatorModule(Class<? extends Simulator> simulatorImplementation) {
+		super();
+		this.simulatorImplementation = simulatorImplementation;
+	}
+
 	@Override
 	protected void configure() {
-		// This section loads JDO support if the correct module is on the classpath.
-		try {
-			Module dbModule = (Module) Class.forName("uk.ac.imperial.presage2.db.jdo.JDOModule").newInstance();
-			logger.info("Found JDO storage module, loading JDO support.");
-			install(dbModule);
-		} catch(ClassNotFoundException e) {
-			logger.info("No storage module found, running without db support.");
-		} catch (InstantiationException e) {
-			logger.error("Error loading JDO storage module.", e);
-		} catch (IllegalAccessException e) {
-			logger.error("Error loading JDO storage module.", e);
-		}
+		bind(Simulator.class).to(simulatorImplementation);
 	}
-	
-	/**
-	 * <p>Pulls simulator config from a properties file and returns them.</p>
-	 * @return
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unused")
-	private static Properties loadProperties() throws Exception {
-		 Properties properties = new Properties();
-		 ClassLoader loader = SimulatorModule.class.getClassLoader();
-		 URL url = loader.getResource("config.properties");
-		 properties.load(url.openStream());
-		 return properties;
+
+	public static SimulatorModule singleThreadedSimulator() {
+		return new SimulatorModule(SingleThreadedSimulator.class);
+	}
+
+	public static SimulatorModule multiThreadedSimulator(final int threads) {
+		return new SimulatorModule(MultiThreadedSimulator.class) {
+			@Override
+			protected void configure() {
+				super.configure();
+				bind(Integer.class).annotatedWith(Threads.class).toInstance(
+						threads);
+			}
+		};
 	}
 
 }
