@@ -222,7 +222,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		this.participantStateChange = new LinkedList<ParticipantSharedStateChanger>();
 	}
 
-	@Inject
+	@Inject(optional=true)
 	public void deferActions(@DeferActions boolean defer) {
 		this.deferActions = defer;
 	}
