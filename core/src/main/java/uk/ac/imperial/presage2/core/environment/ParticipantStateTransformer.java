@@ -16,23 +16,17 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package uk.ac.imperial.presage2.core.environment;
 
-import java.util.UUID;
-
 /**
- * This is the access layer to the shared state of the environment.
+ * A participant state transformer changes a {@link ParticipantSharedState}'s
+ * value to a new one.
+ * 
+ * @author Sam Macbeth
+ * 
  */
-public interface EnvironmentSharedStateAccess {
+public interface ParticipantStateTransformer {
 
-	public SharedState<?> getGlobal(String name);
-
-	public void changeGlobal(String name, StateTransformer change);
-
-	public ParticipantSharedState<?> get(String name, UUID participantID);
-
-	public void change(String name, UUID participantID,
-			ParticipantStateTransformer change);
+	public void transform(ParticipantSharedState<?> state);
 
 }
