@@ -44,8 +44,10 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.InvalidAuthkeyException;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.core.environment.ParticipantStateTransformer;
 import uk.ac.imperial.presage2.core.environment.SharedState;
 import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
+import uk.ac.imperial.presage2.core.environment.StateTransformer;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
 import uk.ac.imperial.presage2.core.messaging.Input;
@@ -84,9 +86,13 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	protected Set<EnvironmentService> globalEnvironmentServices;
 
-	final protected boolean deferActions;
+	protected boolean deferActions;
 
 	protected Queue<DeferedAction> deferedActions;
+
+	protected Queue<SharedStateChanger> globalStateChange;
+
+	protected Queue<ParticipantSharedStateChanger> participantStateChange;
 
 	class DeferedAction {
 
@@ -119,6 +125,53 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			}
 		}
 
+	}
+
+	private class SharedStateChanger {
+
+		private final String name;
+		private final StateTransformer transformer;
+
+		SharedStateChanger(String name, StateTransformer transformer) {
+			super();
+			this.name = name;
+			this.transformer = transformer;
+		}
+
+		final String getName() {
+			return name;
+		}
+
+		final StateTransformer getTransformer() {
+			return transformer;
+		}
+	}
+
+	private class ParticipantSharedStateChanger {
+
+		private final UUID participantID;
+		private final String name;
+		private final ParticipantStateTransformer transformer;
+
+		ParticipantSharedStateChanger(UUID participantID, String name,
+				ParticipantStateTransformer transformer) {
+			super();
+			this.participantID = participantID;
+			this.name = name;
+			this.transformer = transformer;
+		}
+
+		final UUID getParticipant() {
+			return participantID;
+		}
+
+		final String getName() {
+			return name;
+		}
+
+		final ParticipantStateTransformer getTransformer() {
+			return transformer;
+		}
 	}
 
 	/**
@@ -163,9 +216,15 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 		actionHandlers = initialiseActionHandlers();
 
-		this.deferActions = true;
+		this.deferActions = false;
 		this.deferedActions = new LinkedList<DeferedAction>();
+		this.globalStateChange = new LinkedList<SharedStateChanger>();
+		this.participantStateChange = new LinkedList<ParticipantSharedStateChanger>();
+	}
 
+	@Inject
+	public void deferActions(@DeferActions boolean defer) {
+		this.deferActions = defer;
 	}
 
 	@Inject
@@ -497,13 +556,44 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	}
 
 	@Override
+	public void changeGlobal(String name, StateTransformer change) {
+		synchronized (this.globalStateChange) {
+			this.globalStateChange.add(new SharedStateChanger(name, change));
+		}
+	}
+
+	@Override
+	public void change(String name, UUID participantID,
+			ParticipantStateTransformer change) {
+		synchronized (this.participantStateChange) {
+			this.participantStateChange.add(new ParticipantSharedStateChanger(
+					participantID, name, change));
+		}
+	}
+
+	@Override
 	public void incrementTime() {
-		// process deferred actions
-		while (true) {
-			DeferedAction a = deferedActions.poll();
-			if (a == null)
-				break;
-			a.handle();
+		if (deferActions) {
+			// process deferred actions
+			while (true) {
+				DeferedAction a = deferedActions.poll();
+				if (a == null)
+					break;
+				a.handle();
+			}
+		}
+		// update shared state
+		while (this.globalStateChange.peek() != null) {
+			SharedStateChanger t = this.globalStateChange.poll();
+			SharedState<?> s = this.getGlobal(t.getName());
+			t.getTransformer().transform(s);
+		}
+		while (this.participantStateChange.peek() != null) {
+			ParticipantSharedStateChanger t = this.participantStateChange
+					.poll();
+			ParticipantSharedState<?> s = this.get(t.getName(),
+					t.getParticipant());
+			t.getTransformer().transform(s);
 		}
 	}
 
