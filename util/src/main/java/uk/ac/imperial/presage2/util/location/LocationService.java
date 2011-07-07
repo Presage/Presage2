@@ -20,21 +20,25 @@ package uk.ac.imperial.presage2.util.location;
 
 import java.util.UUID;
 
-import com.google.inject.Inject;
-
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.core.environment.ParticipantStateTransformer;
+
+import com.google.inject.Inject;
 
 /**
- * An {@link EnvironmentService} to provide information
- * on the locations of agents.
+ * An {@link EnvironmentService} to provide information on the locations of
+ * agents.
  * 
  * <h3>Usage</h3>
  * 
- * <p>Add as a global environment service in the environment<p>
+ * <p>
+ * Add as a global environment service in the environment
+ * <p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class LocationService extends EnvironmentService {
 
@@ -48,20 +52,33 @@ public class LocationService extends EnvironmentService {
 
 	/**
 	 * Get the location of a given agent specified by it's participant UUID.
-	 * @param participantID {@link UUID} of participant to look up
-	 * @return	{@link Location} of participants
+	 * 
+	 * @param participantID
+	 *            {@link UUID} of participant to look up
+	 * @return {@link Location} of participants
 	 */
 	public Location getAgentLocation(UUID participantID) {
-		return ((HasLocation) this.sharedState.get("util.location", participantID).getValue()).getLocation();
+		return ((HasLocation) this.sharedState.get("util.location",
+				participantID).getValue()).getLocation();
 	}
 
 	/**
 	 * Update this agent's location to l.
+	 * 
 	 * @param participantID
 	 * @param l
 	 */
-	public void setAgentLocation(UUID participantID, Location l) {
-		((HasLocation) this.sharedState.get("util.location", participantID).getValue()).setLocation(l);
+	public void setAgentLocation(final UUID participantID, final Location l) {
+		this.sharedState.change("util.location", participantID,
+				new ParticipantStateTransformer() {
+					@Override
+					public void transform(ParticipantSharedState<?> state) {
+						if (state.getValue() instanceof HasLocation) {
+							HasLocation loc = (HasLocation) state.getValue();
+							loc.setLocation(l);
+						}
+					}
+				});
 	}
 
 }

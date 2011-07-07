@@ -16,23 +16,21 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.util.environment;
 
-package uk.ac.imperial.presage2.core.environment;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import java.util.UUID;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-/**
- * This is the access layer to the shared state of the environment.
- */
-public interface EnvironmentSharedStateAccess {
+import com.google.inject.BindingAnnotation;
 
-	public SharedState<?> getGlobal(String name);
-
-	public void changeGlobal(String name, StateTransformer change);
-
-	public ParticipantSharedState<?> get(String name, UUID participantID);
-
-	public void change(String name, UUID participantID,
-			ParticipantStateTransformer change);
+@BindingAnnotation
+@Target({ FIELD, PARAMETER, METHOD })
+@Retention(RUNTIME)
+@interface DeferActions {
 
 }
