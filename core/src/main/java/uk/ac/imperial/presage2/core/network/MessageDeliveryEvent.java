@@ -16,22 +16,42 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.event;
+package uk.ac.imperial.presage2.core.network;
 
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.event.Event;
 
 /**
- * <p>
- * An event is simply an object which is publish to other objects who are
- * listening for an object of it's type (or a supertype thereof). It can be used
- * for decoupled communication or information flow across the simulation.
- * </p>
+ * Event trigger when a message is successfully delivered.
  * 
  * @author Sam Macbeth
  * 
+ * @param <S>
  */
-public interface Event {
+public final class MessageDeliveryEvent implements Event {
 
-	public Time getTime();
+	final protected Time time;
+	final protected Message message;
+	final protected NetworkAddress recipient;
+
+	MessageDeliveryEvent(Time time, Message message, NetworkAddress recipient) {
+		super();
+		this.time = time;
+		this.message = message;
+		this.recipient = recipient;
+	}
+
+	@Override
+	public Time getTime() {
+		return time;
+	}
+
+	public final Message getMessage() {
+		return message;
+	}
+
+	public final NetworkAddress getRecipient() {
+		return recipient;
+	}
 
 }

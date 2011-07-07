@@ -98,7 +98,7 @@ class EventBusImpl implements EventBus {
 	}
 
 	@Override
-	public <S> void publish(final Event<S> event) {
+	public void publish(final Event event) {
 		
 		if(logger.isDebugEnabled())
 			logger.debug("Taking publication of event "+event);
@@ -128,7 +128,7 @@ class EventBusImpl implements EventBus {
 									logger.debug("Invoking EventListener "+listener+" with event "+event);
 								m.invoke(listener, event);
 							} catch (IllegalAccessException e) {
-								logger.warn("Exception when invoking EventListener "+ listener +" with event "+ event, e);
+								logger.warn("Exception when invoking EventListener "+ listener +" with event "+ event+". Is your class public?", e);
 							} catch (InvocationTargetException e) {
 								logger.warn("Exception when invoking EventListener "+ listener +" with event "+ event, e);
 							}

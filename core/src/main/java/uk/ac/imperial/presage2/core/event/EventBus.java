@@ -38,6 +38,6 @@ public interface EventBus {
 
 	public void unsubscribe(final Object listener);
 
-	public <S> void publish(Event<S> event);
+	public void publish(final Event event);
 
 }

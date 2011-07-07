@@ -28,11 +28,7 @@ import uk.ac.imperial.presage2.core.Time;
 
 public class EventBusImplTest {
 
-	class MockEvent implements Event<Object> {
-		@Override
-		public Object getSource() {
-			return null;
-		}
+	class MockEvent implements Event {
 		@Override
 		public Time getTime() {
 			return null;
@@ -50,7 +46,6 @@ public class EventBusImplTest {
 		
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testEventBusImpl() {
 		
