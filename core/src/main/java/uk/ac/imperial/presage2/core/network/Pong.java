@@ -16,28 +16,33 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package uk.ac.imperial.presage2.core.network;
 
-import java.util.List;
+import java.util.Set;
 
-import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.messaging.Performative;
 
 /**
- * <p>A network adaptor which provides additional services for
- * discovering nodes in the network</p>
+ * A Pong is special kind of message for determining connected nodes. It is the
+ * response sent from the {@link NetworkController} to a {@link Ping} and
+ * contains the {@link Set} of connected {@link NetworkAddress}es.
  * 
+ * @see Ping
  * @author Sam Macbeth
- *
+ * 
  */
-public interface NetworkAdaptorWithNodeDiscovery extends NetworkAdaptor, TimeDriven {
+class Pong extends Message {
 
-	/**
-	 * The network adaptor may also provide a network node discovery
-	 * service which we describe in the following form.
-	 * @return List of UUIDs of connected nodes.
-	 * @throws NetworkException
-	 */
-	public List<NetworkAddress> getConnectedNodes();
-	
+	final Set<NetworkAddress> addresses;
+
+	Pong(Time timestamp, Set<NetworkAddress> addresses) {
+		super(Performative.INFORM, null, timestamp);
+		this.addresses = addresses;
+	}
+
+	Set<NetworkAddress> getLinks() {
+		return addresses;
+	}
+
 }

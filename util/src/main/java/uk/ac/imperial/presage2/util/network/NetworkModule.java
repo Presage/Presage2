@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.util.network;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.imperial.presage2.core.network.*;
@@ -29,10 +30,28 @@ import com.google.inject.multibindings.Multibinder;
 
 /**
  * Static factory for {@link AbstractModule}s which bind network interfaces.
+ * 
  * @author Sam Macbeth
- *
+ * 
  */
-public final class NetworkModule {
+public final class NetworkModule extends AbstractModule {
+
+	private Class<? extends NetworkConnector> connector;
+	private Class<? extends NetworkController> controller;
+	private Set<Class<? extends NetworkConstraint>> constraints = new HashSet<Class<? extends NetworkConstraint>>();
+
+	NetworkModule(Class<? extends NetworkConnector> connector,
+			Class<? extends NetworkController> controller) {
+		super();
+		this.connector = connector;
+		this.controller = controller;
+	}
+
+	final NetworkModule withConstraints(
+			Set<Class<? extends NetworkConstraint>> constraints) {
+		this.constraints.addAll(constraints);
+		return this;
+	}
 
 	/**
 	 * Module to bind a fully connected network, where every agent can message
@@ -40,19 +59,9 @@ public final class NetworkModule {
 	 * 
 	 * @return {@link AbstractModule} binding network interfaces.
 	 */
-	public static AbstractModule fullyConnectedNetworkModule() {
-		return new AbstractModule() {
-			@Override
-			protected void configure() {
-				install(new FactoryModuleBuilder().implement(
-						NetworkConnector.class, BasicNetworkConnector.class)
-						.build(NetworkConnectorFactory.class));
-				bind(NetworkChannel.class).to(NetworkController.class).in(
-						Singleton.class);
-				install(new FactoryModuleBuilder()
-						.build(NetworkAddressFactory.class));
-			}
-		};
+	public static NetworkModule fullyConnectedNetworkModule() {
+		return new NetworkModule(BasicNetworkConnector.class,
+				NetworkController.class);
 	}
 
 	/**
@@ -64,27 +73,32 @@ public final class NetworkModule {
 	 *            {@link NetworkConstraint}s to use.
 	 * @return {@link AbstractModule} binding network interfaces.
 	 */
-	public static AbstractModule constrainedNetworkModule(
+	public static NetworkModule constrainedNetworkModule(
 			final Set<Class<? extends NetworkConstraint>> constraints) {
-		return new AbstractModule() {
-			@Override
-			protected void configure() {
-				install(new FactoryModuleBuilder().implement(
-						NetworkConnector.class, BasicNetworkConnector.class)
-						.build(NetworkConnectorFactory.class));
-				bind(NetworkChannel.class).to(
-						ConstrainedNetworkController.class).in(Singleton.class);
-				install(new FactoryModuleBuilder()
-						.build(NetworkAddressFactory.class));
+		return new NetworkModule(BasicNetworkConnector.class,
+				ConstrainedNetworkController.class)
+				.withConstraints(constraints);
+	}
 
-				// network constraints
-				Multibinder<NetworkConstraint> constraintBinder = Multibinder
-						.newSetBinder(binder(), NetworkConstraint.class);
-				for (Class<? extends NetworkConstraint> c : constraints) {
-					constraintBinder.addBinding().to(c);
-				}
+	@Override
+	protected void configure() {
+		install(new FactoryModuleBuilder().implement(NetworkConnector.class,
+				this.connector).build(NetworkConnectorFactory.class));
+		bind(NetworkChannel.class).to(this.controller).in(Singleton.class);
+		install(new FactoryModuleBuilder().build(NetworkAddressFactory.class));
+
+		if (this.constraints.size() > 0) {
+			Multibinder<NetworkConstraint> constraintBinder = Multibinder
+					.newSetBinder(binder(), NetworkConstraint.class);
+			for (Class<? extends NetworkConstraint> c : constraints) {
+				constraintBinder.addBinding().to(c);
 			}
-		};
+		}
+	}
+
+	public NetworkModule withNodeDiscovery() {
+		this.connector = NetworkConnectorWithNodeDiscovery.class;
+		return this;
 	}
 
 }

@@ -20,6 +20,7 @@
 package uk.ac.imperial.presage2.core.network;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +134,10 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			doMulticast((MulticastMessage) m);
 		} else if (m instanceof BroadcastMessage) {
 			doBroadcast((BroadcastMessage) m);
+		} else if (m instanceof Ping) {
+			// we do not constrain messages, so give them all registered network
+			// addresses
+			this.devices.get(m.getFrom()).deliverMessage(getPong((Ping) m));
 		} else {
 			throw new UnknownMessageTypeException(m);
 		}
@@ -191,6 +196,19 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 				this.deliverMessageTo(to, m);
 		}
 		this.logger.debug("Sent broadcast message: " + m.toString());
+	}
+
+	/**
+	 * Return a {@link Pong} for the given {@link Ping}. This is a message
+	 * containing the set of {@link NetworkAddress}es of devices we're connected
+	 * with.
+	 * 
+	 * @param p
+	 * @return {@link Pong}
+	 */
+	protected Pong getPong(Ping p) {
+		return new Pong(time.clone(), new HashSet<NetworkAddress>(
+				this.devices.keySet()));
 	}
 
 	/**

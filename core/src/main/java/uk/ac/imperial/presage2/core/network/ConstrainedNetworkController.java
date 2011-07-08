@@ -30,21 +30,27 @@ import uk.ac.imperial.presage2.core.simulator.Scenario;
 import com.google.inject.Inject;
 
 /**
- * <p>A {@link NetworkController} which allows the use of {@link NetworkConstraint}s.</p>
+ * <p>
+ * A {@link NetworkController} which allows the use of {@link NetworkConstraint}
+ * s.
+ * </p>
  * 
  * <p>
- * {@link NetworkConstraint}s may modify messages when they are received from the sender, 
- * or block the sending of a message at the point of delivery to an individual.</p>
+ * {@link NetworkConstraint}s may modify messages when they are received from
+ * the sender, or block the sending of a message at the point of delivery to an
+ * individual.
+ * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class ConstrainedNetworkController extends NetworkController {
 
-	private final Logger logger = Logger.getLogger(ConstrainedNetworkController.class);
+	private final Logger logger = Logger
+			.getLogger(ConstrainedNetworkController.class);
 
 	protected Set<NetworkConstraint> constraints;
-	
+
 	/**
 	 * @param time
 	 * @param environment
@@ -60,7 +66,7 @@ public class ConstrainedNetworkController extends NetworkController {
 		constraints.add(c);
 	}
 
-	@Inject(optional=true)
+	@Inject(optional = true)
 	public void addConstaints(Set<NetworkConstraint> cons) {
 		constraints.addAll(cons);
 	}
@@ -68,7 +74,7 @@ public class ConstrainedNetworkController extends NetworkController {
 	@Override
 	protected void handleMessage(Message m) {
 		// apply NetworkConstraints.
-		for(NetworkConstraint c : this.constraints) {
+		for (NetworkConstraint c : this.constraints) {
 			m = c.constrainMessage(m);
 		}
 		super.handleMessage(m);
@@ -78,14 +84,15 @@ public class ConstrainedNetworkController extends NetworkController {
 	protected void deliverMessageTo(NetworkAddress to, Message m) {
 		boolean blockMessage = false;
 		// ask all networkconstraints if they want to block
-		for(NetworkConstraint c : this.constraints) {
+		for (NetworkConstraint c : this.constraints) {
 			blockMessage = blockMessage || c.blockMessageDelivery(to, m);
 		}
-		if(blockMessage) {
-			if(logger.isDebugEnabled()) {
-				logger.debug("Delivery of message "+m+" to "+to+" was blocked by a constraint.");
+		if (blockMessage) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Delivery of message " + m + " to " + to
+						+ " was blocked by a constraint.");
 			}
-			if(this.eventBus != null) {
+			if (this.eventBus != null) {
 				this.eventBus.publish(new MessageBlockedEvent(time, m, to));
 			}
 		} else {
@@ -93,6 +100,22 @@ public class ConstrainedNetworkController extends NetworkController {
 		}
 	}
 
-	
+	@Override
+	protected Pong getPong(Ping p) {
+		// start with all NetworkAddresses, then determine and remove those
+		// which will be blocked by constraints.
+		Set<NetworkAddress> links = new HashSet<NetworkAddress>(
+				this.devices.keySet());
+		Set<NetworkAddress> blocked = new HashSet<NetworkAddress>();
+		for (NetworkAddress a : links) {
+			for (NetworkConstraint c : this.constraints) {
+				if (c.blockMessageDelivery(a, p)) {
+					blocked.add(a);
+				}
+			}
+		}
+		links.removeAll(blocked);
+		return new Pong(time.clone(), links);
+	}
 
 }
