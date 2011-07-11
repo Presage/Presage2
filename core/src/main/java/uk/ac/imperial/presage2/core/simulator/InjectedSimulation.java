@@ -33,15 +33,9 @@ import com.google.inject.Injector;
  * @author Sam Macbeth
  * 
  */
-public abstract class InjectedSimulation implements RunnableSimulation {
+public abstract class InjectedSimulation extends RunnableSimulation {
 
 	private Injector injector;
-
-	private Scenario scenario;
-
-	private SimulationState state = SimulationState.LOADING;
-
-	private Simulator simulator;
 
 	private final Set<AbstractModule> modules = new HashSet<AbstractModule>();
 
@@ -138,21 +132,6 @@ public abstract class InjectedSimulation implements RunnableSimulation {
 
 	protected final Injector getInjector() {
 		return injector;
-	}
-
-	@Override
-	public void run() {
-
-		this.state = SimulationState.INITIALISING;
-		this.simulator.initialise();
-
-		this.state = SimulationState.RUNNING;
-		this.simulator.run();
-
-		this.state = SimulationState.FINISHING;
-		this.simulator.complete();
-
-		this.state = SimulationState.COMPLETE;
 	}
 
 }
