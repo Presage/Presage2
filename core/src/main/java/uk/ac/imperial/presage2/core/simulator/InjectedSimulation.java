@@ -55,6 +55,10 @@ public abstract class InjectedSimulation implements RunnableSimulation {
 		this.modules.addAll(modules);
 	}
 
+	public InjectedSimulation() {
+		super();
+	}
+
 	/**
 	 * Add an {@link AbstractModule} to the set we will use to create this
 	 * simulation's {@link Scenario} and {@link Simulator}.
