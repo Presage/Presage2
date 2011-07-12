@@ -86,21 +86,34 @@ public abstract class RunnableSimulation implements Runnable {
 	 * 
 	 * @return {@link Time}
 	 */
-	public abstract Time getCurrentSimulationTime();
+	public Time getCurrentSimulationTime() {
+		if (simulator == null)
+			return null;
+		else
+			return simulator.getCurrentSimulationTime();
+	}
 
 	/**
 	 * Get the time the underlying simulation should finish.
 	 * 
 	 * @return {@link Time}
 	 */
-	public abstract Time getSimulationFinishTime();
+	public Time getSimulationFinishTime() {
+		if (scenario == null)
+			return null;
+		else
+			return scenario.getFinishTime();
+	}
 
 	/**
 	 * Get the percentage completion of the simulation.
 	 * 
 	 * @return
 	 */
-	public abstract int getSimluationPercentComplete();
+	public int getSimluationPercentComplete() {
+		// TODO need a method for this!
+		return 0;
+	}
 
 	/**
 	 * Get the underlying scenario this simulation is running.

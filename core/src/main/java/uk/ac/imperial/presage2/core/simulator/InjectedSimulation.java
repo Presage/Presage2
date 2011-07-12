@@ -21,7 +21,6 @@ package uk.ac.imperial.presage2.core.simulator;
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.ac.imperial.presage2.core.Time;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -92,43 +91,6 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 	}
 
 	protected abstract void addToScenario(Scenario s);
-
-	@Override
-	public SimulationState getState() {
-		return this.state;
-	}
-
-	@Override
-	public Time getCurrentSimulationTime() {
-		if (simulator == null)
-			return null;
-		else
-			return null; // TODO need a method for this!
-	}
-
-	@Override
-	public Time getSimulationFinishTime() {
-		if (scenario == null)
-			return null;
-		else
-			return scenario.getFinishTime();
-	}
-
-	@Override
-	public int getSimluationPercentComplete() {
-		// TODO need a method for this!
-		return 0;
-	}
-
-	@Override
-	public Scenario getScenario() {
-		return scenario;
-	}
-
-	@Override
-	public Simulator getSimulator() {
-		return simulator;
-	}
 
 	protected final Injector getInjector() {
 		return injector;
