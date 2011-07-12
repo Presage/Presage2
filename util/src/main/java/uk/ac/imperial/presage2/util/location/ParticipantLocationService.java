@@ -29,6 +29,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
@@ -60,6 +61,7 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
  * @author Sam Macbeth
  *
  */
+@ServiceDependencies({EnvironmentMembersService.class})
 public class ParticipantLocationService extends LocationService {
 
 	private final Logger logger = Logger.getLogger(ParticipantLocationService.class);
