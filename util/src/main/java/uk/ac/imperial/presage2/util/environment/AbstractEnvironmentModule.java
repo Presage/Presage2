@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.util.environment;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
@@ -25,6 +26,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -58,6 +60,33 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		this.environmentImplementation = environmentImplementation;
 		this.environmentServices = environmentServices;
 		this.actionHandlers = actionHandlers;
+		this.processServiceDependencies();
+	}
+
+	/**
+	 * Takes the sets of {@link EnvironmentService}s and {@link ActionHandler}s,
+	 * examines their {@link ServiceDependencies} and adds them to the set of
+	 * {@link EnvironmentService}s
+	 */
+	final private void processServiceDependencies() {
+		final Set<Class<? extends EnvironmentService>> dependencies = new HashSet<Class<? extends EnvironmentService>>();
+		for (Class<? extends EnvironmentService> service : environmentServices) {
+			if (service.isAnnotationPresent(ServiceDependencies.class)) {
+				for (Class<? extends EnvironmentService> dep : service
+						.getAnnotation(ServiceDependencies.class).value()) {
+					dependencies.add(dep);
+				}
+			}
+		}
+		for (Class<? extends ActionHandler> handler : actionHandlers) {
+			if (handler.isAnnotationPresent(ServiceDependencies.class)) {
+				for (Class<? extends EnvironmentService> dep : handler
+						.getAnnotation(ServiceDependencies.class).value()) {
+					dependencies.add(dep);
+				}
+			}
+		}
+		this.environmentServices.addAll(dependencies);
 	}
 
 	@Override
@@ -70,12 +99,12 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		// bind Singleton implementation to AbstractEnvironment
 		bind(AbstractEnvironment.class).to(environmentImplementation).in(
 				Singleton.class);
-		;
 
 		// global environment services
 		Multibinder<EnvironmentService> serviceBinder = Multibinder
 				.newSetBinder(binder(), EnvironmentService.class);
 		for (Class<? extends EnvironmentService> service : environmentServices) {
+
 			serviceBinder.addBinding().to(service);
 		}
 
