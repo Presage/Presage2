@@ -19,11 +19,13 @@
 
 package uk.ac.imperial.presage2.core.simulator;
 
+import uk.ac.imperial.presage2.core.Time;
+
 import com.google.inject.Inject;
 
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public abstract class Simulator {
 
@@ -31,17 +33,23 @@ public abstract class Simulator {
 	 * The Scenario to simulate
 	 */
 	protected Scenario scenario;
-	
+	protected final Time time;
+
 	@Inject
-	public Simulator(Scenario scenario) {
+	public Simulator(Scenario scenario, Time t) {
 		this.scenario = scenario;
+		this.time = t;
 	}
 
 	/**
-	 * <p>Start running this simulation. </p>
+	 * <p>
+	 * Start running this simulation.
+	 * </p>
 	 * 
-	 * <p>Will run {@link #initialise()}, {@link #run()} and {@link #complete()}
-	 * in order.</p>
+	 * <p>
+	 * Will run {@link #initialise()}, {@link #run()} and {@link #complete()} in
+	 * order.
+	 * </p>
 	 */
 	public void start() {
 		this.initialise();
@@ -53,15 +61,19 @@ public abstract class Simulator {
 	 * Initialise simulation components.
 	 */
 	public abstract void initialise();
-	
+
 	/**
 	 * Run the core simulation
 	 */
 	public abstract void run();
-	
+
 	/**
 	 * Complete post simulation actions and tidy up.
 	 */
 	public abstract void complete();
-	
+
+	public Time getCurrentSimulationTime() {
+		return time.clone();
+	}
+
 }

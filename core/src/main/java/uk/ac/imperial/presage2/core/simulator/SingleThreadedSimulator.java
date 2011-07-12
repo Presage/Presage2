@@ -38,15 +38,12 @@ public class SingleThreadedSimulator extends Simulator {
 
 	private final Logger logger = Logger.getLogger(SingleThreadedSimulator.class);
 	
-	private final Time time;
-	
 	/**
 	 * @param scenario
 	 */
 	@Inject
 	public SingleThreadedSimulator(Scenario scenario, Time t) {
-		super(scenario);
-		time = t;
+		super(scenario, t);
 	}
 
 	@Override
