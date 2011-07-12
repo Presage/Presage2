@@ -117,6 +117,7 @@
 						http://google-guice.googlecode.com/svn/trunk/javadoc
 						-apiversion ${project.version}
 						-since http://presage.github.com/docs/javadoc/tags/0.2.1/reference/current.xml 0.2.1
+						-since http://presage.github.com/docs/javadoc/branches/master/reference/current.xml 0.2.2
 						-d ${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
