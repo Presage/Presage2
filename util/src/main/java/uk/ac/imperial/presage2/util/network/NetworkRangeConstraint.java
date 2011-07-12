@@ -23,6 +23,7 @@ import java.util.UUID;
 import com.google.inject.Inject;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
+import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
@@ -36,6 +37,7 @@ import uk.ac.imperial.presage2.util.location.LocationService;
  * @author Sam Macbeth
  *
  */
+@ServiceDependencies({LocationService.class, CommunicationRangeService.class})
 public class NetworkRangeConstraint implements NetworkConstraint {
 
 	private LocationService locService;

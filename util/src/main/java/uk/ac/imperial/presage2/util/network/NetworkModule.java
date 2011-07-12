@@ -21,6 +21,8 @@ package uk.ac.imperial.presage2.util.network;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.network.*;
 
 import com.google.inject.AbstractModule;
@@ -90,9 +92,19 @@ public final class NetworkModule extends AbstractModule {
 		if (this.constraints.size() > 0) {
 			Multibinder<NetworkConstraint> constraintBinder = Multibinder
 					.newSetBinder(binder(), NetworkConstraint.class);
+			Multibinder<EnvironmentService> serviceBinder = Multibinder
+					.newSetBinder(binder(), EnvironmentService.class);
 			for (Class<? extends NetworkConstraint> c : constraints) {
 				constraintBinder.addBinding().to(c);
+				
+				if(c.isAnnotationPresent(ServiceDependencies.class)) {
+					for (Class<? extends EnvironmentService> dep : c
+							.getAnnotation(ServiceDependencies.class).value()) {
+						serviceBinder.addBinding().to(dep);
+					}
+				}
 			}
+			
 		}
 	}
 
