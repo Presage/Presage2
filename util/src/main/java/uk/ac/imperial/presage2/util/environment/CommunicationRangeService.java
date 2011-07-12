@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.util.environment;
 
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
@@ -45,12 +47,13 @@ public class CommunicationRangeService extends EnvironmentService {
 	/**
 	 * @param sharedState
 	 */
+	@Inject
 	public CommunicationRangeService(EnvironmentSharedStateAccess sharedState) {
 		super(sharedState);
 	}
 
 	public double getAgentCommunicationRange(UUID participantID) {
-		return (Double) this.sharedState.get("network.commrange", participantID).getValue();
+		return ((HasCommunicationRange) this.sharedState.get("network.commrange", participantID).getValue()).getCommunicationRange();
 	}
 
 	/**
@@ -59,8 +62,8 @@ public class CommunicationRangeService extends EnvironmentService {
 	 * @param range	{@link HasCommunicationRange} provider for this participant
 	 * @return	{@link ParticipantSharedState} on the type that this service uses.
 	 */
-	public static ParticipantSharedState<Double> createSharedState(UUID pid, HasCommunicationRange range) {
-		return new ParticipantSharedState<Double>("network.commrange", range.getCommunicationRange(), pid);
+	public static ParticipantSharedState<HasCommunicationRange> createSharedState(UUID pid, HasCommunicationRange range) {
+		return new ParticipantSharedState<HasCommunicationRange>("network.commrange", range, pid);
 	}
 
 }

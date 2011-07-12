@@ -16,42 +16,16 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package uk.ac.imperial.presage2.util.location;
-
-import com.google.inject.Inject;
+package uk.ac.imperial.presage2.core.environment;
 
 /**
+ * A state transformer changes a {@link SharedState}'s value to a new one.
+ * 
  * @author Sam Macbeth
- *
+ * 
  */
-public final class Area2D implements Area {
+public interface StateTransformer {
 
-	final private int x;
-	
-	final private int y;
-	
-	/**
-	 * @param x
-	 * @param y
-	 */
-	@Inject
-	public Area2D(@SimSize.x int x, @SimSize.y int y) {
-		super();
-		this.x = x;
-		this.y = y;
-	}
-
-	@Override
-	public boolean contains(Location l) {
-		if(l instanceof Location2D) {
-			Location2D<?> l2 = (Location2D<?>) l;
-			double x = l2.x.doubleValue();
-			double y = l2.y.doubleValue();
-			return x <= this.x && y <= this.y
-					&& x >= 0 && y >= 0;
-		} else 
-			return false;
-	}
+	public void transform(SharedState<?> state);
 
 }

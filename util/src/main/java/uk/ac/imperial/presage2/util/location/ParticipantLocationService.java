@@ -29,6 +29,8 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
+import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
+import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
@@ -59,6 +61,7 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
  * @author Sam Macbeth
  *
  */
+@ServiceDependencies({EnvironmentMembersService.class})
 public class ParticipantLocationService extends LocationService {
 
 	private final Logger logger = Logger.getLogger(ParticipantLocationService.class);
@@ -66,7 +69,7 @@ public class ParticipantLocationService extends LocationService {
 	/**
 	 * {@link ParticipantSharedState} for this agent's Location.
 	 */
-	protected final ParticipantSharedState<Location> state;
+	protected final ParticipantSharedState<HasLocation> state;
 
 	protected final HasLocation locationProvider;
 
@@ -96,83 +99,18 @@ public class ParticipantLocationService extends LocationService {
 		this.me = p;
 		this.locationProvider = hasLoc;
 		this.rangeProvider = hasRange;
-		this.state = new ParticipantSharedState<Location>("util.location", this.locationProvider.getLocation(), p.getID());
+		this.state = new ParticipantSharedState<HasLocation>("util.location", this.locationProvider, p.getID());
 		this.membersService = getMembersService(serviceProvider);
 	}
 
-	/**
-	 * <p>Create a {@link ParticipantLocationService} for {@link Participant} p using existing {@link ParticipantSharedState} for it's 
-	 * current location and perception range provided by hasRange. The {@link EnvironmentSharedStateAccess} is provided by sharedState.</p>
-	 * @param p	{@link Participant} this service is for.
-	 * @param locationState	{@link ParticipantSharedState} for this agent's location.
-	 * @param hasRange	{@link HasPerceptionRange} which provides the range at which this agent can perceive other agents.
-	 * @param sharedState	{@link EnvironmentSharedStateAccess} which this {@link EnvironmentService} should use.
-	 * @param serviceProvider	{@link EnvironmentServiceProvider} for fetching dependencies
-	 */
-	public ParticipantLocationService(Participant p, 
-			ParticipantSharedState<Location> locationState, 
-			HasPerceptionRange hasRange, 
-			EnvironmentSharedStateAccess sharedState,
-			EnvironmentServiceProvider serviceProvider) {
-		super(sharedState);
-		this.me = p;
-		this.state = locationState;
-		this.locationProvider = new HasLocation() {
-			@Override
-			public Location getLocation() {
-				return state.getValue();
-			}
-		};
-		this.rangeProvider = hasRange;
-		this.membersService = getMembersService(serviceProvider);
-	}
-
-	/**
-	 * <p>Create a {@link ParticipantLocationService} for {@link Participant} p. If p implements {@link HasPerceptionRange} then
-	 * this will be used to find the agent's perception range, otherwise we will use no perception range and this agent will be 
-	 * able to see the {@link Location} of all other agents in the environment.</p>
-	 * @param p	p	{@link Participant} this service is for.
-	 * @param locationState	{@link ParticipantSharedState} for this agent's location.
-	 * @param sharedState	{@link EnvironmentSharedStateAccess} which this {@link EnvironmentService} should use.
-	 * @param serviceProvider	{@link EnvironmentServiceProvider} for fetching dependencies
-	 */
-	public ParticipantLocationService(Participant p, 
-			ParticipantSharedState<Location> locationState, 
-			EnvironmentSharedStateAccess sharedState,
-			EnvironmentServiceProvider serviceProvider) {
-		super(sharedState);
-		this.me = p;
-		this.state = locationState;
-		this.locationProvider = new HasLocation() {
-			@Override
-			public Location getLocation() {
-				return state.getValue();
-			}
-		};
-		if(p instanceof HasPerceptionRange) {
-			this.rangeProvider = (HasPerceptionRange) p;
-		} else {
-			this.rangeProvider = null;
-			if(this.logger.isDebugEnabled()) {
-				this.logger.debug("ParticipantLocationService created with no perception range. This agent is all seeing!");
-			}
-		}
-		this.membersService = getMembersService(serviceProvider);
-	}
-	
 	@SuppressWarnings("unchecked")
 	public ParticipantLocationService(Participant p, 
 			EnvironmentSharedStateAccess sharedState, 
 			EnvironmentServiceProvider serviceProvider) {
 		super(sharedState);
 		this.me = p;
-		this.state = (ParticipantSharedState<Location>) sharedState.get("util.location", p.getID());
-		this.locationProvider = new HasLocation() {
-			@Override
-			public Location getLocation() {
-				return state.getValue();
-			}
-		};
+		this.state = (ParticipantSharedState<HasLocation>) sharedState.get("util.location", p.getID());
+		this.locationProvider = this.state.getValue();
 		if(p instanceof HasPerceptionRange) {
 			this.rangeProvider = (HasPerceptionRange) p;
 		} else {
@@ -198,12 +136,12 @@ public class ParticipantLocationService extends LocationService {
 		}
 	}
 
-	public ParticipantSharedState<Location> getLocationState() {
+	public ParticipantSharedState<HasLocation> getLocationState() {
 		return this.state;
 	}
 
 	@Override
-	public Location getAgentLocation(UUID participantID) throws CannotSeeAgent {
+	public Location getAgentLocation(UUID participantID) {
 		if(this.rangeProvider == null) {
 			return super.getAgentLocation(participantID);
 		} else {
@@ -216,6 +154,14 @@ public class ParticipantLocationService extends LocationService {
 				throw new CannotSeeAgent(this.me.getID(), participantID);
 			}
 		}
+	}
+
+	/**
+	 * Not available for Participant use!
+	 */
+	@Override
+	public void setAgentLocation(UUID participantID, Location l) {
+		throw new SharedStateAccessException("A participant may not modify other participant's locations!");
 	}
 
 	/**
@@ -251,8 +197,8 @@ public class ParticipantLocationService extends LocationService {
 	 * @param loc	{@link HasLocation} provider for this participant.
 	 * @return 	{@link ParticipantSharedState} on the type that this service uses.
 	 */
-	public static ParticipantSharedState<Location> createSharedState(UUID pid, HasLocation loc) {
-		return new ParticipantSharedState<Location>("util.location", loc.getLocation(), pid);
+	public static ParticipantSharedState<HasLocation> createSharedState(UUID pid, HasLocation loc) {
+		return new ParticipantSharedState<HasLocation>("util.location", loc, pid);
 	}
 
 }

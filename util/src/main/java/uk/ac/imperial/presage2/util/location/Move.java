@@ -22,4 +22,6 @@ import uk.ac.imperial.presage2.core.Action;
 
 public interface Move extends Action {
 
+	public double getMagnitude();
+
 }

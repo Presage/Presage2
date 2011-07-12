@@ -22,14 +22,24 @@ package uk.ac.imperial.presage2.util.location;
  * A {@link Location} which is represented by two numerical coordinates.
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public abstract class Location2D<T extends Number> extends Location {
 
-	protected T x;
-	
-	protected T y;
-	
+	final protected T x;
+
+	final protected T y;
+
+	/**
+	 * @param x
+	 * @param y
+	 */
+	public Location2D(T x, T y) {
+		super();
+		this.x = x;
+		this.y = y;
+	}
+
 	@Override
 	public Location getLocation() {
 		return this;
@@ -37,51 +47,97 @@ public abstract class Location2D<T extends Number> extends Location {
 
 	@Override
 	public String toString() {
-		return "("+x+","+y+")";
+		return "(" + x + "," + y + ")";
 	}
 
 	@Override
 	public boolean equals(Location l) {
-		if(l instanceof Location2D) {
+		if (l instanceof Location2D) {
 			return this.equals((Location2D<?>) l);
 		} else {
 			return false;
 		}
 	}
-	
+
 	public boolean equals(Location2D<?> l) {
 		try {
 			return (this.x.equals(l.x) && this.y.equals(l.y));
-		} catch(NullPointerException e) {
+		} catch (NullPointerException e) {
 			return false;
 		}
 	}
 
 	@Override
 	public double distanceTo(Location l) {
-		if(l instanceof Location2D) {
+		if (l instanceof Location2D) {
 			return this.distanceTo((Location2D<?>) l);
 		} else
-			throw new UnsupportedOperationException("Distance between Locations "+ this.getClass().getSimpleName() +" and "+ l.getClass().getSimpleName());
+			throw new UnsupportedOperationException(
+					"Distance between Locations "
+							+ this.getClass().getSimpleName() + " and "
+							+ l.getClass().getSimpleName());
 	}
-	
+
 	public double distanceTo(Location2D<?> l) {
-		if(l.x instanceof Integer) {
-			final int dx = Math.abs((Integer) l.x - (Integer) this.x);
-			final int dy = Math.abs((Integer) l.y - (Integer) this.y);
-			return Math.sqrt(dx*dx + dy*dy);
-		}
-		else if(l.x instanceof Double) {
-			final double dx = Math.abs((Double) l.x - (Double) this.x);
-			final double dy = Math.abs((Double) l.y - (Double) this.y);
-			return Math.sqrt(dx*dx + dy*dy);
+		if (l.x instanceof Integer) {
+			final int dx = (int) Math.abs(l.x.doubleValue()
+					- this.x.doubleValue());
+			final int dy = (int) Math.abs(l.y.doubleValue()
+					- this.y.doubleValue());
+			return Math.sqrt(dx * dx + dy * dy);
+		} else if (l.x instanceof Double) {
+			final double dx = Math
+					.abs(l.x.doubleValue() - this.x.doubleValue());
+			final double dy = Math
+					.abs(l.y.doubleValue() - this.y.doubleValue());
+			return Math.sqrt(dx * dx + dy * dy);
 		} else {
-			throw new UnsupportedOperationException("Distance between Locations "+ 
-				this.getClass().getSimpleName() +
-				"<"+ this.x.getClass().getSimpleName() +"> and "+
-				l.getClass().getSimpleName() +
-				"<"+ this.x.getClass().getSimpleName() +">");
+			throw new UnsupportedOperationException(
+					"Distance between Locations "
+							+ this.getClass().getSimpleName() + "<"
+							+ this.x.getClass().getSimpleName() + "> and "
+							+ l.getClass().getSimpleName() + "<"
+							+ this.x.getClass().getSimpleName() + ">");
 		}
+	}
+
+	public static Location add(Location2D<?> loc, Move2D<?> m) {
+		final double x = loc.x.doubleValue() + m.x.doubleValue();
+		final double y = loc.y.doubleValue() + m.y.doubleValue();
+		if (loc.x instanceof Integer) {
+			// preserve original location type.
+			return new Discrete2DLocation((int) x, (int) y);
+		} else {
+			return new Continuous2DLocation(x, y);
+		}
+	}
+
+	@Override
+	public Move getMoveTo(Location l) {
+		if (l instanceof Location2D<?>) {
+			Location2D<?> l2 = (Location2D<?>) l;
+			final double dx = l2.x.doubleValue() - this.x.doubleValue();
+			final double dy = l2.y.doubleValue() - this.y.doubleValue();
+			if (Math.floor(dx) == dx && Math.floor(dy) == dy) {
+				return new Move2D<Integer>((int) dx, (int) dy);
+			} else {
+				return new Move2D<Double>(dx, dy);
+			}
+		}
+		throw new UnsupportedOperationException(
+				"Cannot move between dimensions!");
+	}
+
+	@Override
+	public Move getMoveTo(Location l, double speed) {
+		Move move = this.getMoveTo(l);
+		if (move.getMagnitude() > speed) {
+			final Move2D<?> m = (Move2D<?>) move;
+			final double angle = m.getAngle();
+			return new Move2D<Double>(Math.cos(angle) * speed, Math.sin(angle)
+					* speed);
+		} else
+			return move;
 	}
 
 }

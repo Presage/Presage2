@@ -16,42 +16,35 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.core.network;
 
-package uk.ac.imperial.presage2.util.location;
+import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.event.Event;
 
-import com.google.inject.Inject;
+public class MessageBlockedEvent implements Event {
 
-/**
- * @author Sam Macbeth
- *
- */
-public final class Area2D implements Area {
+	final protected Time time;
+	final protected Message message;
+	final protected NetworkAddress recipient;
 
-	final private int x;
-	
-	final private int y;
-	
-	/**
-	 * @param x
-	 * @param y
-	 */
-	@Inject
-	public Area2D(@SimSize.x int x, @SimSize.y int y) {
+	MessageBlockedEvent(Time time, Message message, NetworkAddress recipient) {
 		super();
-		this.x = x;
-		this.y = y;
+		this.time = time;
+		this.message = message;
+		this.recipient = recipient;
 	}
 
 	@Override
-	public boolean contains(Location l) {
-		if(l instanceof Location2D) {
-			Location2D<?> l2 = (Location2D<?>) l;
-			double x = l2.x.doubleValue();
-			double y = l2.y.doubleValue();
-			return x <= this.x && y <= this.y
-					&& x >= 0 && y >= 0;
-		} else 
-			return false;
+	public Time getTime() {
+		return time;
+	}
+
+	public final Message getMessage() {
+		return message;
+	}
+
+	public final NetworkAddress getRecipient() {
+		return recipient;
 	}
 
 }

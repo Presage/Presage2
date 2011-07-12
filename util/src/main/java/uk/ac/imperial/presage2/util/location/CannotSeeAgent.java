@@ -32,7 +32,7 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
  * @author Sam Macbeth
  *
  */
-public class CannotSeeAgent extends Exception {
+public class CannotSeeAgent extends RuntimeException {
 
 	private static final long serialVersionUID = -3653607438569242041L;
 	UUID me;

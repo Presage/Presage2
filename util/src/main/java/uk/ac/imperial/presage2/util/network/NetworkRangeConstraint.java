@@ -23,6 +23,8 @@ import java.util.UUID;
 import com.google.inject.Inject;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
+import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
+import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
@@ -36,6 +38,7 @@ import uk.ac.imperial.presage2.util.location.LocationService;
  * @author Sam Macbeth
  *
  */
+@ServiceDependencies({LocationService.class, CommunicationRangeService.class})
 public class NetworkRangeConstraint implements NetworkConstraint {
 
 	private LocationService locService;
@@ -70,6 +73,9 @@ public class NetworkRangeConstraint implements NetworkConstraint {
 		} catch (CannotSeeAgent e) {
 			// this should not happen!
 			throw new RuntimeException("LocationService threw CannotSeeAgent for NetworkRangeConstraint", e);
+		} catch (SharedStateAccessException e) {
+			// someone doesn't have location or communication range state, allow in this case
+			return false;
 		}
 	}
 

@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.util.location;
 
 import java.util.Map;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.SharedState;
@@ -42,6 +44,7 @@ public class AreaService extends EnvironmentService {
 
 	private HasArea area;
 
+	@Inject
 	public AreaService(EnvironmentSharedStateAccess sharedState, HasArea area) {
 		super(sharedState);
 		this.area = area;

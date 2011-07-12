@@ -19,59 +19,71 @@
 
 package uk.ac.imperial.presage2.core;
 
-
 import com.google.inject.AbstractModule;
 
 /**
- * This is a generic representation of a time within the simulation. Using
- * this representation allows more complex time structures to be used rather
- * than just discrete integer time.
+ * This is a generic representation of a time within the simulation. Using this
+ * representation allows more complex time structures to be used rather than
+ * just discrete integer time.
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public interface Time {
 
 	public String toString();
-	
+
 	/**
 	 * Check if two times are equal.
+	 * 
 	 * @param t
 	 * @return true if both Times represent the same discrete simulation time.
 	 */
 	public boolean equals(Time t);
-	
+
 	/**
 	 * Increment this time to the next discrete time value.
 	 */
 	public void increment();
-	
+
 	public void setTime(Time t);
-	
+
 	/**
 	 * Clone this time
+	 * 
 	 * @return clone of this time.
 	 */
 	public Time clone();
-	
+
 	/**
 	 * 
-	 * @param t time to compare to.
+	 * @param t
+	 *            time to compare to.
 	 * @return true if this > t, false otherwise
 	 */
 	public boolean greaterThan(Time t);
-	
+
 	/**
-	 * Provides various {@link AbstractModule}s to bind different
-	 * types of {@link Time}.
+	 * Get this time as an integer value. Used to determine quantities of time
+	 * ticks.
+	 * 
+	 * @return value of this time as an integer.
+	 */
+	public int intValue();
+
+	/**
+	 * Provides various {@link AbstractModule}s to bind different types of
+	 * {@link Time}.
+	 * 
 	 * @author Sam Macbeth
-	 *
+	 * 
 	 */
 	class Bind {
 
 		/**
 		 * Bind {@link Time} to {@link IntegerTime} and set the simulation
 		 * finish time to finshTime.
+		 * 
 		 * @param finishTime
 		 * @return {@link AbstractModule}
 		 */
@@ -80,7 +92,8 @@ public interface Time {
 				@Override
 				protected void configure() {
 					bind(Time.class).to(IntegerTime.class);
-					bind(Time.class).annotatedWith(FinishTime.class).toInstance(new IntegerTime(finishTime));
+					bind(Time.class).annotatedWith(FinishTime.class)
+							.toInstance(new IntegerTime(finishTime));
 				}
 			};
 		}

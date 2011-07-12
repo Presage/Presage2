@@ -46,49 +46,56 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
 /**
- * <p>This implements the core of a {@link Participant} to manage the majority of the
- * mundane functions allowing the user to start writing the agent's behaviours sooner.
- * It implements {@link EnvironmentServiceProvider} to provide an interface to {@link EnvironmentService}s
- * that are available to the agent</p>
+ * <p>
+ * This implements the core of a {@link Participant} to manage the majority of
+ * the mundane functions allowing the user to start writing the agent's
+ * behaviours sooner. It implements {@link EnvironmentServiceProvider} to
+ * provide an interface to {@link EnvironmentService}s that are available to the
+ * agent
+ * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
-public abstract class AbstractParticipant implements Participant, EnvironmentServiceProvider {
+public abstract class AbstractParticipant implements Participant,
+		EnvironmentServiceProvider {
 
-	private final Logger logger = Logger.getLogger(AbstractParticipant.class);
-	
+	/**
+	 * {@link Logger} for this agent.
+	 */
+	protected final Logger logger;
+
 	/**
 	 * This Participant's unique ID.
 	 */
 	private UUID id;
-	
+
 	/**
 	 * A human readable name for this Participant.
 	 */
 	private String name;
-	
+
 	/**
-	 * This Participant's authkey obtained when registering with
-	 * the environment.
+	 * This Participant's authkey obtained when registering with the
+	 * environment.
 	 */
 	protected UUID authkey;
-	
+
 	/**
 	 * Connector to the environment the participant is in.
 	 */
 	protected EnvironmentConnector environment;
-	
+
 	/**
 	 * Connector to the network.
 	 */
 	protected NetworkAdaptor network;
-	
+
 	/**
 	 * The agent's perception of time.
 	 */
 	private Time time;
-	
+
 	/**
 	 * FIFO queue of inputs to be processed.
 	 */
@@ -116,22 +123,31 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		this.environment = environment;
 		this.network = network;
 		this.time = time;
-		if(logger.isDebugEnabled()) {
-			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
+		this.logger = Logger.getLogger(this.getName() + "(" + this.getID()
+				+ ")");
+		if (logger.isDebugEnabled()) {
+			logger.debug("Created Participant " + this.getName() + ", UUID: "
+					+ this.getID());
 		}
 	}
 
 	/**
-	 * <p>Basic Participant constructor. </p>
+	 * <p>
+	 * Basic Participant constructor.
+	 * </p>
 	 * 
-	 * <p>Requires environment & network to be injected by
-	 * field injection. This can be done either by creating this object
-	 * with a guice injector or by using on-demand injection:
+	 * <p>
+	 * Requires environment & network to be injected by field injection. This
+	 * can be done either by creating this object with a guice injector or by
+	 * using on-demand injection:
+	 * 
 	 * <pre class="prettyprint">
 	 * Injector injector = Guice.createInjector(...);
 	 * 
 	 * RealParticipant participant = new RealParticipant(...);
-	 * injector.injectMembers(participant);</pre>
+	 * injector.injectMembers(participant);
+	 * </pre>
+	 * 
 	 * </p>
 	 * 
 	 * @param id
@@ -141,8 +157,10 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		super();
 		this.id = id;
 		this.name = name;
-		if(logger.isDebugEnabled()) {
-			logger.debug("Created Participant "+this.getName()+", UUID: "+this.getID());
+		this.logger = Logger.getLogger(this.getName());
+		if (logger.isDebugEnabled()) {
+			logger.debug("Created Participant " + this.getName() + ", UUID: "
+					+ this.getID());
 		}
 	}
 
@@ -172,83 +190,99 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		return this.getName();
 	}
 
-	@Inject(optional=true)
+	@Inject(optional = true)
 	public void initialiseEnvironment(EnvironmentConnector e) {
 		this.environment = e;
 	}
-	
-	@Inject(optional=true)
+
+	@Inject(optional = true)
 	public void initialiseNetwork(NetworkConnectorFactory networkFactory) {
 		this.network = networkFactory.create(this.getID());
 	}
-	
-	@Inject(optional=true)
+
+	@Inject(optional = true)
 	public void initialiseTime(Time t) {
 		this.time = t;
 	}
-	
+
 	/**
-	 * <p>The initialisation process for the AbstractParticipant involves the following:</p>
+	 * <p>
+	 * The initialisation process for the AbstractParticipant involves the
+	 * following:
+	 * </p>
 	 * <ul>
-	 * 	<li>Registering with the environment.</li>
-	 * 	<li>Creating a Queue for incoming {@link Input}s</li>
+	 * <li>Registering with the environment.</li>
+	 * <li>Creating a Queue for incoming {@link Input}s</li>
 	 * </ul>
-	 * We split these up into protected function calls in case the implementor wishes to override only
-	 * certain parts of this process.
+	 * We split these up into protected function calls in case the implementor
+	 * wishes to override only certain parts of this process.
 	 */
 	@Override
 	public void initialise() {
-		
+
 		registerWithEnvironment();
-		
+
 		initialiseInputQueue();
-		
+
 	}
 
 	/**
-	 * <p>Registers this Participant with the environment. </p>
-	 * <p>Creates an {@link EnvironmentRegistrationRequest} and uses it to register with the
-	 * host environment via {@link EnvironmentConnector#register(EnvironmentRegistrationRequest)}. The
-	 * shared state set for this request is obtained from {@link AbstractParticipant#getSharedState()}.
+	 * <p>
+	 * Registers this Participant with the environment.
+	 * </p>
+	 * <p>
+	 * Creates an {@link EnvironmentRegistrationRequest} and uses it to register
+	 * with the host environment via
+	 * {@link EnvironmentConnector#register(EnvironmentRegistrationRequest)}.
+	 * The shared state set for this request is obtained from
+	 * {@link AbstractParticipant#getSharedState()}.
 	 */
 	private void registerWithEnvironment() {
 		// Create base registration request
-		EnvironmentRegistrationRequest request = new EnvironmentRegistrationRequest(getID(), this);
+		EnvironmentRegistrationRequest request = new EnvironmentRegistrationRequest(
+				getID(), this);
 		// Add any shared state we have
 		request.setSharedState(this.getSharedState());
 		// Register
-		EnvironmentRegistrationResponse response = environment.register(request);
+		EnvironmentRegistrationResponse response = environment
+				.register(request);
 		// Save the returned authkey
 		this.authkey = response.getAuthKey();
 		// process the returned environment services
 		processEnvironmentServices(response.getServices());
-		
+
 	}
 
 	/**
-	 * <p>Process the {@link EnvironmentService}s from environment registration.</p>
-	 * <p>This will probably involve looking for ones you can use, pulling them out, and
-	 * casting them to the correct type.</p>
+	 * <p>
+	 * Process the {@link EnvironmentService}s from environment registration.
+	 * </p>
+	 * <p>
+	 * This will probably involve looking for ones you can use, pulling them
+	 * out, and casting them to the correct type.
+	 * </p>
+	 * 
 	 * @param services
 	 */
 	protected void processEnvironmentServices(Set<EnvironmentService> services) {
-		for(EnvironmentService s : services) {
+		for (EnvironmentService s : services) {
 			this.services.add(s);
 		}
 	}
 
 	/**
-	 * Get the set of shared states that this Participant has. Used for the environment registration request
-	 * for this participant.
+	 * Get the set of shared states that this Participant has. Used for the
+	 * environment registration request for this participant.
+	 * 
 	 * @return
 	 */
 	protected Set<ParticipantSharedState<?>> getSharedState() {
 		return new HashSet<ParticipantSharedState<?>>();
 	}
-	
+
 	/**
-	 * Initialises {@link AbstractParticipant#inputQueue} which will be a FIFO queue
-	 * for Inputs received by the Participant.
+	 * Initialises {@link AbstractParticipant#inputQueue} which will be a FIFO
+	 * queue for Inputs received by the Participant.
 	 */
 	protected void initialiseInputQueue() {
 		// Linked list provides a FIFO queue implementation
@@ -266,32 +300,38 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	}
 
 	/**
-	 * <p>This provides an example start to an agent's {@link TimeDriven#incrementTime()} method. You may
-	 * want to use this by using <code>this.execute()</code> at the top of your implementation, or not use
-	 * it at all.</p>
-	 * <p>In this implementation we simply pull in any messages sent from the network, then process
-	 * our entire message queue. Obviously, in order for the agent to be anything more than purely reactive
-	 * you should add more to this.</p>
+	 * <p>
+	 * This provides an example start to an agent's
+	 * {@link TimeDriven#incrementTime()} method. You may want to use this by
+	 * using <code>this.execute()</code> at the top of your implementation, or
+	 * not use it at all.
+	 * </p>
+	 * <p>
+	 * In this implementation we simply pull in any messages sent from the
+	 * network, then process our entire message queue. Obviously, in order for
+	 * the agent to be anything more than purely reactive you should add more to
+	 * this.
+	 * </p>
 	 */
 	@Override
 	public void execute() {
-		
+
 		// pull in Messages from the network
 		enqueueInput(this.network.getMessages());
-		
+
 		// process inputs
-		while(this.inputQueue.size() > 0) {
+		while (this.inputQueue.size() > 0) {
 			this.processInput(this.inputQueue.poll());
 		}
-		
+
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends EnvironmentService> T getEnvironmentService(Class<T> type)
 			throws UnavailableServiceException {
-		for(EnvironmentService s : this.services) {
-			if(s.getClass() == type) {
+		for (EnvironmentService s : this.services) {
+			if (s.getClass() == type) {
 				return (T) s;
 			}
 		}
@@ -300,8 +340,15 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 
 	/**
 	 * Process the given input.
+	 * 
 	 * @param in
 	 */
 	abstract protected void processInput(Input in);
+
+	@Override
+	public void onSimulationComplete() {
+		// empty - override is optional if the participant implementor wants to
+		// use this method.
+	}
 
 }

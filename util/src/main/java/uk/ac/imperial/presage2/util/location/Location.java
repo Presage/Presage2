@@ -18,10 +18,9 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
-
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public abstract class Location implements HasLocation, Cloneable {
 
@@ -38,13 +37,16 @@ public abstract class Location implements HasLocation, Cloneable {
 
 	/**
 	 * Test whether the given location is equal to this one.
-	 * @param l Location to compare to
+	 * 
+	 * @param l
+	 *            Location to compare to
 	 * @return true iff this Location represents the same Location as l
 	 */
 	public abstract boolean equals(Location l);
 
 	/**
 	 * Get the distance between this Location and the location l
+	 * 
 	 * @param l
 	 * @return
 	 */
@@ -52,39 +54,72 @@ public abstract class Location implements HasLocation, Cloneable {
 
 	/**
 	 * Modify this Location by the Move m.
+	 * 
 	 * @param m
-	 * @return	this (for operation chaining)
+	 * @return this (for operation chaining)
+	 * @deprecated Location is now immutable
 	 */
-	public abstract Location add(Move m);
-	
+	@Deprecated
+	public Location add(Move m) {
+		return this;
+	};
+
 	/**
-	 * Returns the result of {@link Area#contains(Location)}
-	 * for a and this. Allows more intuitive syntax when 
-	 * changing that a {@link Location} is in an {@link Area}.
+	 * Returns the result of {@link Area#contains(Location)} for a and this.
+	 * Allows more intuitive syntax when changing that a {@link Location} is in
+	 * an {@link Area}.
+	 * 
 	 * @param a
 	 * @return
 	 */
 	public boolean in(Area a) {
 		return a.contains(this);
 	}
-	
+
 	/**
-	 * Static application of a move to a location. This
-	 * implementation ensures no change to the location
-	 * provided.
+	 * Not available in Immutable Location class.
+	 */
+	@Override
+	public void setLocation(Location l) {
+		throw new UnsupportedOperationException(
+				"HasLocation#setLocation() not available in this context.");
+	}
+
+	/**
+	 * Get the {@link Move} required to move from this location to a new
+	 * location l.
+	 * 
+	 * @param l
+	 * @return {@link Move}
+	 */
+	public abstract Move getMoveTo(Location l);
+
+	/**
+	 * Get the {@link Move} required to move from this location to a new
+	 * location l but limited to a maximum magnitude of speed.
+	 * 
+	 * @param l
+	 * @param speed
+	 * @return {@link Move}
+	 */
+	public abstract Move getMoveTo(Location l, double speed);
+
+	/**
+	 * Static application of a move to a location. This implementation ensures
+	 * no change to the location provided.
+	 * 
 	 * @param loc
 	 * @param m
 	 * @return
 	 */
 	public static Location add(Location loc, Move m) {
-		Location newLoc;
-		try {
-			newLoc = loc.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e);
+		// 2D move
+		if (loc instanceof Location2D<?> && m instanceof Move2D<?>) {
+			return Location2D.add((Location2D<?>) loc, (Move2D<?>) m);
 		}
-		newLoc.add(m);
-		return newLoc;
+		throw new UnsupportedOperationException("Add "
+				+ loc.getClass().getSimpleName() + " and "
+				+ m.getClass().getSimpleName());
 	}
 
 }

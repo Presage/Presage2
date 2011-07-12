@@ -16,42 +16,33 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.core.network;
 
-package uk.ac.imperial.presage2.util.location;
+import java.util.Set;
 
-import com.google.inject.Inject;
+import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.messaging.Performative;
 
 /**
+ * A Pong is special kind of message for determining connected nodes. It is the
+ * response sent from the {@link NetworkController} to a {@link Ping} and
+ * contains the {@link Set} of connected {@link NetworkAddress}es.
+ * 
+ * @see Ping
  * @author Sam Macbeth
- *
+ * 
  */
-public final class Area2D implements Area {
+class Pong extends Message {
 
-	final private int x;
-	
-	final private int y;
-	
-	/**
-	 * @param x
-	 * @param y
-	 */
-	@Inject
-	public Area2D(@SimSize.x int x, @SimSize.y int y) {
-		super();
-		this.x = x;
-		this.y = y;
+	final Set<NetworkAddress> addresses;
+
+	Pong(Time timestamp, Set<NetworkAddress> addresses) {
+		super(Performative.INFORM, null, timestamp);
+		this.addresses = addresses;
 	}
 
-	@Override
-	public boolean contains(Location l) {
-		if(l instanceof Location2D) {
-			Location2D<?> l2 = (Location2D<?>) l;
-			double x = l2.x.doubleValue();
-			double y = l2.y.doubleValue();
-			return x <= this.x && y <= this.y
-					&& x >= 0 && y >= 0;
-		} else 
-			return false;
+	Set<NetworkAddress> getLinks() {
+		return addresses;
 	}
 
 }

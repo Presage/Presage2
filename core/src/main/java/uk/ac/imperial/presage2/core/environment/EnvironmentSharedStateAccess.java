@@ -26,8 +26,13 @@ import java.util.UUID;
  */
 public interface EnvironmentSharedStateAccess {
 
-    public SharedState<?> getGlobal(String name);
+	public SharedState<?> getGlobal(String name);
 
-    public ParticipantSharedState<?> get(String name, UUID participantID);
+	public void changeGlobal(String name, StateTransformer change);
+
+	public ParticipantSharedState<?> get(String name, UUID participantID);
+
+	public void change(String name, UUID participantID,
+			ParticipantStateTransformer change);
 
 }

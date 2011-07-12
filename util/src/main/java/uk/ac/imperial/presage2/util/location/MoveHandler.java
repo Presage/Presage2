@@ -22,13 +22,17 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
+import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 
+@ServiceDependencies({ LocationService.class })
 public class MoveHandler implements ActionHandler {
 
 	private final Logger logger = Logger.getLogger(MoveHandler.class);
@@ -41,6 +45,7 @@ public class MoveHandler implements ActionHandler {
 	 * @param serviceProvider
 	 * @throws UnavailableServiceException 
 	 */
+	@Inject
 	public MoveHandler(HasArea environment,
 			EnvironmentServiceProvider serviceProvider) throws UnavailableServiceException {
 		super();
@@ -66,8 +71,9 @@ public class MoveHandler implements ActionHandler {
 			} catch (CannotSeeAgent e) {
 				throw new ActionHandlingException(e);
 			}
-			if(Location.add(loc, m).in(environment.getArea())) {
-				loc.add(m);
+			final Location target = Location.add(loc, m);
+			if(target.in(environment.getArea())) {
+				this.locationService.setAgentLocation(actor, target);
 			} else {
 				throw new ActionHandlingException("Cannot handle move to location outside of environment area.");
 			}

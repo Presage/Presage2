@@ -16,28 +16,21 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.util.environment;
 
-package uk.ac.imperial.presage2.core.network;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import java.util.List;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import uk.ac.imperial.presage2.core.TimeDriven;
+import com.google.inject.BindingAnnotation;
 
-/**
- * <p>A network adaptor which provides additional services for
- * discovering nodes in the network</p>
- * 
- * @author Sam Macbeth
- *
- */
-public interface NetworkAdaptorWithNodeDiscovery extends NetworkAdaptor, TimeDriven {
+@BindingAnnotation
+@Target({ FIELD, PARAMETER, METHOD })
+@Retention(RUNTIME)
+@interface DeferActions {
 
-	/**
-	 * The network adaptor may also provide a network node discovery
-	 * service which we describe in the following form.
-	 * @return List of UUIDs of connected nodes.
-	 * @throws NetworkException
-	 */
-	public List<NetworkAddress> getConnectedNodes();
-	
 }

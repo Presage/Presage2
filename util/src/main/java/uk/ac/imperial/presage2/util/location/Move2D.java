@@ -20,8 +20,8 @@ package uk.ac.imperial.presage2.util.location;
 
 public class Move2D<T extends Number> implements Move {
 
-	protected T x;
-	protected T y;
+	final protected T x;
+	final protected T y;
 
 	/**
 	 * @param x
@@ -35,7 +35,17 @@ public class Move2D<T extends Number> implements Move {
 
 	@Override
 	public String toString() {
-		return "Move2D: ("+x+","+y+")";
+		return "Move2D: (" + x + "," + y + ")";
+	}
+
+	@Override
+	public double getMagnitude() {
+		return Math.sqrt(x.doubleValue() * x.doubleValue() + y.doubleValue()
+				* y.doubleValue());
+	}
+
+	public double getAngle() {
+		return Math.atan2(y.doubleValue(), x.doubleValue());
 	}
 
 }
