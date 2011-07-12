@@ -111,8 +111,12 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @return
 	 */
 	public int getSimluationPercentComplete() {
-		// TODO need a method for this!
-		return 0;
+		if (getSimulationFinishTime() == null
+				|| getCurrentSimulationTime() == null)
+			return 0;
+		else
+			return Math.round(100 * getCurrentSimulationTime().intValue()
+					/ getSimulationFinishTime().intValue());
 	}
 
 	/**
