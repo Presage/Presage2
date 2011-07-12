@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.2.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
@@ -117,7 +116,7 @@
 						-federate "Google Guice"
 						http://google-guice.googlecode.com/svn/trunk/javadoc
 						-apiversion ${project.version}
-						-since http://presage.github.com/docs/javadoc/branches/master/reference/current.xml 0.2.1
+						-since http://presage.github.com/docs/javadoc/tags/0.2.1/reference/current.xml 0.2.1
 						-d ${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
@@ -159,5 +158,9 @@
 			</plugin>
 		</plugins>
 	</build>
+	<scm>
+		<connection>scm:git:git://github.com/Presage/Presage2.git</connection>
+		<developerConnection>scm:git:https://sammacbeth@github.com/Presage/Presage2.git</developerConnection>
+	</scm>
 </project>
 
