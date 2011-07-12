@@ -159,5 +159,9 @@
 			</plugin>
 		</plugins>
 	</build>
+	<scm>
+		<connection>scm:git:git://github.com/Presage/Presage2.git</connection>
+		<developerConnection>scm:git:https://sammacbeth@github.com/Presage/Presage2.git</developerConnection>
+	</scm>
 </project>
 
