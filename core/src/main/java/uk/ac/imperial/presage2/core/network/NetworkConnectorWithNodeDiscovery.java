@@ -57,6 +57,13 @@ public class NetworkConnectorWithNodeDiscovery extends BasicNetworkConnector
 		super(controller, networkAddressFactory, id);
 	}
 
+	public NetworkConnectorWithNodeDiscovery(NetworkChannel controller,
+			NetworkAddress address, Time t, Scenario s) {
+		super(controller, address);
+		this.time = t;
+		this.registerTimeDriven(s);
+	}
+
 	@Inject
 	void setTime(Time t) {
 		this.time = t;
@@ -71,6 +78,7 @@ public class NetworkConnectorWithNodeDiscovery extends BasicNetworkConnector
 	public Set<NetworkAddress> getConnectedNodes()
 			throws UnsupportedOperationException {
 		// return our current perception of connected agents.
+		links.remove(address);
 		return links;
 	}
 

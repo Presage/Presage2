@@ -55,6 +55,11 @@ public class BasicNetworkConnector extends NetworkConnector {
 		receivedMessages = new LinkedList<Message>();
 	}
 
+	public BasicNetworkConnector(NetworkChannel controller,
+			NetworkAddress address) {
+		super(controller, address);
+	}
+
 	/**
 	 * <p>
 	 * Returns the list of messages we have.

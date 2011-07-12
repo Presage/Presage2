@@ -45,7 +45,7 @@ public class NetworkAddress {
 	 * @param id
 	 */
 	@Inject
-	protected NetworkAddress( @Assisted UUID id) {
+	public NetworkAddress( @Assisted UUID id) {
 		if(id == null) {
 			throw new NullPointerException("Attempting to instantiate a NetworkAddress with null id.");
 		}
