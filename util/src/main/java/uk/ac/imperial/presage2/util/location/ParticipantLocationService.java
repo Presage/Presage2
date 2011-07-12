@@ -183,6 +183,8 @@ public class ParticipantLocationService extends LocationService {
 					l = this.getAgentLocation(pid);
 				} catch (CannotSeeAgent e) {
 					continue;
+				} catch (SharedStateAccessException e) {
+					continue;
 				}
 				agents.put(pid, l);
 			}
