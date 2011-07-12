@@ -116,6 +116,8 @@
 						http://doclava.googlecode.com/svn/static/api/openjdk-6.xml
 						-federate "Google Guice"
 						http://google-guice.googlecode.com/svn/trunk/javadoc
+						-apiversion ${project.version}
+						-since http://presage.github.com/docs/javadoc/branches/master/reference/current.xml 0.2.1
 						-d ${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
