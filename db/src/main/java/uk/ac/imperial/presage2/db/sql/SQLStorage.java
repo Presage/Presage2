@@ -16,44 +16,28 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.db;
+package uk.ac.imperial.presage2.db.sql;
 
-import java.util.UUID;
+import java.sql.SQLException;
+import java.util.Properties;
 
-public interface Table {
+import uk.ac.imperial.presage2.db.StorageService;
+import uk.ac.imperial.presage2.db.Table.TableBuilder;
 
-	public String getTableName();
+public abstract class SQLStorage extends SQLService implements StorageService {
 
-	interface TableBuilder {
+	long simulationID;
 
-		public TableBuilder forClass(Class<?> classname);
-
-		public TableBuilder withFields(String... fields);
-
-		public TableBuilder withTypes(Class<?>... types);
-
-		public TableBuilder withParticipantField();
-
-		public TableBuilder withOneRowPerTimeCycle();
-
-		public TableBuilder withOneRowPerSimulation();
-
-		public Table create() throws Exception;
-
+	protected SQLStorage(String driver, String connectionurl,
+			Properties connectionProps) throws ClassNotFoundException {
+		super(driver, connectionurl, connectionProps);
 	}
 
-	public Insertion insert(Object... data);
-
-	interface Insertion {
-
-		public Insertion forParticipant(UUID id);
-
-		public Insertion atTimeStep(int time);
-
-		public Insertion atCurrentTimeStep();
-
-		public void commit();
-
+	@Override
+	public TableBuilder buildTable(String tableName) {
+		return new SQLTable.SQLTableBuilder(tableName, simulationID, this);
 	}
+
+	abstract void createTable(SQLTable t) throws SQLException;
 
 }
