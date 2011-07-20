@@ -28,13 +28,20 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import uk.ac.imperial.presage2.db.sql.JDBCProperties;
+import uk.ac.imperial.presage2.db.sql.JDBCUrl;
 import uk.ac.imperial.presage2.db.sql.SQLStorage;
 
+@Singleton
 public class SQLiteStorage extends SQLStorage {
 
 	PreparedStatement checkTableExistance = null;
 
-	protected SQLiteStorage(String connectionurl, Properties connectionProps)
+	@Inject
+	protected SQLiteStorage(@JDBCUrl String connectionurl, @JDBCProperties Properties connectionProps)
 			throws ClassNotFoundException {
 		super("org.sqlite.JDBC", connectionurl, connectionProps);
 	}
