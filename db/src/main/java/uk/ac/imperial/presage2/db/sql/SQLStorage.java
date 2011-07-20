@@ -111,7 +111,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 
 	@Override
 	public TableBuilder buildTable(String tableName) {
-		return new SQLTable.SQLTableBuilder(tableName, simulationID, this);
+		return new SQLTable.SQLTableBuilder(tableName, this);
 	}
 
 }

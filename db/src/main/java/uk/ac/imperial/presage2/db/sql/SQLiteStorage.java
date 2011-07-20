@@ -246,6 +246,11 @@ public class SQLiteStorage extends SQLStorage {
 			return insert(q.toString(), columns.values().toArray());
 		}
 
+		@Override
+		public void commit() throws SQLException {
+			getInsertedId();
+		}
+
 		private String commaSeparatedObjectArray(Object... array) {
 			StringBuilder s = new StringBuilder();
 			for (int i = 0; i < array.length; i++) {

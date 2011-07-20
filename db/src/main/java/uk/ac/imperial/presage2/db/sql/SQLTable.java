@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.db.sql;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,10 +27,11 @@ import java.util.UUID;
 
 import uk.ac.imperial.presage2.db.Table;
 import uk.ac.imperial.presage2.db.sql.SQL.CreateTableQueryBuilder;
+import uk.ac.imperial.presage2.db.sql.SQL.InsertQueryBuilder;
 
 public class SQLTable implements Table {
 
-	final long simID;
+	final SQLStorage storage;
 
 	final String tableName;
 
@@ -41,16 +43,15 @@ public class SQLTable implements Table {
 
 	Set<String[]> indices = new HashSet<String[]>();
 
-	public SQLTable(String tableName, long simulationID) {
+	public SQLTable(String tableName, SQLStorage storage) {
 		this.tableName = tableName;
-		this.simID = simulationID;
+		this.storage = storage;
 		fields.put("simID", Long.class);
 	}
 
 	static class SQLTableBuilder implements Table.TableBuilder {
 
 		final SQLTable table;
-		final SQLStorage storage;
 
 		boolean oneRowPerCycle = false;
 		boolean oneRowPerSimulation = false;
@@ -59,10 +60,9 @@ public class SQLTable implements Table {
 		String[] fieldNames = new String[0];
 		Class<?>[] types = new Class<?>[0];
 
-		SQLTableBuilder(String tableName, long simId, SQLStorage storage) {
+		SQLTableBuilder(String tableName, SQLStorage storage) {
 			super();
-			table = new SQLTable(tableName, simId);
-			this.storage = storage;
+			table = new SQLTable(tableName, storage);
 		}
 
 		@Override
@@ -142,8 +142,8 @@ public class SQLTable implements Table {
 			String[] simIDIndex = { "simID" };
 			this.table.indices.add(simIDIndex);
 
-			if (!this.storage.tableExists(table.getTableName())) {
-				CreateTableQueryBuilder c = this.storage.createTable(table
+			if (!table.storage.tableExists(table.getTableName())) {
+				CreateTableQueryBuilder c = table.storage.createTable(table
 						.getTableName());
 				for (Map.Entry<String, Class<?>> field : table.fields
 						.entrySet()) {
@@ -160,9 +160,54 @@ public class SQLTable implements Table {
 	}
 
 	@Override
-	public Insertion insert(Object... data) {
+	public Insertion insert() {
+		return new Insertion() {
 
-		return null;
+			Map<String, Object> data = new LinkedHashMap<String, Object>();
+			final int time = storage.getTime();
+
+			@Override
+			public Insertion set(String column, Object value) {
+				if (fields.containsKey(column)) {
+					data.put(column, value);
+				}
+				return this;
+			}
+
+			@Override
+			public Insertion forParticipant(UUID id) {
+				if (fields.containsKey("participantID")) {
+					data.put("participantID", id);
+				}
+				return this;
+			}
+
+			@Override
+			public Insertion atTimeStep(int time) {
+				if (fields.containsKey("time")) {
+					data.put("time", time);
+				}
+				return this;
+			}
+
+			@Override
+			public Insertion atCurrentTimeStep() {
+				if (fields.containsKey("time")) {
+					data.put("time", time);
+				}
+				return this;
+			}
+
+			@Override
+			public void commit() throws SQLException {
+				InsertQueryBuilder insert = storage.insertInto(getTableName());
+				insert.addColumn("simID", storage.getSimulationId());
+				for (Map.Entry<String, Object> column : data.entrySet()) {
+					insert.addColumn(column.getKey(), column.getValue());
+				}
+				insert.commit();
+			}
+		};
 	}
 
 	@Override

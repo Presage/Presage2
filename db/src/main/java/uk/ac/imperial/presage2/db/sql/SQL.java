@@ -66,7 +66,7 @@ interface SQL {
 
 	InsertQueryBuilder insertInto(String tableName);
 
-	interface InsertQueryBuilder {
+	interface InsertQueryBuilder extends CanCommit {
 
 		<T> InsertQueryBuilder addColumn(String name, T value);
 

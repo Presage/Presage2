@@ -42,9 +42,11 @@ public interface Table {
 
 	}
 
-	public Insertion insert(Object... data);
+	public Insertion insert();
 
 	interface Insertion {
+
+		public Insertion set(String column, Object value);
 
 		public Insertion forParticipant(UUID id);
 
@@ -52,7 +54,7 @@ public interface Table {
 
 		public Insertion atCurrentTimeStep();
 
-		public void commit();
+		public void commit() throws Exception;
 
 	}
 
