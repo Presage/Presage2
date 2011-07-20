@@ -20,7 +20,7 @@ package uk.ac.imperial.presage2.db.sql;
 
 import java.sql.SQLException;
 
-interface SQL {
+public interface SQL {
 
 	CreateTableQueryBuilder createTable(String tableName);
 

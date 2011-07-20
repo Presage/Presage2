@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.db.sql;
+package uk.ac.imperial.presage2.db.sql.sqlite;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import uk.ac.imperial.presage2.db.sql.SQLStorage;
+
 public class SQLiteStorage extends SQLStorage {
 
 	PreparedStatement checkTableExistance = null;
@@ -35,18 +37,6 @@ public class SQLiteStorage extends SQLStorage {
 	protected SQLiteStorage(String connectionurl, Properties connectionProps)
 			throws ClassNotFoundException {
 		super("org.sqlite.JDBC", connectionurl, connectionProps);
-	}
-
-	@Override
-	public long getSimulationId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getTime() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	private String getSQLType(Class<?> value) {
