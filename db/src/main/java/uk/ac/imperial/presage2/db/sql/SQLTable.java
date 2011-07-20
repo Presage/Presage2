@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.db.Table;
+import uk.ac.imperial.presage2.db.sql.SQL.CreateTableQueryBuilder;
 
 public class SQLTable implements Table {
 
@@ -141,7 +142,17 @@ public class SQLTable implements Table {
 			String[] simIDIndex = { "simID" };
 			this.table.indices.add(simIDIndex);
 
-			this.storage.createTable(table);
+			if (!this.storage.tableExists(table.getTableName())) {
+				CreateTableQueryBuilder c = this.storage.createTable(table
+						.getTableName());
+				for (Map.Entry<String, Class<?>> field : table.fields
+						.entrySet()) {
+					c.addColumn(field.getKey(), field.getValue());
+				}
+				c.addConstraints().addPrimaryKey(pkey.toArray(new String[0]));
+				c.commit();
+			}
+			// TODO foreign key
 
 			return this.table;
 		}

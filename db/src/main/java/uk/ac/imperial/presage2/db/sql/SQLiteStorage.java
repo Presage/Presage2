@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
-
 public class SQLiteStorage extends SQLStorage {
 
 	PreparedStatement checkTableExistance;
@@ -110,7 +108,8 @@ public class SQLiteStorage extends SQLStorage {
 		return "NULL";
 	}
 
-	boolean tableExists(String tableName) throws SQLException {
+	@Override
+	public boolean tableExists(String tableName) throws SQLException {
 		try {
 			checkTableExistance.setString(1, tableName);
 			ResultSet res = checkTableExistance.executeQuery();
@@ -120,6 +119,118 @@ public class SQLiteStorage extends SQLStorage {
 					+ " exists.", e);
 			throw e;
 		}
+	}
+
+	@Override
+	public CreateTableQueryBuilder createTable(String tableName) {
+		return new SQLiteCreateTableQueryBuilder(tableName);
+	}
+
+	protected void executeQuery(String query) throws SQLException {
+		if (logger.isDebugEnabled())
+			logger.debug("Executing Query: " + query);
+		Statement s = this.conn.createStatement();
+		s.execute(query);
+	}
+
+	class SQLiteCreateTableQueryBuilder implements CreateTableQueryBuilder,
+			CreateTableConstraintsBuilder, ForeignKeyDef {
+
+		StringBuilder q;
+		int columnCount = 0;
+
+		SQLiteCreateTableQueryBuilder(String tableName) {
+			q = new StringBuilder();
+			q.append("CREATE TABLE ");
+			q.append(tableName);
+			q.append(" ( ");
+		}
+
+		@Override
+		public void commit() throws SQLException {
+			q.append(" ) ");
+			executeQuery(q.toString());
+		}
+
+		@Override
+		public CreateTableQueryBuilder addColumn(String name, Class<?> type) {
+			if (columnCount > 0) {
+				q.append(" , ");
+			}
+			q.append(name);
+			q.append(" ");
+			q.append(getSQLType(type));
+			columnCount++;
+			return this;
+		}
+
+		@Override
+		public <T> CreateTableQueryBuilder addColumn(String name,
+				Class<T> type, T defaultValue) {
+			addColumn(name, type);
+			q.append(" DEFAULT ");
+			q.append(defaultValue);
+			return this;
+		}
+
+		@Override
+		public CreateTableQueryBuilder addColumn(String name, Class<?> type,
+				boolean isNull) {
+			return addColumn(name, type);
+		}
+
+		@Override
+		public CreateTableConstraintsBuilder addConstraints() {
+			return this;
+		}
+
+		@Override
+		public CreateTableConstraintsBuilder addPrimaryKey(String... columns) {
+			q.append(" , ");
+			q.append("PRIMARY KEY ( ");
+			q.append(commaSeparatedArray(columns));
+			q.append(" ) ");
+			return this;
+		}
+
+		@Override
+		public CreateTableConstraintsBuilder addIndex(String... columns) {
+			// SQLite does not have an INDEX declaration in table-constraints
+			return this;
+		}
+
+		@Override
+		public ForeignKeyDef addForeignKey(String... columns) {
+			q.append(" , ");
+			q.append("FOREIGN KEY ( ");
+			q.append(commaSeparatedArray(columns));
+			q.append(" ) ");
+			return this;
+		}
+
+		@Override
+		public CreateTableConstraintsBuilder references(String tableName,
+				String... columns) {
+			q.append("REFERENCES ");
+			q.append(tableName);
+			if (columns.length > 0) {
+				q.append("( ");
+				q.append(commaSeparatedArray(columns));
+				q.append(" ) ");
+			}
+			return this;
+		}
+
+		private String commaSeparatedArray(String... array) {
+			StringBuilder s = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				s.append(array[i]);
+				if (i + 1 < array.length)
+					s.append(" , ");
+			}
+			return s.toString();
+		}
+
 	}
 
 }

@@ -29,7 +29,7 @@ import com.google.inject.Provider;
 
 import uk.ac.imperial.presage2.db.DatabaseService;
 
-public class SQLService implements DatabaseService, Provider<Connection> {
+public abstract class SQLService implements DatabaseService, Provider<Connection>, SQL {
 
 	protected final Logger logger = Logger.getLogger(SQLService.class);
 	protected Connection conn;
