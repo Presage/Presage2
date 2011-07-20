@@ -18,7 +18,6 @@
  */
 package uk.ac.imperial.presage2.db.sql;
 
-import java.sql.SQLException;
 import java.util.Properties;
 
 import uk.ac.imperial.presage2.db.StorageService;
@@ -37,7 +36,5 @@ public abstract class SQLStorage extends SQLService implements StorageService {
 	public TableBuilder buildTable(String tableName) {
 		return new SQLTable.SQLTableBuilder(tableName, simulationID, this);
 	}
-
-	abstract void createTable(SQLTable t) throws SQLException;
 
 }

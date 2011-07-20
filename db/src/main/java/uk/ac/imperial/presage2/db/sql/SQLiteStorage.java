@@ -22,10 +22,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 public class SQLiteStorage extends SQLStorage {
@@ -58,43 +54,6 @@ public class SQLiteStorage extends SQLStorage {
 	public int getTime() {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-
-	@Override
-	void createTable(SQLTable t) throws SQLException {
-		// check if table exists
-		if (logger.isDebugEnabled()) {
-			logger.debug("Creating table " + t.getTableName());
-		}
-		if (!tableExists(t.getTableName())) {
-			logger.info("Creating new table for " + t.getTableName());
-			Statement s = this.conn.createStatement();
-			String query = "CREATE TABLE " + t.getTableName() + "( ";
-			// fields
-			List<String> fields = new LinkedList<String>();
-			for (Map.Entry<String, Class<?>> field : t.fields.entrySet()) {
-				fields.add(field.getKey() + " " + getSQLType(field.getValue()));
-			}
-			for (Iterator<String> iterator = fields.iterator(); iterator
-					.hasNext();) {
-				String string = (String) iterator.next();
-				query += string;
-				if (iterator.hasNext())
-					query += ", ";
-			}
-			if (t.primaryKey.length > 0) {
-				query += ", PRIMARY KEY (";
-				for (int i = 0; i < t.primaryKey.length; i++) {
-					query += t.primaryKey[i];
-					if (i < t.primaryKey.length - 1)
-						query += ", ";
-				}
-				query += ") ";
-			}
-			query += ") ";
-			s.execute(query);
-		}
-
 	}
 
 	private String getSQLType(Class<?> value) {
