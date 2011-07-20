@@ -40,6 +40,9 @@ interface SQL {
 		CreateTableQueryBuilder addColumn(String name, Class<?> type,
 				boolean isNull);
 
+		CreateTableQueryBuilder addAutoIncrementColumn(String name,
+				Class<?> type);
+
 		CreateTableConstraintsBuilder addConstraints();
 
 	}
@@ -58,6 +61,16 @@ interface SQL {
 
 		CreateTableConstraintsBuilder references(String tableName,
 				String... columns);
+
+	}
+
+	InsertQueryBuilder insertInto(String tableName);
+
+	interface InsertQueryBuilder {
+
+		<T> InsertQueryBuilder addColumn(String name, T value);
+
+		long getInsertedId() throws SQLException;
 
 	}
 

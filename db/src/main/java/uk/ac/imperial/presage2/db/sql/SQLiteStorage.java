@@ -22,26 +22,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 public class SQLiteStorage extends SQLStorage {
 
-	PreparedStatement checkTableExistance;
-	PreparedStatement getTableColumns;
+	PreparedStatement checkTableExistance = null;
 
 	protected SQLiteStorage(String connectionurl, Properties connectionProps)
 			throws ClassNotFoundException {
 		super("org.sqlite.JDBC", connectionurl, connectionProps);
-	}
-
-	@Override
-	public void start() throws Exception {
-		super.start();
-		// prepare statements
-		checkTableExistance = this.conn
-				.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=? ");
-		// getTableColumns =
-		// this.conn.prepareStatement("PRAGMA table_info('?')");
 	}
 
 	@Override
@@ -57,11 +50,13 @@ public class SQLiteStorage extends SQLStorage {
 	}
 
 	private String getSQLType(Class<?> value) {
-		if (value == Integer.class || value == Long.class) {
+		if (value == Integer.class || value == int.class || value == Long.class
+				|| value == long.class) {
 			return "INTEGER";
-		} else if (value == Float.class || value == Double.class) {
+		} else if (value == Float.class || value == float.class
+				|| value == Double.class || value == double.class) {
 			return "REAL";
-		} else if (value == String.class) {
+		} else if (value == String.class || value == UUID.class) {
 			return "TEXT";
 		}
 		return "NULL";
@@ -69,6 +64,10 @@ public class SQLiteStorage extends SQLStorage {
 
 	@Override
 	public boolean tableExists(String tableName) throws SQLException {
+		if (checkTableExistance == null)
+			checkTableExistance = this.conn
+					.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=? ");
+
 		try {
 			checkTableExistance.setString(1, tableName);
 			ResultSet res = checkTableExistance.executeQuery();
@@ -85,11 +84,28 @@ public class SQLiteStorage extends SQLStorage {
 		return new SQLiteCreateTableQueryBuilder(tableName);
 	}
 
+	@Override
+	public InsertQueryBuilder insertInto(String tableName) {
+		return new SQLiteInsertQueryBuilder(tableName);
+	}
+
 	protected void executeQuery(String query) throws SQLException {
 		if (logger.isDebugEnabled())
 			logger.debug("Executing Query: " + query);
 		Statement s = this.conn.createStatement();
 		s.execute(query);
+	}
+
+	protected long insert(String preparedStatement, Object... values)
+			throws SQLException {
+		PreparedStatement s = this.conn.prepareStatement(preparedStatement);
+		for (int i = 0; i < values.length; i++) {
+			s.setObject(i + 1, values[i]);
+		}
+		s.execute();
+		ResultSet rs = s.getGeneratedKeys();
+		rs.next();
+		return rs.getLong(1);
 	}
 
 	class SQLiteCreateTableQueryBuilder implements CreateTableQueryBuilder,
@@ -139,6 +155,14 @@ public class SQLiteStorage extends SQLStorage {
 		}
 
 		@Override
+		public CreateTableQueryBuilder addAutoIncrementColumn(String name,
+				Class<?> type) {
+			addColumn(name, type);
+			q.append(" PRIMARY KEY AUTOINCREMENT ");
+			return this;
+		}
+
+		@Override
 		public CreateTableConstraintsBuilder addConstraints() {
 			return this;
 		}
@@ -181,6 +205,48 @@ public class SQLiteStorage extends SQLStorage {
 		}
 
 		private String commaSeparatedArray(String... array) {
+			StringBuilder s = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				s.append(array[i]);
+				if (i + 1 < array.length)
+					s.append(" , ");
+			}
+			return s.toString();
+		}
+
+	}
+
+	class SQLiteInsertQueryBuilder implements InsertQueryBuilder {
+
+		StringBuilder q = new StringBuilder();
+
+		Map<String, Object> columns = new LinkedHashMap<String, Object>();
+
+		SQLiteInsertQueryBuilder(String tableName) {
+			q.append("INSERT INTO ");
+			q.append(tableName);
+		}
+
+		@Override
+		public <T> InsertQueryBuilder addColumn(String name, T value) {
+			columns.put(name, value);
+			return this;
+		}
+
+		@Override
+		public long getInsertedId() throws SQLException {
+			q.append(" ( ");
+			q.append(commaSeparatedObjectArray(columns.keySet().toArray()));
+			q.append(" ) VALUES ( ");
+			Object[] data = new String[columns.size()];
+			Arrays.fill(data, "?");
+			q.append(commaSeparatedObjectArray(data));
+			q.append(" ) ");
+
+			return insert(q.toString(), columns.values().toArray());
+		}
+
+		private String commaSeparatedObjectArray(Object... array) {
 			StringBuilder s = new StringBuilder();
 			for (int i = 0; i < array.length; i++) {
 				s.append(array[i]);

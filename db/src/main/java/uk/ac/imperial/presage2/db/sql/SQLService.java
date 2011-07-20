@@ -29,7 +29,7 @@ import com.google.inject.Provider;
 
 import uk.ac.imperial.presage2.db.DatabaseService;
 
-public abstract class SQLService implements DatabaseService, Provider<Connection>, SQL {
+public class SQLService implements DatabaseService, Provider<Connection> {
 
 	protected final Logger logger = Logger.getLogger(SQLService.class);
 	protected Connection conn;
@@ -37,6 +37,8 @@ public abstract class SQLService implements DatabaseService, Provider<Connection
 	final private String connectionurl;
 
 	final private Properties connectionProps;
+
+	boolean started = false;
 
 	protected SQLService(String driver, String connectionurl,
 			Properties connectionProps) throws ClassNotFoundException {
@@ -56,6 +58,7 @@ public abstract class SQLService implements DatabaseService, Provider<Connection
 		}
 		conn = DriverManager.getConnection(this.connectionurl,
 				this.connectionProps);
+		started = true;
 	}
 
 	@Override
@@ -70,6 +73,11 @@ public abstract class SQLService implements DatabaseService, Provider<Connection
 	@Override
 	public Connection get() {
 		return this.conn;
+	}
+
+	@Override
+	public boolean isStarted() {
+		return started;
 	}
 
 }

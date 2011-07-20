@@ -18,6 +18,8 @@
  */
 package uk.ac.imperial.presage2.db;
 
+import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
 import uk.ac.imperial.presage2.db.Table.TableBuilder;
 
 public interface StorageService {
@@ -29,12 +31,16 @@ public interface StorageService {
 	 */
 	public long getSimulationId();
 
+	public void setSimulationId(long id);
+
 	/**
 	 * Get the current simulation time as an int.
 	 * 
 	 * @return
 	 */
 	public int getTime();
+
+	public void setTime(Time t);
 
 	/**
 	 * Start building a Table.
@@ -43,5 +49,7 @@ public interface StorageService {
 	 * @return
 	 */
 	public TableBuilder buildTable(String tableName);
+
+	public void insertSimulation(RunnableSimulation sim);
 
 }
