@@ -202,12 +202,12 @@ public class TestLocation2D {
 
 	@Test
 	public void testDiscreteDistanceTo() {
-		final int x1 = Random.randomInt();
-		final int y1 = Random.randomInt();
+		final int x1 = Random.randomInt(100);
+		final int y1 = Random.randomInt(100);
 		final Discrete2DLocation l1 = new Discrete2DLocation(x1, y1);
 
-		final int x2 = Random.randomInt();
-		final int y2 = Random.randomInt();
+		final int x2 = Random.randomInt(100);
+		final int y2 = Random.randomInt(100);
 		final Discrete2DLocation l2 = new Discrete2DLocation(x2, y2);
 
 		final double distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2)
