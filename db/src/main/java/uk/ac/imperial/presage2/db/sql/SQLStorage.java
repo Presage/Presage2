@@ -35,6 +35,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 
 	long simulationID;
 	Time time;
+	protected RunnableSimulation sim;
 
 	protected SQLStorage(String driver, String connectionurl,
 			Properties connectionProps) throws ClassNotFoundException {
@@ -100,6 +101,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 
 	@Override
 	public void insertSimulation(RunnableSimulation sim) {
+		this.sim = sim;
 		if (isStarted()) {
 			try {
 				this.simulationID = insertInto("simulations")
