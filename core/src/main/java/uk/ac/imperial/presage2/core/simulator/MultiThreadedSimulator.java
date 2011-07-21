@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 
@@ -58,9 +59,9 @@ public class MultiThreadedSimulator extends Simulator {
 	 *            Number of threads to use.
 	 */
 	@Inject
-	public MultiThreadedSimulator(Scenario scenario, Time t,
+	public MultiThreadedSimulator(Scenario scenario, Time t, EventBus eventBus,
 			@Threads int threads) {
-		super(scenario, t);
+		super(scenario, t, eventBus);
 		this.threads = threads;
 		this.threadPool = Executors.newFixedThreadPool(this.threads);
 	}
@@ -260,6 +261,7 @@ public class MultiThreadedSimulator extends Simulator {
 						+ " on simulation completion.", e);
 			}
 		}
+		eventBus.publish(new FinalizeEvent(time));
 	}
 
 }

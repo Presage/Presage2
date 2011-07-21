@@ -21,7 +21,6 @@ package uk.ac.imperial.presage2.db.sql.sqlite;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -85,30 +84,6 @@ public class SQLiteStorage extends SQLStorage {
 	@Override
 	public InsertQueryBuilder insertInto(String tableName) {
 		return new SQLiteInsertQueryBuilder(tableName);
-	}
-
-	protected void executeQuery(String query) throws SQLException {
-		if (logger.isDebugEnabled())
-			logger.debug("Executing Query: " + query);
-		Statement s = this.conn.createStatement();
-		s.execute(query);
-	}
-
-	protected long insert(String preparedStatement, Object... values)
-			throws SQLException {
-		PreparedStatement s = this.conn.prepareStatement(preparedStatement);
-		for (int i = 0; i < values.length; i++) {
-			s.setObject(i + 1, values[i]);
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Executing Query: " + preparedStatement
-					+ " parameters: (" + commaSeparatedObjectArray(values)
-					+ ")");
-		}
-		s.execute();
-		ResultSet rs = s.getGeneratedKeys();
-		rs.next();
-		return rs.getLong(1);
 	}
 
 	class SQLiteCreateTableQueryBuilder implements CreateTableQueryBuilder,
@@ -236,8 +211,7 @@ public class SQLiteStorage extends SQLStorage {
 			return this;
 		}
 
-		@Override
-		public long getInsertedId() throws SQLException {
+		private void finishQuery() {
 			q.append(" ( ");
 			q.append(commaSeparatedObjectArray(columns.keySet().toArray()));
 			q.append(" ) VALUES ( ");
@@ -245,25 +219,20 @@ public class SQLiteStorage extends SQLStorage {
 			Arrays.fill(data, "?");
 			q.append(commaSeparatedObjectArray(data));
 			q.append(" ) ");
+		}
 
+		@Override
+		public long getInsertedId() throws SQLException {
+			finishQuery();
 			return insert(q.toString(), columns.values().toArray());
 		}
 
 		@Override
 		public void commit() throws SQLException {
-			getInsertedId();
+			finishQuery();
+			insertDeferred(q.toString(), columns.values().toArray());
 		}
 
-	}
-
-	private String commaSeparatedObjectArray(Object... array) {
-		StringBuilder s = new StringBuilder();
-		for (int i = 0; i < array.length; i++) {
-			s.append(array[i]);
-			if (i + 1 < array.length)
-				s.append(" , ");
-		}
-		return s.toString();
 	}
 
 }

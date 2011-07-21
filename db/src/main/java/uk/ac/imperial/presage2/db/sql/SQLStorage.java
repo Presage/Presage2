@@ -18,8 +18,13 @@
  */
 package uk.ac.imperial.presage2.db.sql;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.google.inject.Inject;
 
@@ -27,15 +32,23 @@ import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.Table.TableBuilder;
+import uk.ac.imperial.presage2.core.event.EventBus;
+import uk.ac.imperial.presage2.core.event.EventListener;
+import uk.ac.imperial.presage2.core.simulator.FinalizeEvent;
 import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 public abstract class SQLStorage extends SQLService implements StorageService,
-		SQL, TimeDriven {
+		SQL, TimeDriven, Runnable {
 
 	long simulationID;
 	Time time;
 	protected RunnableSimulation sim;
+
+	protected final Queue<PreparedStatement> queryQueue = new ConcurrentLinkedQueue<PreparedStatement>();
+
+	private final Thread executorThread = new Thread(this);
+	private boolean finishUp = false;
 
 	protected SQLStorage(String driver, String connectionurl,
 			Properties connectionProps) throws ClassNotFoundException {
@@ -46,6 +59,21 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	public void registerTimeDriven(Scenario s, Time t) {
 		s.addTimeDriven(this);
 		time = t;
+	}
+
+	@Inject
+	public void subscribeToEvents(EventBus eventBus) {
+		eventBus.subscribe(this);
+	}
+
+	@EventListener
+	public synchronized void onFinalizeEvent(FinalizeEvent e) {
+		this.finishUp = true;
+		try {
+			executorThread.join();
+		} catch (InterruptedException e1) {
+			logger.warn("QueryExecutor was interrupted", e1);
+		}
 	}
 
 	@Override
@@ -69,7 +97,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		} else {
 			logger.info("Found simulations table");
 		}
-
+		executorThread.start();
 	}
 
 	@Override
@@ -126,6 +154,85 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	@Override
 	public TableBuilder buildTable(String tableName) {
 		return new SQLTable.SQLTableBuilder(tableName, this);
+	}
+
+	protected void executeQuery(String query) throws SQLException {
+		if (logger.isDebugEnabled())
+			logger.debug("Executing Query: " + query);
+		Statement s = this.conn.createStatement();
+		s.execute(query);
+	}
+
+	protected long insert(String preparedStatement, Object... values)
+			throws SQLException {
+		PreparedStatement s = prepareStatement(preparedStatement, values);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Executing Query: " + preparedStatement
+					+ " parameters: (" + commaSeparatedObjectArray(values)
+					+ ")");
+		}
+		s.execute();
+		ResultSet rs = s.getGeneratedKeys();
+		rs.next();
+		return rs.getLong(1);
+	}
+
+	protected synchronized void insertDeferred(String preparedStatement,
+			Object... values) throws SQLException {
+		this.queryQueue.add(prepareStatement(preparedStatement, values));
+		notify();
+	}
+
+	private PreparedStatement prepareStatement(String preparedStatement,
+			Object... values) throws SQLException {
+		PreparedStatement s = this.conn.prepareStatement(preparedStatement);
+		for (int i = 0; i < values.length; i++) {
+			s.setObject(i + 1, values[i]);
+		}
+		return s;
+	}
+
+	protected String commaSeparatedObjectArray(Object... array) {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < array.length; i++) {
+			s.append(array[i]);
+			if (i + 1 < array.length)
+				s.append(" , ");
+		}
+		return s.toString();
+	}
+
+	@Override
+	public void run() {
+
+		while (true) {
+			synchronized (this) {
+				while (queryQueue.isEmpty()) {
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						logger.warn("QueryExecutor was interrupted", e);
+					}
+				}
+			}
+
+			while (!queryQueue.isEmpty()) {
+				try {
+					PreparedStatement s = queryQueue.poll();
+					s.execute();
+					if (logger.isDebugEnabled()) {
+						logger.debug("Executing Query: " + s.toString());
+					}
+				} catch (SQLException e) {
+					logger.warn("Error processing query.", e);
+				}
+			}
+
+			if (finishUp)
+				break;
+
+		}
+
 	}
 
 }

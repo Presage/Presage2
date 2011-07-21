@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 
@@ -44,8 +45,8 @@ public class SingleThreadedSimulator extends Simulator {
 	 * @param scenario
 	 */
 	@Inject
-	public SingleThreadedSimulator(Scenario scenario, Time t) {
-		super(scenario, t);
+	public SingleThreadedSimulator(Scenario scenario, Time t, EventBus eventBus) {
+		super(scenario, t, eventBus);
 	}
 
 	@Override
@@ -128,6 +129,7 @@ public class SingleThreadedSimulator extends Simulator {
 						+ " on simulation completion.", e);
 			}
 		}
+		eventBus.publish(new FinalizeEvent(time));
 	}
 
 }
