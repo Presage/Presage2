@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 
 import com.google.inject.Provider;
 
-import uk.ac.imperial.presage2.db.DatabaseService;
+import uk.ac.imperial.presage2.core.db.DatabaseService;
 
 public class SQLService implements DatabaseService, Provider<Connection> {
 

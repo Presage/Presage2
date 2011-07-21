@@ -31,32 +31,35 @@ import com.google.inject.Inject;
 
 /**
  * 
- * <p>Instance of a {@link Scenario} where elements are injected via
- * Guice using a {@link ScenarioModule}.</p>
+ * <p>
+ * Instance of a {@link Scenario} where elements are injected via Guice using a
+ * {@link ScenarioModule}.
+ * </p>
  * 
  * 
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class InjectedScenario implements Scenario {
-	
+
 	final private Set<Participant> participants;
-	
+
 	final private Set<Plugin> plugins;
-	
+
 	final private Set<TimeDriven> timedriven;
-	
+
 	final private Time finishTime;
-	
+
 	/**
 	 * @param participants
 	 * @param plugins
 	 * @param timedriven
 	 */
 	@Inject
-	protected InjectedScenario(Set<Participant> participants, Set<Plugin> plugins,
-			Set<TimeDriven> timedriven, @FinishTime Time finish) {
+	protected InjectedScenario(Set<Participant> participants,
+			Set<Plugin> plugins, Set<TimeDriven> timedriven,
+			@FinishTime Time finish) {
 		this.participants = participants;
 		this.plugins = plugins;
 		this.timedriven = timedriven;
@@ -91,6 +94,5 @@ public class InjectedScenario implements Scenario {
 
 	public void addParticipant(Participant p) {
 	}
-	
 
 }

@@ -19,7 +19,10 @@
 
 package uk.ac.imperial.presage2.core.simulator;
 
+import org.apache.log4j.Logger;
+
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.db.DatabaseService;
 
 import com.google.inject.Inject;
 
@@ -34,11 +37,17 @@ public abstract class Simulator {
 	 */
 	protected Scenario scenario;
 	protected final Time time;
+	protected DatabaseService database;
 
 	@Inject
 	public Simulator(Scenario scenario, Time t) {
 		this.scenario = scenario;
 		this.time = t;
+	}
+
+	@Inject(optional = true)
+	public void setDatabaseService(DatabaseService db) {
+		database = db;
 	}
 
 	/**

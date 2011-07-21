@@ -35,14 +35,16 @@ import com.google.inject.Singleton;
 
 /**
  * 
- * <p>A Scenario describes the runtime components of a simulation which the
- * simulator must interact with. These comprise of the {@link Participant}s of the
- * system, the other {@link TimeDriven} elements, and the {@link Plugin}s. The Scenario
- * will likely have to construct other elements which the above require such as network
- * components and the environment.</p>
+ * <p>
+ * A Scenario describes the runtime components of a simulation which the
+ * simulator must interact with. These comprise of the {@link Participant}s of
+ * the system, the other {@link TimeDriven} elements, and the {@link Plugin}s.
+ * The Scenario will likely have to construct other elements which the above
+ * require such as network components and the environment.
+ * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public interface Scenario {
 
@@ -54,6 +56,7 @@ public interface Scenario {
 
 	/**
 	 * Get the time at which the simulation should finish
+	 * 
 	 * @return {@link Time} representing the last time step of the simulation
 	 */
 	public Time getFinishTime();
@@ -69,22 +72,32 @@ public interface Scenario {
 		public static Injector injector = null;
 
 		/**
-		 * <p>Create a {@link Scenario} from a given array of {@link AbstractModule}</p>
+		 * <p>
+		 * Create a {@link Scenario} from a given array of
+		 * {@link AbstractModule}
+		 * </p>
 		 * 
-		 * <p>We store the {@link Injector} created in {@link Scenario.Builder#injector}
-		 * for others who wish to use it.</p>
+		 * <p>
+		 * We store the {@link Injector} created in
+		 * {@link Scenario.Builder#injector} for others who wish to use it.
+		 * </p>
 		 * 
-		 * <p>For other objects created outside of this method and requiring member injection
-		 * use {@link #injectMembers(Object)}.</p>
+		 * <p>
+		 * For other objects created outside of this method and requiring member
+		 * injection use {@link #injectMembers(Object)}.
+		 * </p>
+		 * 
 		 * @param modules
-		 * @return	{@link Scenario}
+		 * @return {@link Scenario}
 		 */
 		public static Scenario createFromModules(AbstractModule... modules) {
-			final Set<AbstractModule> moduleSet = new HashSet<AbstractModule>(Arrays.asList(modules));
+			final Set<AbstractModule> moduleSet = new HashSet<AbstractModule>(
+					Arrays.asList(modules));
 			moduleSet.add(new AbstractModule() {
 				@Override
 				protected void configure() {
-					bind(Scenario.class).to(ScenarioBuilder.class).in(Singleton.class);
+					bind(Scenario.class).to(ScenarioBuilder.class).in(
+							Singleton.class);
 				}
 			});
 			Scenario.Builder.injector = Guice.createInjector(moduleSet);
@@ -93,6 +106,7 @@ public interface Scenario {
 
 		/**
 		 * Wrapper for {@link Injector#injectMembers(Object)}s.
+		 * 
 		 * @param obj
 		 */
 		public static <T extends Object> T injectMembers(T obj) {

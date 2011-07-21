@@ -21,11 +21,14 @@ package uk.ac.imperial.presage2.db.sql;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.db.StorageService;
+import uk.ac.imperial.presage2.core.db.Table.TableBuilder;
 import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
-import uk.ac.imperial.presage2.db.StorageService;
-import uk.ac.imperial.presage2.db.Table.TableBuilder;
+import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 public abstract class SQLStorage extends SQLService implements StorageService,
 		SQL, TimeDriven {
@@ -36,6 +39,12 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	protected SQLStorage(String driver, String connectionurl,
 			Properties connectionProps) throws ClassNotFoundException {
 		super(driver, connectionurl, connectionProps);
+	}
+
+	@Inject
+	public void registerTimeDriven(Scenario s, Time t) {
+		s.addTimeDriven(this);
+		time = t;
 	}
 
 	@Override
@@ -56,6 +65,8 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 					.addColumn("parameters", String.class)
 					.addColumn("comment", String.class).addConstraints()
 					.addIndex("parentID").commit();
+		} else {
+			logger.info("Found simulations table");
 		}
 
 	}
@@ -102,11 +113,12 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 								sim.getSimulationFinishTime().intValue())
 						.addColumn("parameters", sim.getParameters().toString())
 						.getInsertedId();
+				return;
 			} catch (SQLException e) {
 				throw new RuntimeException("Could not insert simulation", e);
 			}
-		}
-		throw new RuntimeException("Database not started yet.");
+		} else
+			throw new RuntimeException("Database not started yet.");
 	}
 
 	@Override

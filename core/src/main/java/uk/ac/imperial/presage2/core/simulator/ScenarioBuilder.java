@@ -33,14 +33,18 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 /**
- * <p>This is a {@link Scenario} which allows you to build up
- * your scenario step by step before submitting it to the {@link Simulator}.</p>
+ * <p>
+ * This is a {@link Scenario} which allows you to build up your scenario step by
+ * step before submitting it to the {@link Simulator}.
+ * </p>
  * 
  * <p>
- * This is created by {@link Scenario.Builder#createFromModules(AbstractModule...)}
+ * This is created by
+ * {@link Scenario.Builder#createFromModules(AbstractModule...)}
  * </p>
+ * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class ScenarioBuilder implements Scenario {
 
@@ -48,17 +52,19 @@ public class ScenarioBuilder implements Scenario {
 	 * {@link Injector} for scenario elements.
 	 */
 	final public Injector injector;
-	
+
 	final private Set<Participant> participants;
-	
+
 	final private Set<Plugin> plugins;
-	
+
 	final private Set<TimeDriven> timedriven;
-	
+
 	private Time finishTime;
-	
+
 	/**
-	 * Injectable constructor used by {@link Scenario.Builder#createFromModules(AbstractModule...)}
+	 * Injectable constructor used by
+	 * {@link Scenario.Builder#createFromModules(AbstractModule...)}
+	 * 
 	 * @param injector
 	 */
 	@Inject
@@ -70,36 +76,36 @@ public class ScenarioBuilder implements Scenario {
 		this.finishTime = null;
 	}
 
-	@Inject(optional=true)
+	@Inject(optional = true)
 	public void initialiseParticipants(Set<Participant> participants) {
 		this.participants.addAll(participants);
 	}
-	
-	@Inject(optional=true)
+
+	@Inject(optional = true)
 	public void initialisePlugins(Set<Plugin> plugins) {
 		this.plugins.addAll(plugins);
 	}
-	
-	@Inject(optional=true)
+
+	@Inject(optional = true)
 	public void initialiseTimeDriven(Set<TimeDriven> timedriven) {
 		this.timedriven.addAll(timedriven);
 	}
-	
-	@Inject(optional=true)
+
+	@Inject(optional = true)
 	public void initialiseFinishTime(@FinishTime Time finish) {
 		this.finishTime = finish;
 	}
-	
+
 	@Override
 	public void addParticipant(Participant p) {
 		this.participants.add(p);
 	}
-	
+
 	@Override
 	public void addPlugin(Plugin p) {
 		this.plugins.add(p);
 	}
-	
+
 	@Override
 	public void addTimeDriven(TimeDriven t) {
 		this.timedriven.add(t);

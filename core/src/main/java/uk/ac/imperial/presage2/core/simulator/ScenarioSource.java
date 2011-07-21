@@ -29,15 +29,22 @@ import static java.lang.annotation.ElementType.METHOD;
 
 /**
  * 
- * <p>Binding annotation for the database connection provided to the Simulator.</p>
+ * <p>
+ * Binding annotation for the database connection provided to the Simulator.
+ * </p>
  * 
- * <p>By using this we allow a separate binding to be used for databases used within plugins etc inside the simulation.</p>
+ * <p>
+ * By using this we allow a separate binding to be used for databases used
+ * within plugins etc inside the simulation.
+ * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 
-@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
+@BindingAnnotation
+@Target({ FIELD, PARAMETER, METHOD })
+@Retention(RUNTIME)
 public @interface ScenarioSource {
 
 }

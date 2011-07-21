@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import uk.ac.imperial.presage2.db.Table;
+import uk.ac.imperial.presage2.core.db.Table;
 import uk.ac.imperial.presage2.db.sql.SQL.CreateTableQueryBuilder;
 import uk.ac.imperial.presage2.db.sql.SQL.InsertQueryBuilder;
 

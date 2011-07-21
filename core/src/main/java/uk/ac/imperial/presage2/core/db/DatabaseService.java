@@ -16,46 +16,23 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.db;
 
-import java.util.UUID;
+package uk.ac.imperial.presage2.core.db;
 
-public interface Table {
+/**
+ * This is a generic description of a Database service in presage. Anything we
+ * want to use as a database should implement this so the platform can start and
+ * stop it.
+ * 
+ * @author sm1106
+ * 
+ */
+public interface DatabaseService {
 
-	public String getTableName();
+	void start() throws Exception;
 
-	interface TableBuilder {
+	boolean isStarted();
 
-		public TableBuilder forClass(Class<?> classname);
-
-		public TableBuilder withFields(String... fields);
-
-		public TableBuilder withTypes(Class<?>... types);
-
-		public TableBuilder withParticipantField();
-
-		public TableBuilder withOneRowPerTimeCycle();
-
-		public TableBuilder withOneRowPerSimulation();
-
-		public Table create() throws Exception;
-
-	}
-
-	public Insertion insert();
-
-	interface Insertion {
-
-		public Insertion set(String column, Object value);
-
-		public Insertion forParticipant(UUID id);
-
-		public Insertion atTimeStep(int time);
-
-		public Insertion atCurrentTimeStep();
-
-		public void commit() throws Exception;
-
-	}
+	void stop();
 
 }

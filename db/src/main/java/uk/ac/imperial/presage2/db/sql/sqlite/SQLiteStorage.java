@@ -41,7 +41,8 @@ public class SQLiteStorage extends SQLStorage {
 	PreparedStatement checkTableExistance = null;
 
 	@Inject
-	protected SQLiteStorage(@JDBCUrl String connectionurl, @JDBCProperties Properties connectionProps)
+	protected SQLiteStorage(@JDBCUrl String connectionurl,
+			@JDBCProperties Properties connectionProps)
 			throws ClassNotFoundException {
 		super("org.sqlite.JDBC", connectionurl, connectionProps);
 	}
@@ -98,6 +99,11 @@ public class SQLiteStorage extends SQLStorage {
 		PreparedStatement s = this.conn.prepareStatement(preparedStatement);
 		for (int i = 0; i < values.length; i++) {
 			s.setObject(i + 1, values[i]);
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Executing Query: " + preparedStatement
+					+ " parameters: (" + commaSeparatedObjectArray(values)
+					+ ")");
 		}
 		s.execute();
 		ResultSet rs = s.getGeneratedKeys();
@@ -248,16 +254,16 @@ public class SQLiteStorage extends SQLStorage {
 			getInsertedId();
 		}
 
-		private String commaSeparatedObjectArray(Object... array) {
-			StringBuilder s = new StringBuilder();
-			for (int i = 0; i < array.length; i++) {
-				s.append(array[i]);
-				if (i + 1 < array.length)
-					s.append(" , ");
-			}
-			return s.toString();
-		}
+	}
 
+	private String commaSeparatedObjectArray(Object... array) {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < array.length; i++) {
+			s.append(array[i]);
+			if (i + 1 < array.length)
+				s.append(" , ");
+		}
+		return s.toString();
 	}
 
 }
