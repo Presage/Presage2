@@ -22,13 +22,14 @@ import java.util.Random;
 
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public class MultiThreadedSimulatorTest extends SimulatorTest {
 
 	@Override
 	public void setUp() throws Exception {
-		this.simulatorUnderTest = new MultiThreadedSimulator(scenario, time, new Random().nextInt(5)+1);
+		this.simulatorUnderTest = new MultiThreadedSimulator(scenario, time,
+				eventBus, new Random().nextInt(5) + 1);
 	}
 
 }
