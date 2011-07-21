@@ -24,11 +24,11 @@ import uk.ac.imperial.presage2.core.event.Event;
 public class EndOfTimeCycle implements Event {
 
 	final Time endedCycle;
-	
+
 	EndOfTimeCycle(Time endedCycle) {
 		this.endedCycle = endedCycle;
 	}
-	
+
 	@Override
 	public Time getTime() {
 		return endedCycle;

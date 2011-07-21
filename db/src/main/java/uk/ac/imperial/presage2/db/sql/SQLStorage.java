@@ -26,17 +26,17 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.google.inject.Inject;
-
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.Table.TableBuilder;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.simulator.FinalizeEvent;
+import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
 import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
+
+import com.google.inject.Inject;
 
 public abstract class SQLStorage extends SQLService implements StorageService,
 		SQL, TimeDriven, Runnable {
@@ -66,16 +66,6 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		eventBus.subscribe(this);
 	}
 
-	@EventListener
-	public synchronized void onFinalizeEvent(FinalizeEvent e) {
-		this.finishUp = true;
-		try {
-			executorThread.join();
-		} catch (InterruptedException e1) {
-			logger.warn("QueryExecutor was interrupted", e1);
-		}
-	}
-
 	@Override
 	public void start() throws Exception {
 		super.start();
@@ -98,6 +88,18 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 			logger.info("Found simulations table");
 		}
 		executorThread.start();
+	}
+
+	@Override
+	public synchronized void stop() {
+		this.finishUp = true;
+		notify();
+		try {
+			executorThread.join();
+		} catch (InterruptedException e1) {
+			logger.warn("QueryExecutor was interrupted", e1);
+		}
+		super.stop();
 	}
 
 	@Override
@@ -152,6 +154,29 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	}
 
 	@Override
+	public void updateSimulation() {
+		if (this.sim != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Updating simulation data in db.");
+			}
+			try {
+				update("simulations")
+						.set("state", sim.getState())
+						.set("currentTime",
+								sim.getCurrentSimulationTime().intValue())
+						.whereEquals("ID", this.simulationID).commit();
+			} catch (SQLException t) {
+				throw new RuntimeException("Could not update simulation", t);
+			}
+		}
+	}
+
+	@EventListener
+	public void onNewTimeCycle(EndOfTimeCycle e) {
+		updateSimulation();
+	}
+
+	@Override
 	public TableBuilder buildTable(String tableName) {
 		return new SQLTable.SQLTableBuilder(tableName, this);
 	}
@@ -177,7 +202,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		return rs.getLong(1);
 	}
 
-	protected synchronized void insertDeferred(String preparedStatement,
+	protected synchronized void deferredQuery(String preparedStatement,
 			Object... values) throws SQLException {
 		this.queryQueue.add(prepareStatement(preparedStatement, values));
 		notify();
@@ -228,7 +253,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 				}
 			}
 
-			if (finishUp)
+			if (finishUp && queryQueue.isEmpty())
 				break;
 
 		}

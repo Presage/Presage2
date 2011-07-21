@@ -71,9 +71,9 @@ import com.google.inject.AbstractModule;
  * <pre class="prettyprint">
  * bind(BasicEnvironment.class).in(Singleton.class); // Singleton without binding
  * bind(NetworkChannel.class).to(NetworkController.class).in(Singleton.class); // Singleton
- * 																			// and
- * 																			// binding
- * 																			// combined
+ * // and
+ * // binding
+ * // combined
  * </pre>
  * 
  * In some cases you will want an object parameterised via some kind of factory.

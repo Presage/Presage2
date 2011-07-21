@@ -51,5 +51,6 @@ public interface StorageService {
 	public TableBuilder buildTable(String tableName);
 
 	public void insertSimulation(RunnableSimulation sim);
+	public void updateSimulation();
 
 }

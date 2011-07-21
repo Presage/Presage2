@@ -74,4 +74,14 @@ public interface SQL {
 
 	}
 
+	UpdateQueryBuilder update(String tableName);
+
+	interface UpdateQueryBuilder extends CanCommit {
+
+		<T> UpdateQueryBuilder set(String field, T value);
+
+		<T> UpdateQueryBuilder whereEquals(String field, T equals);
+
+	}
+
 }

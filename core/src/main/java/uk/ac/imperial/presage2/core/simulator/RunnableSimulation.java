@@ -321,15 +321,24 @@ public abstract class RunnableSimulation implements Runnable {
 	public void run() {
 
 		this.state = SimulationState.INITIALISING;
+		updateDatabase();
 		this.simulator.initialise();
 
 		this.state = SimulationState.RUNNING;
+		updateDatabase();
 		this.simulator.run();
 
 		this.state = SimulationState.FINISHING;
+		updateDatabase();
 		this.simulator.complete();
-
 		this.state = SimulationState.COMPLETE;
+		updateDatabase();
+	}
+
+	private void updateDatabase() {
+		if (this.storage != null) {
+			this.storage.updateSimulation();
+		}
 	}
 
 	/**

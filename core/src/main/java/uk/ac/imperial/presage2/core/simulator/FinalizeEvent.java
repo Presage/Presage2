@@ -24,7 +24,7 @@ import uk.ac.imperial.presage2.core.event.Event;
 public class FinalizeEvent implements Event {
 
 	final Time t;
-	
+
 	FinalizeEvent(Time t) {
 		super();
 		this.t = t;

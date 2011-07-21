@@ -86,6 +86,11 @@ public class SQLiteStorage extends SQLStorage {
 		return new SQLiteInsertQueryBuilder(tableName);
 	}
 
+	@Override
+	public UpdateQueryBuilder update(String tableName) {
+		return new SQLiteUpdateQueryBuilder(tableName);
+	}
+
 	class SQLiteCreateTableQueryBuilder implements CreateTableQueryBuilder,
 			CreateTableConstraintsBuilder, ForeignKeyDef {
 
@@ -230,7 +235,77 @@ public class SQLiteStorage extends SQLStorage {
 		@Override
 		public void commit() throws SQLException {
 			finishQuery();
-			insertDeferred(q.toString(), columns.values().toArray());
+			deferredQuery(q.toString(), columns.values().toArray());
+		}
+
+	}
+
+	class SQLiteUpdateQueryBuilder implements UpdateQueryBuilder {
+
+		StringBuilder q = new StringBuilder();
+		Map<String, Object> columns = new LinkedHashMap<String, Object>();
+		Map<String, Object> wheres = new LinkedHashMap<String, Object>();
+		int columnCount = 0;
+		int whereCount = 0;
+
+		SQLiteUpdateQueryBuilder(String tableName) {
+			q.append("UPDATE ");
+			q.append(tableName);
+			q.append(" SET ");
+		}
+
+		@Override
+		public void commit() throws SQLException {
+			if (columnCount == 0 || whereCount == 0) {
+				return; // avoid updating nothing or updating everything
+			}
+			Object[] setClause = new String[columns.size()];
+			int i = 0;
+			for (String col : columns.keySet()) {
+				setClause[i] = col + " = ? ";
+				i++;
+			}
+			q.append(commaSeparatedObjectArray(setClause));
+			q.append(" WHERE ");
+			Object[] whereClause = new String[wheres.size()];
+			i = 0;
+			for (String wh : wheres.keySet()) {
+				whereClause[i] = wh + " = ? ";
+				i++;
+			}
+			q.append(andSeparatedObjectArray(whereClause));
+
+			Object[] data = new Object[setClause.length + whereClause.length];
+			System.arraycopy(columns.values().toArray(), 0, data, 0,
+					setClause.length);
+			System.arraycopy(wheres.values().toArray(), 0, data,
+					setClause.length, whereClause.length);
+
+			deferredQuery(q.toString(), data);
+		}
+
+		@Override
+		public <T> UpdateQueryBuilder set(String field, T value) {
+			columnCount++;
+			columns.put(field, value);
+			return this;
+		}
+
+		@Override
+		public <T> UpdateQueryBuilder whereEquals(String field, T equals) {
+			whereCount++;
+			wheres.put(field, equals);
+			return this;
+		}
+
+		protected String andSeparatedObjectArray(Object... array) {
+			StringBuilder s = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				s.append(array[i]);
+				if (i + 1 < array.length)
+					s.append(" AND ");
+			}
+			return s.toString();
 		}
 
 	}
