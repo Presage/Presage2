@@ -510,8 +510,8 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			this.logger.warn(e);
 			throw e;
 		} else {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Returning global environment state '" + name
+			if (this.logger.isTraceEnabled()) {
+				this.logger.trace("Returning global environment state '" + name
 						+ "'");
 			}
 			return global;
@@ -548,8 +548,8 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			this.logger.warn(e);
 			throw e;
 		}
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Returning participant state '" + participantID
+		if (this.logger.isTraceEnabled()) {
+			this.logger.trace("Returning participant state '" + participantID
 					+ "." + name + "'");
 		}
 		return state;
