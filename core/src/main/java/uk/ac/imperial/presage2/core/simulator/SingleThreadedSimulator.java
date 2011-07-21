@@ -111,6 +111,7 @@ public class SingleThreadedSimulator extends Simulator {
 				}
 			}
 
+			eventBus.publish(new EndOfTimeCycle(time.clone()));
 			time.increment();
 
 		}

@@ -244,6 +244,7 @@ public class MultiThreadedSimulator extends Simulator {
 				}
 			}
 			futures.clear();
+			eventBus.publish(new EndOfTimeCycle(time.clone()));
 			time.increment();
 
 		}

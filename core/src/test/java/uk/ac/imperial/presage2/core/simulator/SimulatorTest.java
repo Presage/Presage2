@@ -135,6 +135,7 @@ abstract public class SimulatorTest {
 				exactly(2).of(plug2).incrementTime();
 				exactly(2).of(td1).incrementTime();
 				exactly(2).of(td2).incrementTime();
+				exactly(2).of(eventBus).publish(with(any(EndOfTimeCycle.class)));
 			}
 		});
 
