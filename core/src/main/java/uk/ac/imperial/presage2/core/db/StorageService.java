@@ -22,6 +22,14 @@ import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.Table.TableBuilder;
 import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
 
+/**
+ * The StorageService is a high level interface to database access for storing
+ * simulation data. Allows for {@link Table}s to be constructed which in turn
+ * allow data to be inserted into the database.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public interface StorageService {
 
 	/**
@@ -46,11 +54,21 @@ public interface StorageService {
 	 * Start building a Table.
 	 * 
 	 * @param tableName
-	 * @return
+	 * @return {@link TableBuilder}
 	 */
 	public TableBuilder buildTable(String tableName);
 
+	/**
+	 * Insert the {@link RunnableSimulation} into the database.
+	 * 
+	 * @param sim
+	 */
 	public void insertSimulation(RunnableSimulation sim);
+
+	/**
+	 * Update the {@link RunnableSimulation} entry in the database to reflect
+	 * any changes in it's state.
+	 */
 	public void updateSimulation();
 
 }

@@ -29,10 +29,24 @@ package uk.ac.imperial.presage2.core.db;
  */
 public interface DatabaseService {
 
+	/**
+	 * Start the database service. This generally will create a connection to a
+	 * database.
+	 * 
+	 * @throws Exception
+	 */
 	void start() throws Exception;
 
+	/**
+	 * 
+	 * @return true if {@link #start()} has be successfully called, false
+	 *         otherwise.
+	 */
 	boolean isStarted();
 
+	/**
+	 * Stop this database service.
+	 */
 	void stop();
 
 }
