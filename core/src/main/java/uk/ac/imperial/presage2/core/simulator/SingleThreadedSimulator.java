@@ -22,103 +22,115 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 
 import com.google.inject.Inject;
 
 /**
- * <p>Simulator which executes agents consecutively in a single
- * thread</p>
+ * <p>
+ * Simulator which executes agents consecutively in a single thread
+ * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class SingleThreadedSimulator extends Simulator {
 
-	private final Logger logger = Logger.getLogger(SingleThreadedSimulator.class);
-	
+	private final Logger logger = Logger
+			.getLogger(SingleThreadedSimulator.class);
+
 	/**
 	 * @param scenario
 	 */
 	@Inject
-	public SingleThreadedSimulator(Scenario scenario, Time t) {
-		super(scenario, t);
+	public SingleThreadedSimulator(Scenario scenario, Time t, EventBus eventBus) {
+		super(scenario, t, eventBus);
 	}
 
 	@Override
 	public void initialise() {
 		// init Participants
 		logger.info("Initialising Participants..");
-		for(Participant p : this.scenario.getParticipants()) {
+		for (Participant p : this.scenario.getParticipants()) {
 			try {
 				p.initialise();
-			} catch(Exception e) {
-				logger.warn("Exception thrown by participant "+p.getName()+" on initialisation.", e);
+			} catch (Exception e) {
+				logger.warn("Exception thrown by participant " + p.getName()
+						+ " on initialisation.", e);
 			}
 		}
 		// init Plugins
 		logger.info("Initialising Plugins..");
-		for(Plugin pl : this.scenario.getPlugins()) {
+		for (Plugin pl : this.scenario.getPlugins()) {
 			try {
 				pl.initialise();
-			} catch(Exception e) {
-				logger.warn("Exception thrown by plugin "+pl+" on execution.", e);
+			} catch (Exception e) {
+				logger.warn("Exception thrown by plugin " + pl
+						+ " on execution.", e);
 			}
 		}
 	}
 
 	@Override
 	public void run() {
-		
-		while(this.scenario.getFinishTime().greaterThan(time)) {
-			
-			logger.info("Time: "+ time.toString());
-			
+
+		while (this.scenario.getFinishTime().greaterThan(time)) {
+
+			logger.info("Time: " + time.toString());
+
 			logger.debug("Executing Participants...");
-			for(Participant p : this.scenario.getParticipants()) {
+			for (Participant p : this.scenario.getParticipants()) {
 				try {
 					p.incrementTime();
-				} catch(Exception e) {
-					logger.warn("Exception thrown by participant "+p.getName()+" on execution.", e);
+				} catch (Exception e) {
+					logger.warn(
+							"Exception thrown by participant " + p.getName()
+									+ " on execution.", e);
 				}
 			}
-			
+
 			logger.debug("Executing TimeDriven...");
-			for(TimeDriven t : this.scenario.getTimeDriven()) {
+			for (TimeDriven t : this.scenario.getTimeDriven()) {
 				try {
 					t.incrementTime();
-				} catch(Exception e) {
-					logger.warn("Exception thrown by TimeDriven "+t+" on execution.", e);
+				} catch (Exception e) {
+					logger.warn("Exception thrown by TimeDriven " + t
+							+ " on execution.", e);
 				}
 			}
-			
+
 			logger.debug("Executing Plugins...");
-			for(Plugin pl : this.scenario.getPlugins()) {
+			for (Plugin pl : this.scenario.getPlugins()) {
 				try {
 					pl.incrementTime();
-				} catch(Exception e) {
-					logger.warn("Exception thrown by Plugin "+pl+" on execution.", e);
+				} catch (Exception e) {
+					logger.warn("Exception thrown by Plugin " + pl
+							+ " on execution.", e);
 				}
 			}
-			
+
+			eventBus.publish(new EndOfTimeCycle(time.clone()));
 			time.increment();
-			
+
 		}
-		
+
 		logger.info("Simulation cycle complete.");
 	}
 
 	@Override
 	public void complete() {
 		logger.info("Running completion tasks and tidying up.");
-		for(Plugin pl : this.scenario.getPlugins()) {
+		for (Plugin pl : this.scenario.getPlugins()) {
 			try {
 				pl.onSimulationComplete();
-			} catch(Exception e) {
-				logger.warn("Exception thrown by Plugin "+pl+" on simulation completion.", e);
+			} catch (Exception e) {
+				logger.warn("Exception thrown by Plugin " + pl
+						+ " on simulation completion.", e);
 			}
 		}
+		eventBus.publish(new FinalizeEvent(time));
 	}
 
 }

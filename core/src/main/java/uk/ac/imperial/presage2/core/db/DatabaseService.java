@@ -17,19 +17,36 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.db.jdo;
+package uk.ac.imperial.presage2.core.db;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+/**
+ * This is a generic description of a Database service in presage. Anything we
+ * want to use as a database should implement this so the platform can start and
+ * stop it.
+ * 
+ * @author sm1106
+ * 
+ */
+public interface DatabaseService {
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+	/**
+	 * Start the database service. This generally will create a connection to a
+	 * database.
+	 * 
+	 * @throws Exception
+	 */
+	void start() throws Exception;
 
-import com.google.inject.BindingAnnotation;
+	/**
+	 * 
+	 * @return true if {@link #start()} has be successfully called, false
+	 *         otherwise.
+	 */
+	boolean isStarted();
 
-@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
-public @interface JDO {
+	/**
+	 * Stop this database service.
+	 */
+	void stop();
 
 }

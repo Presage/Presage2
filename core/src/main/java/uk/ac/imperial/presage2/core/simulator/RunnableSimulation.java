@@ -33,6 +33,9 @@ import org.apache.log4j.Logger;
 import com.google.inject.AbstractModule;
 
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.db.DatabaseModule;
+import uk.ac.imperial.presage2.core.db.DatabaseService;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.event.EventBusModule;
 
 /**
@@ -57,6 +60,9 @@ public abstract class RunnableSimulation implements Runnable {
 	protected Scenario scenario;
 
 	protected Simulator simulator;
+
+	protected DatabaseService database;
+	protected StorageService storage;
 
 	private Map<String, Field> fieldParameters = new HashMap<String, Field>();
 
@@ -221,6 +227,14 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 	}
 
+	protected void setDatabase(DatabaseService database) {
+		this.database = database;
+	}
+
+	protected void setStorage(StorageService storage) {
+		this.storage = storage;
+	}
+
 	/**
 	 * <p>
 	 * Create a new {@link RunnableSimulation} from a provided string
@@ -307,15 +321,24 @@ public abstract class RunnableSimulation implements Runnable {
 	public void run() {
 
 		this.state = SimulationState.INITIALISING;
+		updateDatabase();
 		this.simulator.initialise();
 
 		this.state = SimulationState.RUNNING;
+		updateDatabase();
 		this.simulator.run();
 
 		this.state = SimulationState.FINISHING;
+		updateDatabase();
 		this.simulator.complete();
-
 		this.state = SimulationState.COMPLETE;
+		updateDatabase();
+	}
+
+	private void updateDatabase() {
+		if (this.storage != null) {
+			this.storage.updateSimulation();
+		}
 	}
 
 	/**
@@ -366,6 +389,10 @@ public abstract class RunnableSimulation implements Runnable {
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
 		additionalModules.add(SimulatorModule.singleThreadedSimulator());
 		additionalModules.add(new EventBusModule());
+		// database module
+		AbstractModule dbModule = DatabaseModule.load();
+		if (dbModule != null)
+			additionalModules.add(dbModule);
 
 		// Create the runnable simulation assuming it's an InjectedSimulation
 		RunnableSimulation sim = newFromClassName(args[0], additionalModules);

@@ -18,18 +18,26 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.util.Random;
+import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.event.Event;
 
 /**
+ * {@link Event} to signify the end of a time cycle.
+ * 
  * @author Sam Macbeth
  * 
  */
-public class MultiThreadedSimulatorTest extends SimulatorTest {
+public class EndOfTimeCycle implements Event {
+
+	final Time endedCycle;
+
+	EndOfTimeCycle(Time endedCycle) {
+		this.endedCycle = endedCycle;
+	}
 
 	@Override
-	public void setUp() throws Exception {
-		this.simulatorUnderTest = new MultiThreadedSimulator(scenario, time,
-				eventBus, new Random().nextInt(5) + 1);
+	public Time getTime() {
+		return endedCycle;
 	}
 
 }

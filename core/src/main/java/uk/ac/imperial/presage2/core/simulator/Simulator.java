@@ -20,6 +20,8 @@
 package uk.ac.imperial.presage2.core.simulator;
 
 import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.db.DatabaseService;
+import uk.ac.imperial.presage2.core.event.EventBus;
 
 import com.google.inject.Inject;
 
@@ -34,11 +36,19 @@ public abstract class Simulator {
 	 */
 	protected Scenario scenario;
 	protected final Time time;
+	protected DatabaseService database;
+	protected EventBus eventBus;
 
 	@Inject
-	public Simulator(Scenario scenario, Time t) {
+	public Simulator(Scenario scenario, Time t, EventBus eventBus) {
 		this.scenario = scenario;
 		this.time = t;
+		this.eventBus = eventBus;
+	}
+
+	@Inject(optional = true)
+	public void setDatabaseService(DatabaseService db) {
+		database = db;
 	}
 
 	/**

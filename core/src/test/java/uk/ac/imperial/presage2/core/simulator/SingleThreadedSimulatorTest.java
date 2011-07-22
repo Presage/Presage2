@@ -20,13 +20,14 @@ package uk.ac.imperial.presage2.core.simulator;
 
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public class SingleThreadedSimulatorTest extends SimulatorTest {
 
 	@Override
 	public void setUp() throws Exception {
-		this.simulatorUnderTest = new SingleThreadedSimulator(scenario, time);
+		this.simulatorUnderTest = new SingleThreadedSimulator(scenario, time,
+				eventBus);
 	}
 
 }

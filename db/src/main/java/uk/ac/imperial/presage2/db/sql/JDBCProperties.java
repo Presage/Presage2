@@ -16,8 +16,7 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package uk.ac.imperial.presage2.db.jdo;
+package uk.ac.imperial.presage2.db.sql;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -29,7 +28,9 @@ import java.lang.annotation.Target;
 
 import com.google.inject.BindingAnnotation;
 
-@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
-public @interface MXJDataDir {
+@BindingAnnotation
+@Target({ FIELD, PARAMETER, METHOD })
+@Retention(RUNTIME)
+public @interface JDBCProperties {
 
 }

@@ -16,38 +16,28 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.db.sql.sqlite;
 
-package uk.ac.imperial.presage2.db.jdo;
-
-import java.io.File;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
 
-@Singleton
-public class MxjJDODatabaseService extends JDODatabaseService {
+import uk.ac.imperial.presage2.db.sql.SQLModule;
+import uk.ac.imperial.presage2.db.sql.SQLService;
+import uk.ac.imperial.presage2.db.sql.SQLStorage;
 
-	private final Logger logger = Logger.getLogger(MxjJDODatabaseService.class);
-	
-	protected File mxjDatadir;
-	
-	@Inject
-	public MxjJDODatabaseService(@JDO Properties jdoProps, @MXJDataDir File mxjDatadir) {
-		super(jdoProps);
-		this.mxjDatadir = mxjDatadir;
+public class SQLiteModule extends SQLModule {
+
+	public SQLiteModule(Properties props) {
+		super(props);
 	}
 
 	@Override
-	public void stop() {
-		super.stop();
-		// force mysql server shutdown
-		if(logger.isDebugEnabled())
-			logger.debug("Shutting down embedded mysql server...");
-		ServerLauncherSocketFactory.shutdown(mxjDatadir, null);
+	protected void configure() {
+		super.configure();
+		bind(SQLiteStorage.class).in(Singleton.class);
+		bind(SQLStorage.class).to(SQLiteStorage.class);
+		bind(SQLService.class).to(SQLiteStorage.class);
 	}
 
 }

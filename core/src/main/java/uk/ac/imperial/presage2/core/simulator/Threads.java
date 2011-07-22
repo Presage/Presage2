@@ -29,12 +29,17 @@ import java.lang.annotation.Target;
 import com.google.inject.BindingAnnotation;
 
 /**
- * <p>Binding annotation for providing a number of threads to use for a {@link Simulator}</p>
+ * <p>
+ * Binding annotation for providing a number of threads to use for a
+ * {@link Simulator}
+ * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
-@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
+@BindingAnnotation
+@Target({ FIELD, PARAMETER, METHOD })
+@Retention(RUNTIME)
 public @interface Threads {
 
 }

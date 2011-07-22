@@ -16,20 +16,21 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.db.sql;
 
-package uk.ac.imperial.presage2.db;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * This is a generic description of a Database service in presage. Anything we want
- * to use as a database should implement this so the platform can start and stop it.
- * 
- * @author sm1106
- *
- */
-public interface DatabaseService {
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-	void start() throws Exception;
-	
-	void stop();
-	
+import com.google.inject.BindingAnnotation;
+
+@BindingAnnotation
+@Target({ FIELD, PARAMETER, METHOD })
+@Retention(RUNTIME)
+public @interface JDBCUrl {
+
 }
