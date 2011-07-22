@@ -27,6 +27,12 @@ import uk.ac.imperial.presage2.core.db.StorageService;
 
 import com.google.inject.Singleton;
 
+/**
+ * Module to provide Guice bindings for an SQL database connection.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class SQLModule extends DatabaseModule {
 
 	final Properties jdbcProps;

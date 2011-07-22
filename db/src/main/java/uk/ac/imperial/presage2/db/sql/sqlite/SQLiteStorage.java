@@ -34,6 +34,12 @@ import uk.ac.imperial.presage2.db.sql.JDBCProperties;
 import uk.ac.imperial.presage2.db.sql.JDBCUrl;
 import uk.ac.imperial.presage2.db.sql.SQLStorage;
 
+/**
+ * Implementation of {@link SQLStorage} for an SQLite database.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 @Singleton
 public class SQLiteStorage extends SQLStorage {
 

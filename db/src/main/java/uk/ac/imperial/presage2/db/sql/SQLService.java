@@ -29,6 +29,13 @@ import com.google.inject.Provider;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 
+/**
+ * {@link DatabaseService} implementation for a JDBC database. Also acts as as
+ * {@link Provider} of a sql {@link Connection}.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class SQLService implements DatabaseService, Provider<Connection> {
 
 	protected final Logger logger = Logger.getLogger(SQLService.class);

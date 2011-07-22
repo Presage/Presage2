@@ -29,6 +29,12 @@ import uk.ac.imperial.presage2.core.db.Table;
 import uk.ac.imperial.presage2.db.sql.SQL.CreateTableQueryBuilder;
 import uk.ac.imperial.presage2.db.sql.SQL.InsertQueryBuilder;
 
+/**
+ * Implementation of a {@link Table} to create queries with the {@link SQL} API.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class SQLTable implements Table {
 
 	final SQLStorage storage;

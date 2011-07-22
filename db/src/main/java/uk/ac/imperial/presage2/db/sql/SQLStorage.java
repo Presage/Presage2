@@ -38,6 +38,12 @@ import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 import com.google.inject.Inject;
 
+/**
+ * Implementation of a {@link StorageService} backed by a {@link SQLService}.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public abstract class SQLStorage extends SQLService implements StorageService,
 		SQL, TimeDriven, Runnable {
 
@@ -45,6 +51,9 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	Time time;
 	protected RunnableSimulation sim;
 
+	/**
+	 * {@link Queue} of deferred {@link PreparedStatement}s to execute.
+	 */
 	protected final Queue<PreparedStatement> queryQueue = new ConcurrentLinkedQueue<PreparedStatement>();
 
 	private final Thread executorThread = new Thread(this);
@@ -66,6 +75,10 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		eventBus.subscribe(this);
 	}
 
+	/**
+	 * Starts a SQL connection and also creates a 'simulations' table if it
+	 * doesn't already exists.
+	 */
 	@Override
 	public void start() throws Exception {
 		super.start();
@@ -129,6 +142,9 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		time.increment();
 	}
 
+	/**
+	 * Inserts the {@link RunnableSimulation} into the 'simulations' table.
+	 */
 	@Override
 	public void insertSimulation(RunnableSimulation sim) {
 		this.sim = sim;
@@ -171,6 +187,12 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		}
 	}
 
+	/**
+	 * Event listener to update simulation information at the end of each time
+	 * cycle.
+	 * 
+	 * @param e
+	 */
 	@EventListener
 	public void onNewTimeCycle(EndOfTimeCycle e) {
 		updateSimulation();
@@ -181,6 +203,12 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		return new SQLTable.SQLTableBuilder(tableName, this);
 	}
 
+	/**
+	 * Execute a query immediately.
+	 * 
+	 * @param query
+	 * @throws SQLException
+	 */
 	protected void executeQuery(String query) throws SQLException {
 		if (logger.isDebugEnabled())
 			logger.debug("Executing Query: " + query);
@@ -188,6 +216,16 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		s.execute(query);
 	}
 
+	/**
+	 * Perform an insert query with a string to create a
+	 * {@link PreparedStatement} and data values to put into it. Returns an
+	 * inserted ID from the result set.
+	 * 
+	 * @param preparedStatement
+	 * @param values
+	 * @return ID at which the data was inserted (if applicable).
+	 * @throws SQLException
+	 */
 	protected long insert(String preparedStatement, Object... values)
 			throws SQLException {
 		PreparedStatement s = prepareStatement(preparedStatement, values);
@@ -202,6 +240,13 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		return rs.getLong(1);
 	}
 
+	/**
+	 * Submit a prepared statement to be executed at some time in the future.
+	 * 
+	 * @param preparedStatement
+	 * @param values
+	 * @throws SQLException
+	 */
 	protected synchronized void deferredQuery(String preparedStatement,
 			Object... values) throws SQLException {
 		this.queryQueue.add(prepareStatement(preparedStatement, values));
@@ -227,6 +272,10 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		return s.toString();
 	}
 
+	/**
+	 * Process queries queued in {@link #queryQueue} until {@link #finishUp} is
+	 * set to true.
+	 */
 	@Override
 	public void run() {
 
