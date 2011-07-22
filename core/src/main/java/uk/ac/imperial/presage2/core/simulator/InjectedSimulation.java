@@ -94,7 +94,8 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 			try {
 				database.start();
 			} catch (Exception e) {
-				logger.warn("Error starting database", e);
+				logger.fatal("Error starting database", e);
+				throw new RuntimeException(e);
 			}
 		}
 		simulator = injector.getInstance(Simulator.class);

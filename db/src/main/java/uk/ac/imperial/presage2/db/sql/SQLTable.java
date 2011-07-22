@@ -183,7 +183,7 @@ public class SQLTable implements Table {
 			@Override
 			public Insertion forParticipant(UUID id) {
 				if (fields.containsKey("participantID")) {
-					data.put("participantID", id);
+					data.put("participantID", id.toString());
 				}
 				return this;
 			}

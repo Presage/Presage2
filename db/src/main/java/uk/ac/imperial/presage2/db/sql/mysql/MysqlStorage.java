@@ -1,22 +1,4 @@
-/**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
- *
- * 	This file is part of Presage2.
- *
- *     Presage2 is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     Presage2 is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser Public License
- *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
- */
-package uk.ac.imperial.presage2.db.sql.sqlite;
+package uk.ac.imperial.presage2.db.sql.mysql;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,40 +9,38 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
 import uk.ac.imperial.presage2.db.sql.JDBCProperties;
 import uk.ac.imperial.presage2.db.sql.JDBCUrl;
 import uk.ac.imperial.presage2.db.sql.SQLStorage;
 
-/**
- * Implementation of {@link SQLStorage} for an SQLite database.
- * 
- * @author Sam Macbeth
- * 
- */
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 @Singleton
-public class SQLiteStorage extends SQLStorage {
+public class MysqlStorage extends SQLStorage {
 
 	PreparedStatement checkTableExistance = null;
 
 	@Inject
-	protected SQLiteStorage(@JDBCUrl String connectionurl,
+	protected MysqlStorage(@JDBCUrl String connectionurl,
 			@JDBCProperties Properties connectionProps)
 			throws ClassNotFoundException {
-		super("org.sqlite.JDBC", connectionurl, connectionProps);
+		super("com.mysql.jdbc.Driver", connectionurl, connectionProps);
 	}
 
 	private String getSQLType(Class<?> value) {
-		if (value == Integer.class || value == int.class || value == Long.class
-				|| value == long.class) {
-			return "INTEGER";
-		} else if (value == Float.class || value == float.class
-				|| value == Double.class || value == double.class) {
+		if (value == Integer.class || value == int.class) {
+			return "INT";
+		} else if (value == Long.class || value == long.class) {
+			return "BIGINT";
+		} else if (value == Float.class || value == float.class) {
+			return "FLOAT";
+		} else if (value == Double.class || value == double.class) {
 			return "REAL";
-		} else if (value == String.class || value == UUID.class) {
-			return "TEXT";
+		} else if (value == String.class) {
+			return "VARCHAR(1024)";
+		} else if (value == UUID.class) {
+			return "VARCHAR(37)";
 		}
 		return "NULL";
 	}
@@ -69,7 +49,7 @@ public class SQLiteStorage extends SQLStorage {
 	public boolean tableExists(String tableName) throws SQLException {
 		if (checkTableExistance == null)
 			checkTableExistance = this.conn
-					.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=? ");
+					.prepareStatement("SHOW TABLES LIKE ? ");
 
 		try {
 			checkTableExistance.setString(1, tableName);
@@ -84,26 +64,26 @@ public class SQLiteStorage extends SQLStorage {
 
 	@Override
 	public CreateTableQueryBuilder createTable(String tableName) {
-		return new SQLiteCreateTableQueryBuilder(tableName);
+		return new MysqlCreateTableQueryBuilder(tableName);
 	}
 
 	@Override
 	public InsertQueryBuilder insertInto(String tableName) {
-		return new SQLiteInsertQueryBuilder(tableName);
+		return new MysqlInsertQueryBuilder(tableName);
 	}
 
 	@Override
 	public UpdateQueryBuilder update(String tableName) {
-		return new SQLiteUpdateQueryBuilder(tableName);
+		return new MysqlUpdateQueryBuilder(tableName);
 	}
 
-	class SQLiteCreateTableQueryBuilder implements CreateTableQueryBuilder,
+	class MysqlCreateTableQueryBuilder implements CreateTableQueryBuilder,
 			CreateTableConstraintsBuilder, ForeignKeyDef {
 
 		StringBuilder q;
 		int columnCount = 0;
 
-		SQLiteCreateTableQueryBuilder(String tableName) {
+		MysqlCreateTableQueryBuilder(String tableName) {
 			q = new StringBuilder();
 			q.append("CREATE TABLE ");
 			q.append(tableName);
@@ -147,7 +127,7 @@ public class SQLiteStorage extends SQLStorage {
 		public CreateTableQueryBuilder addAutoIncrementColumn(String name,
 				Class<?> type) {
 			addColumn(name, type);
-			q.append(" PRIMARY KEY AUTOINCREMENT ");
+			q.append(" PRIMARY KEY AUTO_INCREMENT ");
 			return this;
 		}
 
@@ -205,13 +185,13 @@ public class SQLiteStorage extends SQLStorage {
 
 	}
 
-	class SQLiteInsertQueryBuilder implements InsertQueryBuilder {
+	class MysqlInsertQueryBuilder implements InsertQueryBuilder {
 
 		StringBuilder q = new StringBuilder();
 
 		Map<String, Object> columns = new LinkedHashMap<String, Object>();
 
-		SQLiteInsertQueryBuilder(String tableName) {
+		MysqlInsertQueryBuilder(String tableName) {
 			q.append("INSERT INTO ");
 			q.append(tableName);
 		}
@@ -246,7 +226,7 @@ public class SQLiteStorage extends SQLStorage {
 
 	}
 
-	class SQLiteUpdateQueryBuilder implements UpdateQueryBuilder {
+	class MysqlUpdateQueryBuilder implements UpdateQueryBuilder {
 
 		StringBuilder q = new StringBuilder();
 		Map<String, Object> columns = new LinkedHashMap<String, Object>();
@@ -254,7 +234,7 @@ public class SQLiteStorage extends SQLStorage {
 		int columnCount = 0;
 		int whereCount = 0;
 
-		SQLiteUpdateQueryBuilder(String tableName) {
+		MysqlUpdateQueryBuilder(String tableName) {
 			q.append("UPDATE ");
 			q.append(tableName);
 			q.append(" SET ");

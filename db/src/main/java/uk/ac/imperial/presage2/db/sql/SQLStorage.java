@@ -95,7 +95,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 					.addColumn("currentTime", int.class, 0)
 					.addColumn("finishTime", int.class)
 					.addColumn("parameters", String.class)
-					.addColumn("comment", String.class).addConstraints()
+					.addColumn("comment", String.class, new String()).addConstraints()
 					.addIndex("parentID").commit();
 		} else {
 			logger.info("Found simulations table");
@@ -177,7 +177,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 			}
 			try {
 				update("simulations")
-						.set("state", sim.getState())
+						.set("state", sim.getState().name())
 						.set("currentTime",
 								sim.getCurrentSimulationTime().intValue())
 						.whereEquals("ID", this.simulationID).commit();
@@ -228,7 +228,10 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	 */
 	protected long insert(String preparedStatement, Object... values)
 			throws SQLException {
-		PreparedStatement s = prepareStatement(preparedStatement, values);
+		PreparedStatement s = this.conn.prepareStatement(preparedStatement, Statement.RETURN_GENERATED_KEYS);
+		for (int i = 0; i < values.length; i++) {
+			s.setObject(i + 1, values[i]);
+		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing Query: " + preparedStatement
 					+ " parameters: (" + commaSeparatedObjectArray(values)
