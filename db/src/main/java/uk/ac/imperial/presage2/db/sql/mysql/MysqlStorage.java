@@ -3,6 +3,7 @@ package uk.ac.imperial.presage2.db.sql.mysql;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,6 +42,8 @@ public class MysqlStorage extends SQLStorage {
 			return "VARCHAR(1024)";
 		} else if (value == UUID.class) {
 			return "VARCHAR(37)";
+		} else if (value == Time.class) {
+			return "TIMESTAMP";
 		}
 		return "NULL";
 	}
@@ -113,7 +116,7 @@ public class MysqlStorage extends SQLStorage {
 				Class<T> type, T defaultValue) {
 			addColumn(name, type);
 			q.append(" DEFAULT ");
-			q.append("'"+ defaultValue +"'");
+			q.append("'" + defaultValue + "'");
 			return this;
 		}
 

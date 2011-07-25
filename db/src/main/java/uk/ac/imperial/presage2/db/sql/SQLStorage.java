@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,6 +35,7 @@ import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
 import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
 import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
+import uk.ac.imperial.presage2.core.simulator.RunnableSimulation.SimulationState;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 import com.google.inject.Inject;
@@ -94,9 +96,12 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 					.addColumn("state", String.class)
 					.addColumn("currentTime", int.class, 0)
 					.addColumn("finishTime", int.class)
+					.addColumn("createdAt", java.sql.Time.class)
+					.addColumn("startedAt", java.sql.Time.class, true)
+					.addColumn("finishedAt", java.sql.Time.class, true)
 					.addColumn("parameters", String.class)
-					.addColumn("comment", String.class, new String()).addConstraints()
-					.addIndex("parentID").commit();
+					.addColumn("comment", String.class, new String())
+					.addConstraints().addIndex("parentID").commit();
 		} else {
 			logger.info("Found simulations table");
 		}
@@ -106,7 +111,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	@Override
 	public synchronized void stop() {
 		this.finishUp = true;
-		notify();
+		notifyAll();
 		try {
 			executorThread.join();
 		} catch (InterruptedException e1) {
@@ -159,7 +164,9 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 								sim.getCurrentSimulationTime().intValue())
 						.addColumn("finishTime",
 								sim.getSimulationFinishTime().intValue())
-						.addColumn("parameters", sim.getParameters().toString())
+						.addColumn("createdAt", new Date())
+						.addColumn("startedAt", new Date())
+						.addColumn("parameters", parametersToString(sim))
 						.getInsertedId();
 				return;
 			} catch (SQLException e) {
@@ -169,6 +176,16 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 			throw new RuntimeException("Database not started yet.");
 	}
 
+	private String parametersToString(RunnableSimulation sim) {
+		String result = new String("{");
+		for (String s : sim.getParameters().keySet()) {
+			result += s;
+			result += "=" + sim.getParameter(s) + ",";
+		}
+		result += "}";
+		return result;
+	}
+
 	@Override
 	public void updateSimulation() {
 		if (this.sim != null) {
@@ -176,11 +193,12 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 				logger.debug("Updating simulation data in db.");
 			}
 			try {
-				update("simulations")
-						.set("state", sim.getState().name())
-						.set("currentTime",
-								sim.getCurrentSimulationTime().intValue())
-						.whereEquals("ID", this.simulationID).commit();
+				UpdateQueryBuilder up = update("simulations").set("state",
+						sim.getState().name()).set("currentTime",
+						sim.getCurrentSimulationTime().intValue());
+				if (sim.getState() == SimulationState.COMPLETE)
+					up.set("finishedAt", new Date());
+				up.whereEquals("ID", this.simulationID).commit();
 			} catch (SQLException t) {
 				throw new RuntimeException("Could not update simulation", t);
 			}
@@ -228,7 +246,8 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	 */
 	protected long insert(String preparedStatement, Object... values)
 			throws SQLException {
-		PreparedStatement s = this.conn.prepareStatement(preparedStatement, Statement.RETURN_GENERATED_KEYS);
+		PreparedStatement s = this.conn.prepareStatement(preparedStatement,
+				Statement.RETURN_GENERATED_KEYS);
 		for (int i = 0; i < values.length; i++) {
 			s.setObject(i + 1, values[i]);
 		}
@@ -310,6 +329,13 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 
 		}
 
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		if (executorThread.isAlive())
+			this.stop();
+		super.finalize();
 	}
 
 }

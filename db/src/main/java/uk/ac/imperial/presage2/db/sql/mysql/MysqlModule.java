@@ -14,7 +14,7 @@ public class MysqlModule extends SQLModule {
 	public MysqlModule(Properties props) {
 		super(props);
 	}
-	
+
 	@Override
 	protected void configure() {
 		super.configure();

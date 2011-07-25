@@ -143,6 +143,24 @@ public abstract class RunnableSimulation implements Runnable {
 		return this.simulator;
 	}
 
+	final public Object getParameter(String name) {
+		for (Field f : this.getClass().getFields()) {
+			Parameter param = f.getAnnotation(Parameter.class);
+			if (param != null) {
+				if (param.name() == name) {
+					try {
+						return f.get(this);
+					} catch (IllegalArgumentException e) {
+						logger.debug("Couldn't get value of field " + name, e);
+					} catch (IllegalAccessException e) {
+						logger.debug("Couldn't get value of field " + name, e);
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Get the {@link Parameter}s flagged in this Simulation.
 	 * 
@@ -333,6 +351,10 @@ public abstract class RunnableSimulation implements Runnable {
 		this.simulator.complete();
 		this.state = SimulationState.COMPLETE;
 		updateDatabase();
+
+		if (this.database != null) {
+			this.database.stop();
+		}
 	}
 
 	private void updateDatabase() {
@@ -387,7 +409,8 @@ public abstract class RunnableSimulation implements Runnable {
 
 		// Additional modules we want for this simulation run
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
-		additionalModules.add(SimulatorModule.multiThreadedSimulator(8));
+		additionalModules.add(SimulatorModule.multiThreadedSimulator(12));
+		// additionalModules.add(SimulatorModule.singleThreadedSimulator());
 		additionalModules.add(new EventBusModule());
 		// database module
 		AbstractModule dbModule = DatabaseModule.load();

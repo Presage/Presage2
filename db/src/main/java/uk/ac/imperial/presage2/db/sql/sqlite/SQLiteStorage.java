@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.db.sql.sqlite;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -61,6 +62,8 @@ public class SQLiteStorage extends SQLStorage {
 			return "REAL";
 		} else if (value == String.class || value == UUID.class) {
 			return "TEXT";
+		} else if (value == Time.class) {
+			return "DATETIME";
 		}
 		return "NULL";
 	}
@@ -133,7 +136,7 @@ public class SQLiteStorage extends SQLStorage {
 				Class<T> type, T defaultValue) {
 			addColumn(name, type);
 			q.append(" DEFAULT ");
-			q.append("'"+ defaultValue +"'");
+			q.append("'" + defaultValue + "'");
 			return this;
 		}
 
