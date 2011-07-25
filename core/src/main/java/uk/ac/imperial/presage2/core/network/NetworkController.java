@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+
 import org.apache.log4j.Logger;
 
 import com.google.inject.Inject;
@@ -56,7 +58,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected Time time;
 
-	protected List<Message> toDeliver;
+	protected Queue<Message> toDeliver;
 
 	/**
 	 * Map of devices registered to this controller.
@@ -98,16 +100,28 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			this.logger.debug("Delivering messages for time "
 					+ this.time.toString());
 		}
-		for (Message m : this.toDeliver) {
+		Queue<Message> deliverQueue;
+		synchronized(this.toDeliver) {
+			deliverQueue = this.toDeliver;
+			this.toDeliver = new LinkedList<Message>();
+		}
+		this.time.increment();
+		while (!deliverQueue.isEmpty()) {
+			Message m = deliverQueue.peek();
+			if(this.time.greaterThan(m.getTimestamp())) {
 			try {
+				deliverQueue.poll();
 				this.handleMessage(m);
 			} catch (NetworkException e) {
 				// log exceptions we encounter (unchecked runtime exceptions)
 				this.logger.warn(e.getMessage(), e);
 			}
+			} else
+				break;
 		}
-		this.toDeliver = new LinkedList<Message>();
-		this.time.increment();
+		synchronized(this.toDeliver) {
+			this.toDeliver.addAll(deliverQueue);
+		}
 	}
 
 	/**

@@ -32,6 +32,7 @@ import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
+import uk.ac.imperial.presage2.core.util.random.Random;
 
 /**
  * @author Sam Macbeth
@@ -72,19 +73,19 @@ abstract public class SimulatorTest {
 	@Test
 	public void testSimulator() {
 		// create some mock scenario entities
-		final Participant part1 = context.mock(Participant.class,
-				"participant1");
-		final Participant part2 = context.mock(Participant.class,
-				"participant2");
+		final int nParticipants = Random.randomInt(10);
 		final Set<Participant> partSet = new HashSet<Participant>();
-		partSet.add(part1);
-		partSet.add(part2);
+		for (int i = 0; i < nParticipants; i++) {
+			final Participant p = context.mock(Participant.class, "participant"
+					+ i);
+			partSet.add(p);
+		}
 
-		final TimeDriven td1 = context.mock(TimeDriven.class, "timedriven1");
-		final TimeDriven td2 = context.mock(TimeDriven.class, "timedriven2");
+		final int nTimDriven = Random.randomInt(10);
 		final Set<TimeDriven> tdSet = new HashSet<TimeDriven>();
-		tdSet.add(td1);
-		tdSet.add(td2);
+		for (int i = 0; i < nTimDriven; i++) {
+			tdSet.add(context.mock(TimeDriven.class, "timedriven" + i));
+		}
 
 		final Plugin plug1 = context.mock(Plugin.class, "plugin1");
 		final Plugin plug2 = context.mock(Plugin.class, "plugin2");
@@ -106,8 +107,9 @@ abstract public class SimulatorTest {
 				allowing(time).increment();
 				allowing(finishTime).clone();
 				will(returnValue(finishTime));
-				oneOf(part1).initialise();
-				oneOf(part2).initialise();
+				for (Participant p : partSet) {
+					oneOf(p).initialise();
+				}
 				oneOf(plug1).initialise();
 				oneOf(plug2).initialise();
 			}
@@ -119,23 +121,27 @@ abstract public class SimulatorTest {
 
 		// execution expectations
 		final Sequence loopLimit = context.sequence("loopLimit");
+		final int nCycles = Random.randomInt(10);
 		context.checking(new Expectations() {
 			{
 				allowing(scenario).getFinishTime();
 				will(returnValue(finishTime));
-				exactly(2).of(finishTime).greaterThan(time);
+				exactly(nCycles).of(finishTime).greaterThan(time);
 				will(returnValue(true));
 				inSequence(loopLimit);
 				oneOf(finishTime).greaterThan(time);
 				will(returnValue(false));
 				inSequence(loopLimit);
-				exactly(2).of(part1).incrementTime();
-				exactly(2).of(part2).incrementTime();
-				exactly(2).of(plug1).incrementTime();
-				exactly(2).of(plug2).incrementTime();
-				exactly(2).of(td1).incrementTime();
-				exactly(2).of(td2).incrementTime();
-				exactly(2).of(eventBus).publish(with(any(EndOfTimeCycle.class)));
+				for (Participant p : partSet) {
+					exactly(nCycles).of(p).incrementTime();
+				}
+				for (TimeDriven td : tdSet) {
+					exactly(nCycles).of(td).incrementTime();
+				}
+				exactly(nCycles).of(plug1).incrementTime();
+				exactly(nCycles).of(plug2).incrementTime();
+				exactly(nCycles).of(eventBus).publish(
+						with(any(EndOfTimeCycle.class)));
 			}
 		});
 

@@ -289,7 +289,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentConnector#register(uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest)
 	 */
 	@Override
-	public EnvironmentRegistrationResponse register(
+	public synchronized EnvironmentRegistrationResponse register(
 			EnvironmentRegistrationRequest request) {
 		// check we've been passed a non null participant
 		UUID participantUUID;
