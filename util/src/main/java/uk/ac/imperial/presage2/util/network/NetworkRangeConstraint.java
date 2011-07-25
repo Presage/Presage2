@@ -23,15 +23,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
+import uk.ac.imperial.presage2.core.event.EventBus;
+import uk.ac.imperial.presage2.core.event.EventListener;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
 import uk.ac.imperial.presage2.core.network.NetworkConstraint;
-import uk.ac.imperial.presage2.core.simulator.Scenario;
+import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
 import uk.ac.imperial.presage2.util.environment.CommunicationRangeService;
 import uk.ac.imperial.presage2.util.location.CannotSeeAgent;
 import uk.ac.imperial.presage2.util.location.Location;
@@ -44,7 +45,7 @@ import com.google.inject.Inject;
  * 
  */
 @ServiceDependencies({ LocationService.class, CommunicationRangeService.class })
-public class NetworkRangeConstraint implements NetworkConstraint, TimeDriven {
+public class NetworkRangeConstraint implements NetworkConstraint {
 
 	private LocationService locService;
 
@@ -54,12 +55,12 @@ public class NetworkRangeConstraint implements NetworkConstraint, TimeDriven {
 
 	@Inject
 	public NetworkRangeConstraint(EnvironmentServiceProvider serviceProvider,
-			Scenario s) throws UnavailableServiceException {
+			EventBus eb) throws UnavailableServiceException {
 		locService = serviceProvider
 				.getEnvironmentService(LocationService.class);
 		commRangeService = serviceProvider
 				.getEnvironmentService(CommunicationRangeService.class);
-		s.addTimeDriven(this);
+		eb.subscribe(this);
 	}
 
 	@Override
@@ -116,12 +117,14 @@ public class NetworkRangeConstraint implements NetworkConstraint, TimeDriven {
 						.synchronizedMap(new HashMap<UUID, Boolean>()));
 			}
 		}
-		blockCache.get(sender).put(receiver, result);
-		blockCache.get(receiver).put(sender, result);
+		try {
+			blockCache.get(sender).put(receiver, result);
+			blockCache.get(receiver).put(sender, result);
+		} catch(NullPointerException e) {}
 	}
 
-	@Override
-	public void incrementTime() {
+	@EventListener
+	public void incrementTime(EndOfTimeCycle e) {
 		blockCache.clear();
 	}
 
