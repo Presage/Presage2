@@ -147,7 +147,7 @@ public abstract class RunnableSimulation implements Runnable {
 		for (Field f : this.getClass().getFields()) {
 			Parameter param = f.getAnnotation(Parameter.class);
 			if (param != null) {
-				if (param.name() == name) {
+				if (param.name().equalsIgnoreCase(name)) {
 					try {
 						return f.get(this);
 					} catch (IllegalArgumentException e) {
