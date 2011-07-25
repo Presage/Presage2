@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
 
@@ -85,7 +86,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		this.time = time;
 		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
-		this.toDeliver = new LinkedList<Message>();
+		this.toDeliver = new ConcurrentLinkedQueue<Message>();
 		s.addTimeDriven(this);
 	}
 
