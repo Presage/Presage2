@@ -18,8 +18,8 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,7 +48,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 
 	private final ExecutorService threadPool;
 
-	private final List<Future<?>> futures = new ArrayList<Future<?>>();
+	private final Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
 
 	/**
 	 * Create a multi threaded simulator for a given {@link Scenario}.

@@ -20,6 +20,7 @@
 package uk.ac.imperial.presage2.core.simulator;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 
 /**
  * <p>
@@ -41,7 +42,7 @@ public class SimulatorModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
-		bind(Simulator.class).to(simulatorImplementation);
+		bind(Simulator.class).to(simulatorImplementation).in(Singleton.class);
 		bind(ThreadPool.class).to(Simulator.class);
 	}
 

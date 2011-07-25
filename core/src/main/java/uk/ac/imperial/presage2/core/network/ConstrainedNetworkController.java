@@ -18,7 +18,9 @@
  */
 package uk.ac.imperial.presage2.core.network;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -50,6 +52,8 @@ public class ConstrainedNetworkController extends NetworkController {
 			.getLogger(ConstrainedNetworkController.class);
 
 	protected Set<NetworkConstraint> constraints;
+
+	private Map<NetworkAddress, Set<NetworkAddress>> blockedCache = new HashMap<NetworkAddress, Set<NetworkAddress>>();
 
 	/**
 	 * @param time
@@ -106,16 +110,33 @@ public class ConstrainedNetworkController extends NetworkController {
 		// which will be blocked by constraints.
 		Set<NetworkAddress> links = new HashSet<NetworkAddress>(
 				this.devices.keySet());
-		Set<NetworkAddress> blocked = new HashSet<NetworkAddress>();
-		for (NetworkAddress a : links) {
+		// Set<NetworkAddress> blocked = new HashSet<NetworkAddress>();
+		for (NetworkAddress a : this.devices.keySet()) {
+			if (blockedCache.containsKey(a)
+					&& blockedCache.get(a).contains(p.getFrom())) {
+				if (blockedCache.containsKey(p.getFrom())) {
+					blockedCache.get(p.getFrom()).add(a);
+				} else {
+					Set<NetworkAddress> s = new HashSet<NetworkAddress>();
+					s.add(a);
+					blockedCache.put(p.getFrom(), s);
+				}
+				continue;
+			}
 			for (NetworkConstraint c : this.constraints) {
-				if (c.blockMessageDelivery(a, p)) {
-					blocked.add(a);
+				if (!c.blockMessageDelivery(a, p)) {
+					links.add(a);
 				}
 			}
 		}
-		links.removeAll(blocked);
+		// links.removeAll(blocked);
 		return new Pong(time.clone(), links);
+	}
+
+	@Override
+	public void incrementTime() {
+		super.incrementTime();
+		blockedCache.clear();
 	}
 
 }

@@ -36,6 +36,7 @@ import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
+import uk.ac.imperial.presage2.core.simulator.ThreadPool;
 
 /**
  * <p>
@@ -72,6 +73,8 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected EventBus eventBus = null;
 
+	protected ThreadPool threadPool = null;
+
 	/**
 	 * @param time
 	 */
@@ -91,6 +94,11 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		this.eventBus = e;
 	}
 
+	@Inject
+	public void setThreadPool(ThreadPool pool) {
+		threadPool = pool;
+	}
+
 	/**
 	 * @see uk.ac.imperial.presage2.core.TimeDriven#incrementTime()
 	 */
@@ -100,27 +108,28 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			this.logger.debug("Delivering messages for time "
 					+ this.time.toString());
 		}
-		Queue<Message> deliverQueue;
-		synchronized(this.toDeliver) {
-			deliverQueue = this.toDeliver;
-			this.toDeliver = new LinkedList<Message>();
-		}
-		this.time.increment();
-		while (!deliverQueue.isEmpty()) {
-			Message m = deliverQueue.peek();
-			if(this.time.greaterThan(m.getTimestamp())) {
-			try {
-				deliverQueue.poll();
-				this.handleMessage(m);
-			} catch (NetworkException e) {
-				// log exceptions we encounter (unchecked runtime exceptions)
-				this.logger.warn(e.getMessage(), e);
-			}
-			} else
-				break;
-		}
-		synchronized(this.toDeliver) {
-			this.toDeliver.addAll(deliverQueue);
+
+		// we have arbitrarily decided that it is beneficial to have a new
+		// thread if they have at least 20 message to process.
+		for (int i = 0; i < Math.min(12, this.toDeliver.size() / 20); i++) {
+			threadPool.submit(new Runnable() {
+				@Override
+				public void run() {
+					while (true) {
+						Message m = null;
+						synchronized (toDeliver) {
+							m = toDeliver.poll();
+						}
+						if (m == null)
+							break;
+						try {
+							handleMessage(m);
+						} catch (NetworkException e) {
+							logger.warn(e.getMessage(), e);
+						}
+					}
+				}
+			});
 		}
 	}
 
