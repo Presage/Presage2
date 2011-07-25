@@ -42,6 +42,7 @@ public class SimulatorModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		bind(Simulator.class).to(simulatorImplementation);
+		bind(ThreadPool.class).to(Simulator.class);
 	}
 
 	public static SimulatorModule singleThreadedSimulator() {

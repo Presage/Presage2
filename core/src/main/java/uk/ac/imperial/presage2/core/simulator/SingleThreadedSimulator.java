@@ -36,7 +36,7 @@ import com.google.inject.Inject;
  * @author Sam Macbeth
  * 
  */
-public class SingleThreadedSimulator extends Simulator {
+public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 
 	private final Logger logger = Logger
 			.getLogger(SingleThreadedSimulator.class);
@@ -131,6 +131,12 @@ public class SingleThreadedSimulator extends Simulator {
 			}
 		}
 		eventBus.publish(new FinalizeEvent(time));
+	}
+
+	@Override
+	public void submit(Runnable s) {
+		// rudimentary implementation as this is single threaded.
+		s.run();
 	}
 
 }

@@ -39,7 +39,7 @@ import com.google.inject.Inject;
  * @author Sam Macbeth
  * 
  */
-public class MultiThreadedSimulator extends Simulator {
+public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 
 	private final Logger logger = Logger
 			.getLogger(MultiThreadedSimulator.class);
@@ -47,6 +47,8 @@ public class MultiThreadedSimulator extends Simulator {
 	private final int threads;
 
 	private final ExecutorService threadPool;
+
+	private final List<Future<?>> futures = new ArrayList<Future<?>>();
 
 	/**
 	 * Create a multi threaded simulator for a given {@link Scenario}.
@@ -120,32 +122,18 @@ public class MultiThreadedSimulator extends Simulator {
 	@Override
 	public void initialise() {
 
-		final List<Future<?>> futures = new ArrayList<Future<?>>();
 		// init Participants
 		logger.info("Initialising Participants..");
 		for (Participant p : this.scenario.getParticipants()) {
-			futures.add(threadPool.submit(new ParticipantInitialisor(p)));
+			submit(new ParticipantInitialisor(p));
 		}
 		// init Plugins
 		logger.info("Initialising Plugins..");
 		for (Plugin pl : this.scenario.getPlugins()) {
-			futures.add(threadPool.submit(new PluginInitialisor(pl)));
+			submit(new PluginInitialisor(pl));
 		}
 		// wait for threads to complete
-		for (Future<?> f : futures) {
-			try {
-				f.get();
-			} catch (InterruptedException e) {
-				logger.warn(
-						"Unexpected InterruptedException on sim initialisation.",
-						e);
-			} catch (ExecutionException e) {
-				logger.warn(
-						"Unexpected ExecutionException on sim initialisation.",
-						e);
-			}
-		}
-
+		waitForThreads();
 	}
 
 	/**
@@ -179,14 +167,12 @@ public class MultiThreadedSimulator extends Simulator {
 
 		while (this.scenario.getFinishTime().greaterThan(time)) {
 
-			List<Future<?>> futures = new ArrayList<Future<?>>();
-
 			logger.info("Time: " + time.toString());
 
-			logger.debug("Executing Participants...");
+			logger.info("Executing Participants...");
 			for (Participant p : this.scenario.getParticipants()) {
 				try {
-					futures.add(threadPool.submit(new TimeIncrementor(p)));
+					submit(new TimeIncrementor(p));
 				} catch (Exception e) {
 					logger.warn(
 							"Exception thrown by participant " + p.getName()
@@ -195,55 +181,30 @@ public class MultiThreadedSimulator extends Simulator {
 			}
 
 			// wait for Participants to finish
-			for (Future<?> f : futures) {
-				try {
-					f.get();
-				} catch (InterruptedException e) {
-					logger.warn(
-							"Unexpected InterruptedException on sim initialisation.",
-							e);
-				} catch (ExecutionException e) {
-					logger.warn(
-							"Unexpected ExecutionException on sim initialisation.",
-							e);
-				}
-			}
-			futures.clear();
+			waitForThreads();
 
-			logger.debug("Executing TimeDriven...");
+			logger.info("Executing TimeDriven...");
 			for (TimeDriven t : this.scenario.getTimeDriven()) {
 				try {
-					futures.add(threadPool.submit(new TimeIncrementor(t)));
+					submit(new TimeIncrementor(t));
 				} catch (Exception e) {
 					logger.warn("Exception thrown by TimeDriven " + t
 							+ " on execution.", e);
 				}
 			}
 
-			logger.debug("Executing Plugins...");
+			logger.info("Executing Plugins...");
 			for (Plugin pl : this.scenario.getPlugins()) {
 				try {
-					futures.add(threadPool.submit(new TimeIncrementor(pl)));
+					submit(new TimeIncrementor(pl));
 				} catch (Exception e) {
 					logger.warn("Exception thrown by Plugin " + pl
 							+ " on execution.", e);
 				}
 			}
 
-			for (Future<?> f : futures) {
-				try {
-					f.get();
-				} catch (InterruptedException e) {
-					logger.warn(
-							"Unexpected InterruptedException on sim initialisation.",
-							e);
-				} catch (ExecutionException e) {
-					logger.warn(
-							"Unexpected ExecutionException on sim initialisation.",
-							e);
-				}
-			}
-			futures.clear();
+			waitForThreads();
+
 			eventBus.publish(new EndOfTimeCycle(time.clone()));
 			time.increment();
 
@@ -263,6 +224,24 @@ public class MultiThreadedSimulator extends Simulator {
 			}
 		}
 		eventBus.publish(new FinalizeEvent(time));
+	}
+
+	@Override
+	public void submit(Runnable s) {
+		futures.add(threadPool.submit(s));
+	}
+
+	private void waitForThreads() {
+		for (Future<?> f : futures) {
+			try {
+				f.get();
+			} catch (InterruptedException e) {
+				logger.warn("Unexpected InterruptedException", e);
+			} catch (ExecutionException e) {
+				logger.warn("Unexpected ExecutionException.", e);
+			}
+		}
+		futures.clear();
 	}
 
 }

@@ -29,7 +29,7 @@ import com.google.inject.Inject;
  * @author Sam Macbeth
  * 
  */
-public abstract class Simulator {
+public abstract class Simulator implements ThreadPool {
 
 	/**
 	 * The Scenario to simulate
