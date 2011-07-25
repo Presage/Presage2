@@ -109,27 +109,34 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 					+ this.time.toString());
 		}
 
-		// we have arbitrarily decided that it is beneficial to have a new
-		// thread if they have at least 20 message to process.
-		for (int i = 0; i < Math.min(12, this.toDeliver.size() / 20); i++) {
-			threadPool.submit(new Runnable() {
-				@Override
-				public void run() {
-					while (true) {
-						Message m = null;
-						synchronized (toDeliver) {
-							m = toDeliver.poll();
-						}
-						if (m == null)
-							break;
-						try {
-							handleMessage(m);
-						} catch (NetworkException e) {
-							logger.warn(e.getMessage(), e);
-						}
-					}
+		if (threadPool == null) {
+			new MessageHandler().run();
+		} else {
+			// we have arbitrarily decided that it is beneficial to have a new
+			// thread if they have at least 20 message to process.
+			for (int i = 0; i < Math.min(12, this.toDeliver.size() / 20); i++) {
+				threadPool.submit(new MessageHandler());
+			}
+		}
+		time.increment();
+	}
+
+	class MessageHandler implements Runnable {
+		@Override
+		public void run() {
+			while (true) {
+				Message m = null;
+				synchronized (toDeliver) {
+					m = toDeliver.poll();
 				}
-			});
+				if (m == null)
+					break;
+				try {
+					handleMessage(m);
+				} catch (NetworkException e) {
+					logger.warn(e.getMessage(), e);
+				}
+			}
 		}
 	}
 
