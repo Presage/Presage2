@@ -142,7 +142,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 	 * {@link Runnable} for use with the {@link ExecutorService}.
 	 * </p>
 	 */
-	private class TimeIncrementor implements Runnable {
+	private static class TimeIncrementor implements Runnable {
 
 		private final TimeDriven t;
 

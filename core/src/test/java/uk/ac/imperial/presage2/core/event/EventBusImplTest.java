@@ -28,50 +28,50 @@ import uk.ac.imperial.presage2.core.Time;
 
 public class EventBusImplTest {
 
-	class MockEvent implements Event {
+	static class MockEvent implements Event {
 		@Override
 		public Time getTime() {
 			return null;
 		}
 	}
-	
+
 	private int invocationCount = 0;
-	
+
 	class MockEventListener {
-		
+
 		@EventListener
 		public void hearMockEvent(MockEvent e) {
 			invocationCount++;
 		}
-		
+
 	}
-	
+
 	@Test
 	public void testEventBusImpl() {
-		
+
 		Mockery context = new Mockery();
 		Event fakeEvent = context.mock(Event.class);
 		MockEventListener listener = new MockEventListener();
-		
+
 		EventBus eventBus = new EventBusImpl();
-		
+
 		// assert no invocation before subscription.
 		eventBus.publish(new MockEvent());
 		assertTrue(invocationCount == 0);
-		
+
 		// assert invocation after subscription
 		eventBus.subscribe(listener);
 		eventBus.publish(new MockEvent());
 		assertTrue(invocationCount == 1);
-		
+
 		// assert no invocation from different event
 		eventBus.publish(fakeEvent);
 		assertTrue(invocationCount == 1);
-		
+
 		// assert no invocation after unsubscribe
 		eventBus.unsubscribe(listener);
 		eventBus.publish(new MockEvent());
 		assertTrue(invocationCount == 1);
 	}
-	
+
 }

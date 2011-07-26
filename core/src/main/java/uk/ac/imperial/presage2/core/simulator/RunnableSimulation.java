@@ -121,8 +121,8 @@ public abstract class RunnableSimulation implements Runnable {
 				|| getCurrentSimulationTime() == null)
 			return 0;
 		else
-			return Math.round(100 * getCurrentSimulationTime().intValue()
-					/ getSimulationFinishTime().intValue());
+			return 100 * getCurrentSimulationTime().intValue()
+					/ getSimulationFinishTime().intValue();
 	}
 
 	/**

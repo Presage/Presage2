@@ -100,8 +100,8 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 					.addColumn("startedAt", java.sql.Time.class, true)
 					.addColumn("finishedAt", java.sql.Time.class, true)
 					.addColumn("parameters", String.class)
-					.addColumn("comment", String.class, new String())
-					.addConstraints().addIndex("parentID").commit();
+					.addColumn("comment", String.class, "").addConstraints()
+					.addIndex("parentID").commit();
 		} else {
 			logger.info("Found simulations table");
 		}
@@ -177,13 +177,15 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	}
 
 	private String parametersToString(RunnableSimulation sim) {
-		String result = new String("{");
+		StringBuilder b = new StringBuilder("{");
 		for (String s : sim.getParameters().keySet()) {
-			result += s;
-			result += "=" + sim.getParameter(s) + ",";
+			b.append(s);
+			b.append("=");
+			b.append(sim.getParameter(s));
+			b.append(",");
 		}
-		result += "}";
-		return result;
+		b.append("}");
+		return b.toString();
 	}
 
 	@Override
@@ -232,6 +234,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 			logger.debug("Executing Query: " + query);
 		Statement s = this.conn.createStatement();
 		s.execute(query);
+		s.close();
 	}
 
 	/**
@@ -259,6 +262,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		s.execute();
 		ResultSet rs = s.getGeneratedKeys();
 		rs.next();
+		s.close();
 		return rs.getLong(1);
 	}
 
@@ -324,9 +328,10 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 				}
 			}
 
-			if (finishUp && queryQueue.isEmpty())
-				break;
-
+			synchronized (this) {
+				if (finishUp && queryQueue.isEmpty())
+					break;
+			}
 		}
 
 	}

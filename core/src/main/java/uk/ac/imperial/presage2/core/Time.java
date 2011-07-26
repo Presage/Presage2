@@ -29,7 +29,7 @@ import com.google.inject.AbstractModule;
  * @author Sam Macbeth
  * 
  */
-public interface Time {
+public interface Time extends Cloneable {
 
 	public String toString();
 

@@ -26,20 +26,33 @@ import java.util.UUID;
  */
 public class ParticipantSharedState<T> extends SharedState<T> {
 
-    protected UUID participantID;
+	protected UUID participantID;
 
-    public ParticipantSharedState(String type, T value, UUID participantID) {
-        super(type, value);
-        this.participantID = participantID;
-    }
+	public ParticipantSharedState(String type, T value, UUID participantID) {
+		super(type, value);
+		this.participantID = participantID;
+	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof ParticipantSharedState) {
+		if (obj instanceof ParticipantSharedState) {
 			ParticipantSharedState<?> state = (ParticipantSharedState<?>) obj;
-			return this.participantID == state.participantID && this.type.equals(state.type);
+			return this.participantID == state.participantID
+					&& this.type.equals(state.type);
 		}
 		return super.equals(obj);
+	}
+
+	private int cachedHashCode = 0;
+
+	@Override
+	public int hashCode() {
+		int hc = cachedHashCode;
+		if (hc == 0) {
+			hc = (this.type + this.participantID).hashCode();
+			cachedHashCode = hc;
+		}
+		return hc;
 	}
 
 }

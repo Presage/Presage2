@@ -126,10 +126,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		@Override
 		public void run() {
 			while (true) {
-				Message m = null;
-				synchronized (toDeliver) {
-					m = toDeliver.poll();
-				}
+				Message m = toDeliver.poll();
 				if (m == null)
 					break;
 				try {

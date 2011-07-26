@@ -49,7 +49,6 @@ public class UniCastMessageTest extends MessageTest {
 		Message m = this.getRandomMessage();
 		
 		assertNotNull(m);
-		assertTrue(m instanceof UnicastMessage);
 		
 	}
 

@@ -39,11 +39,11 @@ public class TestLocation2D {
 
 		@Override
 		public String toString() {
-			return null;
+			return "";
 		}
 
 		@Override
-		public boolean equals(Location l) {
+		public boolean equals(Object l) {
 			return false;
 		}
 

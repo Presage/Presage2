@@ -23,7 +23,7 @@ package uk.ac.imperial.presage2.core;
  * @author Sam Macbeth
  * 
  */
-public class IntegerTime implements Time {
+public final class IntegerTime implements Time {
 
 	private int time = 0;
 
@@ -55,10 +55,13 @@ public class IntegerTime implements Time {
 	public boolean equals(Object o) {
 		if (o instanceof Time) {
 			return this.equals((Time) o);
-		} else if (o instanceof Integer) {
-			return ((Integer) o).intValue() == this.time;
 		} else
 			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.time;
 	}
 
 	/**
@@ -79,7 +82,7 @@ public class IntegerTime implements Time {
 
 	@Override
 	public String toString() {
-		return new Integer(this.time).toString();
+		return Integer.valueOf(this.time).toString();
 	}
 
 	@Override

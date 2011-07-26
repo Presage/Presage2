@@ -69,7 +69,6 @@ public class NetworkAddressTest {
 		final NetworkAddress addr = new NetworkAddress(id);
 		
 		assertNotNull(addr);
-		assertTrue(addr instanceof NetworkAddress);
 		
 		// we should not be allowed to pass null to a networkaddress.
 		try {
@@ -99,7 +98,7 @@ public class NetworkAddressTest {
 	public void testToString() {
 		final UUID id = new UUID(rand.nextLong(), rand.nextLong());
 		final NetworkAddress testAddr = new NetworkAddress(id);
-		assertNotSame(new String(""), testAddr.toString());
+		assertNotSame("", testAddr.toString());
 	}
 	
 	/**

@@ -54,7 +54,6 @@ public class BroadcastMessageTest extends MessageTest {
 		Message m = this.getRandomMessage();
 		
 		assertNotNull(m);
-		assertTrue(m instanceof BroadcastMessage);
 	}
 
 }

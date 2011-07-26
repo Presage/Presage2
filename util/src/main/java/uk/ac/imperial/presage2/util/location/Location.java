@@ -42,7 +42,7 @@ public abstract class Location implements HasLocation, Cloneable {
 	 *            Location to compare to
 	 * @return true iff this Location represents the same Location as l
 	 */
-	public abstract boolean equals(Location l);
+	public abstract boolean equals(Object l);
 
 	/**
 	 * Get the distance between this Location and the location l

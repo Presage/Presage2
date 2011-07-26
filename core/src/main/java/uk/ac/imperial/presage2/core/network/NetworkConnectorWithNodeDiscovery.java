@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.core.network;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -75,11 +76,11 @@ public class NetworkConnectorWithNodeDiscovery extends BasicNetworkConnector
 	}
 
 	@Override
-	public Set<NetworkAddress> getConnectedNodes()
+	public synchronized Set<NetworkAddress> getConnectedNodes()
 			throws UnsupportedOperationException {
 		// return our current perception of connected agents.
 		links.remove(address);
-		return links;
+		return Collections.unmodifiableSet(links);
 	}
 
 	@Override

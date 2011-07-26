@@ -45,8 +45,6 @@ public class SQLTable implements Table {
 
 	Map<String, Class<?>> fields = new LinkedHashMap<String, Class<?>>();
 
-	String[] primaryKey;
-
 	Set<String[]> indices = new HashSet<String[]>();
 
 	public SQLTable(String tableName, SQLStorage storage) {
@@ -143,7 +141,6 @@ public class SQLTable implements Table {
 			if (participantField && pkey.size() > 0) {
 				pkey.add("participantID");
 			}
-			this.table.primaryKey = pkey.toArray(new String[0]);
 
 			String[] simIDIndex = { "simID" };
 			this.table.indices.add(simIDIndex);

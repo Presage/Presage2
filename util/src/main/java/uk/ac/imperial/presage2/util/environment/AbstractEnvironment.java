@@ -127,7 +127,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	}
 
-	private class SharedStateChanger {
+	private static class SharedStateChanger {
 
 		private final String name;
 		private final StateTransformer transformer;
@@ -147,7 +147,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 	}
 
-	private class ParticipantSharedStateChanger {
+	private static class ParticipantSharedStateChanger {
 
 		private final UUID participantID;
 		private final String name;
@@ -222,7 +222,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		this.participantStateChange = new LinkedList<ParticipantSharedStateChanger>();
 	}
 
-	@Inject(optional=true)
+	@Inject(optional = true)
 	public void deferActions(@DeferActions boolean defer) {
 		this.deferActions = defer;
 	}

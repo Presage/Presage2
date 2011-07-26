@@ -51,7 +51,7 @@ public abstract class Location2D<T extends Number> extends Location {
 	}
 
 	@Override
-	public boolean equals(Location l) {
+	public boolean equals(Object l) {
 		if (l instanceof Location2D) {
 			return this.equals((Location2D<?>) l);
 		} else {
@@ -65,6 +65,12 @@ public abstract class Location2D<T extends Number> extends Location {
 		} catch (NullPointerException e) {
 			return false;
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		return Double.valueOf(this.x.doubleValue()).hashCode()
+				^ Double.valueOf(this.y.doubleValue()).hashCode();
 	}
 
 	@Override
@@ -118,7 +124,7 @@ public abstract class Location2D<T extends Number> extends Location {
 			Location2D<?> l2 = (Location2D<?>) l;
 			final double dx = l2.x.doubleValue() - this.x.doubleValue();
 			final double dy = l2.y.doubleValue() - this.y.doubleValue();
-			if (Math.floor(dx) == dx && Math.floor(dy) == dy) {
+			if (Math.abs(Math.floor(dx) - dx) < .0000001 && Math.abs(Math.floor(dy) - dy) < .0000001) {
 				return new Move2D<Integer>((int) dx, (int) dy);
 			} else {
 				return new Move2D<Double>(dx, dy);
