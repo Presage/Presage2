@@ -329,10 +329,8 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 				}
 			}
 
-			synchronized (this) {
-				if (finishUp && queryQueue.isEmpty())
-					break;
-			}
+			if (finishUp && queryQueue.isEmpty())
+				break;
 		}
 
 	}
