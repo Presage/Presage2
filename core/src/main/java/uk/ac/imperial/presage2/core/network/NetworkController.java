@@ -19,25 +19,28 @@
 
 package uk.ac.imperial.presage2.core.network;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
-
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.event.EventBus;
+import uk.ac.imperial.presage2.core.event.EventListener;
+import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.simulator.ThreadPool;
+import uk.ac.imperial.presage2.core.simulator.ThreadPool.WaitCondition;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * <p>
@@ -61,6 +64,18 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	protected Time time;
 
 	protected Queue<Message> toDeliver;
+	protected Queue<Delivery> awaitingDelivery = new LinkedList<NetworkController.Delivery>();
+
+	static class Delivery {
+		NetworkAddress to;
+		Message msg;
+
+		Delivery(NetworkAddress to, Message msg) {
+			super();
+			this.to = to;
+			this.msg = msg;
+		}
+	}
 
 	/**
 	 * Map of devices registered to this controller.
@@ -76,6 +91,12 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected ThreadPool threadPool = null;
 
+	volatile boolean deliver = false;
+
+	protected List<MessageHandler> threads = Collections
+			.synchronizedList(new LinkedList<MessageHandler>());
+	protected static int MAX_THREADS = 12;
+
 	/**
 	 * @param time
 	 */
@@ -86,13 +107,14 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		this.time = time;
 		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
-		this.toDeliver = new ConcurrentLinkedQueue<Message>();
+		this.toDeliver = new LinkedList<Message>();
 		s.addTimeDriven(this);
 	}
 
-	@Inject(optional = true)
+	@Inject
 	public void setEventBus(EventBus e) {
 		this.eventBus = e;
+		this.eventBus.subscribe(this);
 	}
 
 	@Inject
@@ -109,33 +131,102 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			this.logger.debug("Delivering messages for time "
 					+ this.time.toString());
 		}
+		this.deliver = false;
 
 		if (threadPool == null) {
 			new MessageHandler().run();
 		} else {
-			// we have arbitrarily decided that it is beneficial to have a new
-			// thread if they have at least 20 message to process.
-			for (int i = 0; i < Math.min(12, Math.max(this.toDeliver.size() / 20, 6)); i++) {
-				threadPool.submit(new MessageHandler());
-			}
+			spawnMessageHandler();
 		}
 		time.increment();
 	}
 
+	private synchronized void spawnMessageHandler() {
+		if (this.threads.size() < MAX_THREADS) {
+			MessageHandler m = new MessageHandler();
+			this.threads.add(m);
+			threadPool.submitScheduled(m, WaitCondition.END_OF_TIME_CYCLE);
+		}
+	}
+
 	class MessageHandler implements Runnable {
+
 		@Override
 		public void run() {
 			while (true) {
-				Message m = toDeliver.poll();
-				if (m == null)
-					break;
-				try {
-					handleMessage(m);
-				} catch (NetworkException e) {
-					logger.warn(e.getMessage(), e);
+				// if we've been told to shutdown deliver messages too.
+				if (deliver) {
+					while (true) {
+						List<Delivery> deliveries = new LinkedList<Delivery>();
+						synchronized (awaitingDelivery) {
+							for (int i = 0; i < 20; i++) {
+								Delivery d = awaitingDelivery.poll();
+								if (d == null)
+									break;
+								deliveries.add(d);
+							}
+							if (deliveries.size() == 0) {
+								break;
+							}
+						}
+						for (Delivery d : deliveries) {
+							if (logger.isTraceEnabled()) {
+								logger.trace("Delivering " + d.msg + " to "
+										+ d.to);
+							}
+							devices.get(d.to).deliverMessage(d.msg);
+						}
+					}
+				}
+
+				// process toDeliver queue
+				List<Message> messages = new LinkedList<Message>();
+				boolean spawn = false;
+				synchronized (toDeliver) {
+					for (int i = 0; i < 20; i++) {
+						Message m = toDeliver.poll();
+						if (m == null)
+							break;
+						messages.add(m);
+					}
+					if (messages.size() == 0) {
+						if (deliver) {
+							break;
+						}
+						try {
+							if (logger.isTraceEnabled()) {
+								logger.trace("No messages to deliver, waiting for more.");
+							}
+							toDeliver.wait();
+						} catch (InterruptedException e) {
+						}
+						continue;
+					} else if (threads.size() < MAX_THREADS
+							&& toDeliver.size() > 20) {
+						spawn = true;
+					}
+				}
+				if (spawn)
+					spawnMessageHandler();
+
+				for (Message m : messages) {
+					try {
+						if (logger.isTraceEnabled()) {
+							logger.trace("Handing message " + m);
+						}
+						handleMessage(m);
+					} catch (NetworkException e) {
+						logger.warn(e.getMessage(), e);
+					}
 				}
 			}
+			// remove self before shutdown
+			if (logger.isDebugEnabled()) {
+				logger.debug("Thread shutting down.");
+			}
+			threads.remove(this);
 		}
+
 	}
 
 	/**
@@ -150,8 +241,11 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 * @see uk.ac.imperial.presage2.core.network.NetworkChannel#deliverMessage(uk.ac.imperial.presage2.core.network.Message)
 	 */
 	@Override
-	synchronized public void deliverMessage(Message m) {
-		this.toDeliver.add(m);
+	public void deliverMessage(Message m) {
+		synchronized (this.toDeliver) {
+			this.toDeliver.add(m);
+			this.toDeliver.notifyAll();
+		}
 	}
 
 	protected void handleMessage(Message m) {
@@ -268,7 +362,26 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			this.eventBus
 					.publish(new MessageDeliveryEvent(time.clone(), m, to));
 		}
-		this.devices.get(to).deliverMessage(m);
+		synchronized (this.awaitingDelivery) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Adding message for delivery" + m + " to " + to);
+			}
+			this.awaitingDelivery.add(new Delivery(to, m));
+			this.awaitingDelivery.notifyAll();
+		}
+		// this.devices.get(to).deliverMessage(m);
+	}
+
+	@EventListener
+	public void onEndOfTimeCycle(EndOfTimeCycle e) {
+		// tell MessageHandler threads to shutdown
+		if (logger.isDebugEnabled()) {
+			logger.debug("Received end of time cycle event, telling threads to deliver messages");
+		}
+		synchronized (this.toDeliver) {
+			deliver = true;
+			this.toDeliver.notifyAll();
+		}
 	}
 
 }

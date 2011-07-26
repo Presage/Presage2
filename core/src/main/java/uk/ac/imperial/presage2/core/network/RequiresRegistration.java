@@ -23,14 +23,16 @@ package uk.ac.imperial.presage2.core.network;
  * An interface for a network component which requires registration.
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public interface RequiresRegistration {
 
 	/**
 	 * Request to register with this component.
-	 * @param req a Registration request.
+	 * 
+	 * @param req
+	 *            a Registration request.
 	 */
 	public void register(NetworkRegistrationRequest req);
-	
+
 }

@@ -19,18 +19,17 @@
 
 package uk.ac.imperial.presage2.core.network;
 
-
 /**
- * Object to pass parameters to the NetworkController
- * when registering with the network.
+ * Object to pass parameters to the NetworkController when registering with the
+ * network.
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class NetworkRegistrationRequest {
 
 	protected NetworkAddress id;
-	
+
 	protected NetworkChannel link;
 
 	/**
@@ -55,5 +54,5 @@ public class NetworkRegistrationRequest {
 	public NetworkChannel getLink() {
 		return link;
 	}
-	
+
 }
