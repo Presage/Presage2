@@ -158,4 +158,8 @@ public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 	public void waitFor(WaitCondition condition) {
 	}
 
+	@Override
+	public void shutdown() {
+	}
+
 }

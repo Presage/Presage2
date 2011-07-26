@@ -248,12 +248,6 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
-		threadPool.shutdown();
-		super.finalize();
-	}
-
-	@Override
 	public void submit(Runnable s) {
 		threadPool.submit(s);
 	}
@@ -274,6 +268,11 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 				logger.warn("Unexpected ExecutionException.", e);
 			}
 		}
+	}
+
+	@Override
+	public void shutdown() {
+		threadPool.shutdown();
 	}
 
 }
