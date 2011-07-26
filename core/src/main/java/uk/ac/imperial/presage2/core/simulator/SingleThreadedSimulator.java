@@ -101,6 +101,16 @@ public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 				}
 			}
 
+			logger.debug("Executing Environment...");
+			try {
+				this.scenario.getEnvironment().incrementTime();
+			} catch (Exception e) {
+				logger.warn(
+						"Exception thrown by Environment "
+								+ this.scenario.getEnvironment()
+								+ " on execution.", e);
+			}
+
 			logger.debug("Executing Plugins...");
 			for (Plugin pl : this.scenario.getPlugins()) {
 				try {
@@ -137,6 +147,15 @@ public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 	public void submit(Runnable s) {
 		// rudimentary implementation as this is single threaded.
 		s.run();
+	}
+
+	@Override
+	public void submitScheduled(Runnable s, WaitCondition condition) {
+		s.run();
+	}
+
+	@Override
+	public void waitFor(WaitCondition condition) {
 	}
 
 }

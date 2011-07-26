@@ -32,13 +32,32 @@ import java.util.concurrent.ExecutorService;
  */
 public interface ThreadPool {
 
+	public enum WaitCondition {
+		END_OF_TIME_CYCLE, BEFORE_ENVIRONMENT, END_OF_INITIALISE
+	}
+
 	/**
-	 * Submit a task to be run in the thread pool. We guarantee that this task
-	 * will be run within the simulation time slice relevant to it's calling
-	 * thread.
+	 * Submit a task to be run in the thread pool. With a {@link WaitCondition}
+	 * on when the task will be completed by.
+	 * 
+	 * @param s
+	 */
+	void submitScheduled(Runnable s, WaitCondition condition);
+
+	/**
+	 * Submit a task to the wait pool with no conditions on it's completion
+	 * time.
 	 * 
 	 * @param s
 	 */
 	void submit(Runnable s);
+
+	/**
+	 * Wait for all the tasks for the given {@link WaitCondition} to be
+	 * completed.
+	 * 
+	 * @param condition
+	 */
+	void waitFor(WaitCondition condition);
 
 }

@@ -18,6 +18,8 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -48,7 +50,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 
 	private final ExecutorService threadPool;
 
-	private final Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
+	private final Map<WaitCondition, Queue<Future<?>>> futures = new HashMap<ThreadPool.WaitCondition, Queue<Future<?>>>();
 
 	/**
 	 * Create a multi threaded simulator for a given {@link Scenario}.
@@ -66,6 +68,9 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 		super(scenario, t, eventBus);
 		this.threads = threads;
 		this.threadPool = Executors.newFixedThreadPool(this.threads);
+		for (WaitCondition c : WaitCondition.values()) {
+			futures.put(c, new ConcurrentLinkedQueue<Future<?>>());
+		}
 	}
 
 	/**
@@ -125,15 +130,17 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 		// init Participants
 		logger.info("Initialising Participants..");
 		for (Participant p : this.scenario.getParticipants()) {
-			submit(new ParticipantInitialisor(p));
+			submitScheduled(new ParticipantInitialisor(p),
+					WaitCondition.END_OF_INITIALISE);
 		}
 		// init Plugins
 		logger.info("Initialising Plugins..");
 		for (Plugin pl : this.scenario.getPlugins()) {
-			submit(new PluginInitialisor(pl));
+			submitScheduled(new PluginInitialisor(pl),
+					WaitCondition.END_OF_INITIALISE);
 		}
 		// wait for threads to complete
-		waitForThreads();
+		waitFor(WaitCondition.END_OF_INITIALISE);
 	}
 
 	/**
@@ -172,7 +179,8 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 			logger.info("Executing Participants...");
 			for (Participant p : this.scenario.getParticipants()) {
 				try {
-					submit(new TimeIncrementor(p));
+					submitScheduled(new TimeIncrementor(p),
+							WaitCondition.BEFORE_ENVIRONMENT);
 				} catch (Exception e) {
 					logger.warn(
 							"Exception thrown by participant " + p.getName()
@@ -180,32 +188,45 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 				}
 			}
 
-			// wait for Participants to finish
-			waitForThreads();
-
 			logger.info("Executing TimeDriven...");
 			for (TimeDriven t : this.scenario.getTimeDriven()) {
 				try {
-					submit(new TimeIncrementor(t));
+					submitScheduled(new TimeIncrementor(t),
+							WaitCondition.END_OF_TIME_CYCLE);
 				} catch (Exception e) {
 					logger.warn("Exception thrown by TimeDriven " + t
 							+ " on execution.", e);
 				}
 			}
+			// wait for Participants to finish
+			waitFor(WaitCondition.BEFORE_ENVIRONMENT);
+
+			try {
+				submitScheduled(
+						new TimeIncrementor(this.scenario.getEnvironment()),
+						WaitCondition.END_OF_TIME_CYCLE);
+			} catch (Exception e) {
+				logger.warn(
+						"Exception thrown by Environment "
+								+ this.scenario.getEnvironment()
+								+ " on execution.", e);
+			}
+
+			eventBus.publish(new EndOfTimeCycle(time.clone()));
 
 			logger.info("Executing Plugins...");
 			for (Plugin pl : this.scenario.getPlugins()) {
 				try {
-					submit(new TimeIncrementor(pl));
+					submitScheduled(new TimeIncrementor(pl),
+							WaitCondition.END_OF_TIME_CYCLE);
 				} catch (Exception e) {
 					logger.warn("Exception thrown by Plugin " + pl
 							+ " on execution.", e);
 				}
 			}
 
-			waitForThreads();
+			waitFor(WaitCondition.END_OF_TIME_CYCLE);
 
-			eventBus.publish(new EndOfTimeCycle(time.clone()));
 			time.increment();
 
 		}
@@ -215,6 +236,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 
 	@Override
 	public void complete() {
+		logger.info("Running simulation completion tasks...");
 		for (Plugin pl : this.scenario.getPlugins()) {
 			try {
 				pl.onSimulationComplete();
@@ -228,20 +250,26 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 
 	@Override
 	public void submit(Runnable s) {
-		futures.add(threadPool.submit(s));
+		// futures.add(threadPool.submit(s));
+		threadPool.submit(s);
 	}
 
-	private void waitForThreads() {
-		for (Future<?> f : futures) {
+	@Override
+	public void submitScheduled(Runnable s, WaitCondition condition) {
+		futures.get(condition).add(threadPool.submit(s));
+	}
+
+	@Override
+	public void waitFor(WaitCondition condition) {
+		while (!futures.get(condition).isEmpty()) {
 			try {
-				f.get();
+				futures.get(condition).poll().get();
 			} catch (InterruptedException e) {
 				logger.warn("Unexpected InterruptedException", e);
 			} catch (ExecutionException e) {
 				logger.warn("Unexpected ExecutionException.", e);
 			}
 		}
-		futures.clear();
 	}
 
 }
