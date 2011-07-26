@@ -37,6 +37,7 @@ import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
 import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
 import uk.ac.imperial.presage2.core.simulator.RunnableSimulation.SimulationState;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
+import uk.ac.imperial.presage2.core.simulator.ThreadPool;
 
 import com.google.inject.Inject;
 
@@ -58,7 +59,7 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	 */
 	protected final Queue<PreparedStatement> queryQueue = new ConcurrentLinkedQueue<PreparedStatement>();
 
-	private final Thread executorThread = new Thread(this);
+	private ThreadPool threadPool;
 	private boolean finishUp = false;
 
 	protected SQLStorage(String driver, String connectionurl,
@@ -75,6 +76,11 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	@Inject
 	public void subscribeToEvents(EventBus eventBus) {
 		eventBus.subscribe(this);
+	}
+
+	@Inject
+	public void getThreadPool(ThreadPool tp) {
+		this.threadPool = tp;
 	}
 
 	/**
@@ -105,18 +111,13 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		} else {
 			logger.info("Found simulations table");
 		}
-		executorThread.start();
+		threadPool.submit(this);
 	}
 
 	@Override
 	public synchronized void stop() {
 		this.finishUp = true;
 		notifyAll();
-		try {
-			executorThread.join();
-		} catch (InterruptedException e1) {
-			logger.warn("QueryExecutor was interrupted", e1);
-		}
 		super.stop();
 	}
 
@@ -337,8 +338,6 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 
 	@Override
 	protected void finalize() throws Throwable {
-		if (executorThread.isAlive())
-			this.stop();
 		super.finalize();
 	}
 
