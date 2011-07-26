@@ -262,8 +262,9 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 		s.execute();
 		ResultSet rs = s.getGeneratedKeys();
 		rs.next();
+		long id = rs.getLong(1);
 		s.close();
-		return rs.getLong(1);
+		return id;
 	}
 
 	/**
