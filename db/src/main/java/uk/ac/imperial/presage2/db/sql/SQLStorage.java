@@ -118,7 +118,6 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 	public synchronized void stop() {
 		this.finishUp = true;
 		notifyAll();
-		super.stop();
 	}
 
 	@Override
@@ -330,8 +329,10 @@ public abstract class SQLStorage extends SQLService implements StorageService,
 				}
 			}
 
-			if (finishUp && queryQueue.isEmpty())
+			if (finishUp && queryQueue.isEmpty()) {
+				super.stop();
 				break;
+			}
 		}
 
 	}
