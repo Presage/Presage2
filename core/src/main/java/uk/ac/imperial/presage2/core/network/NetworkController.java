@@ -95,7 +95,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected List<MessageHandler> threads = Collections
 			.synchronizedList(new LinkedList<MessageHandler>());
-	protected static int MAX_THREADS = 12;
+	protected static int MAX_THREADS = 10;
 
 	/**
 	 * @param time
@@ -138,7 +138,10 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		} else {
 			spawnMessageHandler();
 		}
-		time.increment();
+		synchronized (time) {
+			time.increment();
+			time.notify();
+		}
 	}
 
 	private synchronized void spawnMessageHandler() {
@@ -374,6 +377,16 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	@EventListener
 	public void onEndOfTimeCycle(EndOfTimeCycle e) {
+		// make sure incrementTime is executed first
+		synchronized (time) {
+			while (e.getTime().equals(time)) {
+				try {
+					time.wait();
+				} catch (InterruptedException e1) {
+				}
+			}
+		}
+
 		// tell MessageHandler threads to shutdown
 		if (logger.isDebugEnabled()) {
 			logger.debug("Received end of time cycle event, telling threads to deliver messages");
