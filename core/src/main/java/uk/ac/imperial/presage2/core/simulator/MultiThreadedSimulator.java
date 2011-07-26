@@ -231,7 +231,6 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 
 		}
 
-		threadPool.shutdown();
 	}
 
 	@Override
@@ -249,8 +248,13 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 	}
 
 	@Override
+	protected void finalize() throws Throwable {
+		threadPool.shutdown();
+		super.finalize();
+	}
+
+	@Override
 	public void submit(Runnable s) {
-		// futures.add(threadPool.submit(s));
 		threadPool.submit(s);
 	}
 
