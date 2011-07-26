@@ -115,7 +115,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		} else {
 			// we have arbitrarily decided that it is beneficial to have a new
 			// thread if they have at least 20 message to process.
-			for (int i = 0; i < Math.min(12, this.toDeliver.size() / 20); i++) {
+			for (int i = 0; i < Math.min(12, Math.max(this.toDeliver.size() / 20, 6)); i++) {
 				threadPool.submit(new MessageHandler());
 			}
 		}
