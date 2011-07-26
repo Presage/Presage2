@@ -229,7 +229,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	@Inject
 	public void registerTimeDriven(Scenario s) {
-		s.addTimeDriven(this);
+		s.addEnvironment(this);
 	}
 
 	/**

@@ -51,6 +51,8 @@ public class InjectedScenario implements Scenario {
 
 	final private Time finishTime;
 
+	final private TimeDriven environment;
+
 	/**
 	 * @param participants
 	 * @param plugins
@@ -58,12 +60,13 @@ public class InjectedScenario implements Scenario {
 	 */
 	@Inject
 	protected InjectedScenario(Set<Participant> participants,
-			Set<Plugin> plugins, Set<TimeDriven> timedriven,
+			Set<Plugin> plugins, Set<TimeDriven> timedriven, TimeDriven env,
 			@FinishTime Time finish) {
 		this.participants = participants;
 		this.plugins = plugins;
 		this.timedriven = timedriven;
 		this.finishTime = finish;
+		this.environment = env;
 	}
 
 	@Override
@@ -93,6 +96,15 @@ public class InjectedScenario implements Scenario {
 	}
 
 	public void addParticipant(Participant p) {
+	}
+
+	@Override
+	public TimeDriven getEnvironment() {
+		return this.environment;
+	}
+
+	@Override
+	public void addEnvironment(TimeDriven e) {
 	}
 
 }

@@ -86,6 +86,7 @@ abstract public class SimulatorTest {
 		for (int i = 0; i < nTimDriven; i++) {
 			tdSet.add(context.mock(TimeDriven.class, "timedriven" + i));
 		}
+		final TimeDriven env = context.mock(TimeDriven.class, "environment");
 
 		final Plugin plug1 = context.mock(Plugin.class, "plugin1");
 		final Plugin plug2 = context.mock(Plugin.class, "plugin2");
@@ -104,6 +105,8 @@ abstract public class SimulatorTest {
 				will(returnValue(plugSet));
 				allowing(scenario).getTimeDriven();
 				will(returnValue(tdSet));
+				allowing(scenario).getEnvironment();
+				will(returnValue(env));
 				allowing(time).increment();
 				allowing(finishTime).clone();
 				will(returnValue(finishTime));
@@ -138,6 +141,7 @@ abstract public class SimulatorTest {
 				for (TimeDriven td : tdSet) {
 					exactly(nCycles).of(td).incrementTime();
 				}
+				exactly(nCycles).of(env).incrementTime();
 				exactly(nCycles).of(plug1).incrementTime();
 				exactly(nCycles).of(plug2).incrementTime();
 				exactly(nCycles).of(eventBus).publish(
