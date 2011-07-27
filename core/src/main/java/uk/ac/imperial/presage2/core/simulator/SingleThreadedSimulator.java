@@ -101,6 +101,7 @@ public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 				}
 			}
 
+			eventBus.publish(new ParticipantsComplete(time.clone()));
 			logger.debug("Executing Environment...");
 			try {
 				this.scenario.getEnvironment().incrementTime();

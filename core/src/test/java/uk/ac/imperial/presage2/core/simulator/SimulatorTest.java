@@ -145,6 +145,8 @@ abstract public class SimulatorTest {
 				exactly(nCycles).of(plug1).incrementTime();
 				exactly(nCycles).of(plug2).incrementTime();
 				exactly(nCycles).of(eventBus).publish(
+						with(any(ParticipantsComplete.class)));
+				exactly(nCycles).of(eventBus).publish(
 						with(any(EndOfTimeCycle.class)));
 			}
 		});

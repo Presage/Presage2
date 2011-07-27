@@ -188,7 +188,8 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 			}
 			// wait for Participants to finish
 			waitFor(WaitCondition.BEFORE_ENVIRONMENT);
-
+			eventBus.publish(new ParticipantsComplete(time.clone()));
+			
 			try {
 				submitScheduled(
 						new TimeIncrementor(this.scenario.getEnvironment()),
@@ -200,7 +201,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 								+ " on execution.", e);
 			}
 
-			eventBus.publish(new EndOfTimeCycle(time.clone()));
+			
 
 			logger.info("Executing Plugins...");
 			for (Plugin pl : this.scenario.getPlugins()) {
@@ -214,6 +215,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 			}
 
 			waitFor(WaitCondition.END_OF_TIME_CYCLE);
+			eventBus.publish(new EndOfTimeCycle(time.clone()));
 
 			time.increment();
 

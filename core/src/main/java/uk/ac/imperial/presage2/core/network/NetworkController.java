@@ -34,7 +34,7 @@ import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
+import uk.ac.imperial.presage2.core.simulator.ParticipantsComplete;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.simulator.ThreadPool;
 import uk.ac.imperial.presage2.core.simulator.ThreadPool.WaitCondition;
@@ -379,7 +379,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	}
 
 	@EventListener
-	public void onEndOfTimeCycle(EndOfTimeCycle e) {
+	public void onParticipantsComplete(ParticipantsComplete e) {
 		// make sure incrementTime is executed first
 		synchronized (time) {
 			while (e.getTime().equals(time)) {
