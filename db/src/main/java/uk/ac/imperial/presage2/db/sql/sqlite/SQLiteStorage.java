@@ -69,15 +69,18 @@ public class SQLiteStorage extends SQLStorage {
 	}
 
 	@Override
-	public boolean tableExists(String tableName) throws SQLException {
+	public synchronized boolean tableExists(String tableName)
+			throws SQLException {
 		if (checkTableExistance == null)
 			checkTableExistance = this.conn
 					.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=? ");
-
 		try {
 			checkTableExistance.setString(1, tableName);
 			ResultSet res = checkTableExistance.executeQuery();
-			return res.next() != false;
+			final boolean result = res.next() != false;
+			checkTableExistance.close();
+			checkTableExistance = null;
+			return result;
 		} catch (SQLException e) {
 			logger.warn("Exception thrown when checking table " + tableName
 					+ " exists.", e);
