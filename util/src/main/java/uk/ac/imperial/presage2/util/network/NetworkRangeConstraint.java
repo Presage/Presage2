@@ -18,9 +18,6 @@
  */
 package uk.ac.imperial.presage2.util.network;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
@@ -28,11 +25,9 @@ import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.event.EventBus;
-import uk.ac.imperial.presage2.core.event.EventListener;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
 import uk.ac.imperial.presage2.core.network.NetworkConstraint;
-import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
 import uk.ac.imperial.presage2.util.environment.CommunicationRangeService;
 import uk.ac.imperial.presage2.util.location.CannotSeeAgent;
 import uk.ac.imperial.presage2.util.location.Location;
@@ -50,8 +45,6 @@ public class NetworkRangeConstraint implements NetworkConstraint {
 	private LocationService locService;
 
 	private CommunicationRangeService commRangeService;
-
-	private Map<UUID, Map<UUID, Boolean>> blockCache = new HashMap<UUID, Map<UUID, Boolean>>();
 
 	@Inject
 	public NetworkRangeConstraint(EnvironmentServiceProvider serviceProvider,
@@ -73,24 +66,25 @@ public class NetworkRangeConstraint implements NetworkConstraint {
 	public boolean blockMessageDelivery(NetworkAddress to, Message m) {
 		final UUID sender = m.getFrom().getId();
 		final UUID receiver = to.getId();
-		if (blockCache.containsKey(sender)
-				&& blockCache.get(sender).containsKey(receiver)) {
-			return blockCache.get(sender).get(receiver);
-		}
+		boolean result = areLinked(sender, receiver);
+		return result;
+	}
+
+	protected boolean areLinked(UUID a1, UUID a2) {
 		try {
 			// retrieve locations and comms ranges of sender and receiver.
-			final Location senderLoc = locService.getAgentLocation(sender);
-			final Location receiverLoc = locService.getAgentLocation(receiver);
+			final Location senderLoc = locService.getAgentLocation(a1);
+			final Location receiverLoc = locService.getAgentLocation(a2);
 			final double senderRange = commRangeService
-					.getAgentCommunicationRange(sender);
+					.getAgentCommunicationRange(a1);
 			final double receiverRange = commRangeService
-					.getAgentCommunicationRange(receiver);
+					.getAgentCommunicationRange(a2);
 
 			// return true if distance between sender and receiver > the
 			// smallest of their comm ranges.
 			boolean result = (senderLoc.distanceTo(receiverLoc) > Math.min(
 					senderRange, receiverRange));
-			addResult(sender, receiver, result);
+
 			return result;
 		} catch (CannotSeeAgent e) {
 			// this should not happen!
@@ -102,30 +96,6 @@ public class NetworkRangeConstraint implements NetworkConstraint {
 			// in this case
 			return false;
 		}
-	}
-
-	private void addResult(UUID sender, UUID receiver, boolean result) {
-		if (!blockCache.containsKey(sender)) {
-			synchronized (blockCache) {
-				blockCache.put(sender, Collections
-						.synchronizedMap(new HashMap<UUID, Boolean>()));
-			}
-		}
-		if (!blockCache.containsKey(receiver)) {
-			synchronized (blockCache) {
-				blockCache.put(receiver, Collections
-						.synchronizedMap(new HashMap<UUID, Boolean>()));
-			}
-		}
-		try {
-			blockCache.get(sender).put(receiver, result);
-			blockCache.get(receiver).put(sender, result);
-		} catch(NullPointerException e) {}
-	}
-
-	@EventListener
-	public void incrementTime(EndOfTimeCycle e) {
-		blockCache.clear();
 	}
 
 }
