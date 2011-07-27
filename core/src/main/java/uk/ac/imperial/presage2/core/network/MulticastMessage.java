@@ -38,7 +38,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public class MulticastMessage extends Message {
+public class MulticastMessage<T> extends Message<T> {
 
 	protected List<NetworkAddress> to;
 
@@ -55,6 +55,19 @@ public class MulticastMessage extends Message {
 			Time timestamp) {
 		super(performative, from, timestamp);
 		this.to = new ArrayList<NetworkAddress>();
+	}
+
+	/**
+	 * 
+	 * @param performative
+	 * @param from
+	 * @param timestamp
+	 * @param data
+	 */
+	public MulticastMessage(Performative performative, NetworkAddress from,
+			Time timestamp, T data) {
+		super(performative, from, timestamp, data);
+		// TODO Auto-generated constructor stub
 	}
 
 	/**

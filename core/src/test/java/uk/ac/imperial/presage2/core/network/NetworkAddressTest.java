@@ -40,12 +40,12 @@ import com.google.inject.Injector;
 
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public class NetworkAddressTest {
 
 	final private Random rand = Random.getInstance();
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -61,28 +61,31 @@ public class NetworkAddressTest {
 	}
 
 	/**
-	 * Test method for {@link uk.ac.imperial.presage2.core.network.NetworkAddress#NetworkAddress(java.util.UUID)}.
+	 * Test method for
+	 * {@link uk.ac.imperial.presage2.core.network.NetworkAddress#NetworkAddress(java.util.UUID)}
+	 * .
 	 */
 	@Test
 	public void testNetworkAddress() {
 		final UUID id = new UUID(rand.nextLong(), rand.nextLong());
 		final NetworkAddress addr = new NetworkAddress(id);
-		
+
 		assertNotNull(addr);
-		
+
 		// we should not be allowed to pass null to a networkaddress.
 		try {
 			@SuppressWarnings("unused")
 			final NetworkAddress nullAddr = new NetworkAddress(null);
 			fail("NetworkAddress allowed to instaniate with null ID, NullPointerException expected.");
-		} catch(NullPointerException e) {
-			
+		} catch (NullPointerException e) {
+
 		}
-		
+
 	}
 
 	/**
-	 * Test method for {@link uk.ac.imperial.presage2.core.network.NetworkAddress#getId()}.
+	 * Test method for
+	 * {@link uk.ac.imperial.presage2.core.network.NetworkAddress#getId()}.
 	 */
 	@Test
 	public void testGetId() {
@@ -92,7 +95,8 @@ public class NetworkAddressTest {
 	}
 
 	/**
-	 * Test method for {@link uk.ac.imperial.presage2.core.network.NetworkAddress#toString()}.
+	 * Test method for
+	 * {@link uk.ac.imperial.presage2.core.network.NetworkAddress#toString()}.
 	 */
 	@Test
 	public void testToString() {
@@ -100,7 +104,7 @@ public class NetworkAddressTest {
 		final NetworkAddress testAddr = new NetworkAddress(id);
 		assertNotSame("", testAddr.toString());
 	}
-	
+
 	/**
 	 * Test the guice generated NetworkAddressFactory
 	 */
@@ -109,14 +113,15 @@ public class NetworkAddressTest {
 		// create injector
 		Injector injector = Guice.createInjector(new NetworkGuiceModule());
 		// create factory
-		NetworkAddressFactory factory = injector.getInstance(NetworkAddressFactory.class);
-		
+		NetworkAddressFactory factory = injector
+				.getInstance(NetworkAddressFactory.class);
+
 		// create UUID for address
 		final UUID id = new UUID(rand.nextLong(), rand.nextLong());
-		
+
 		// attempt to create address
 		final NetworkAddress generatedAddr = factory.create(id);
-		
+
 		assertEquals(id, generatedAddr.getId());
 	}
 

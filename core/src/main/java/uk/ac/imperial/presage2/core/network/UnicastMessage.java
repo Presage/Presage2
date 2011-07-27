@@ -35,7 +35,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public class UnicastMessage extends Message {
+public class UnicastMessage<T> extends Message<T> {
 
 	/**
 	 * Intended recipient of this message.
@@ -52,6 +52,11 @@ public class UnicastMessage extends Message {
 			NetworkAddress to, Time timestamp) {
 		super(performative, from, timestamp);
 		this.to = to;
+	}
+
+	public UnicastMessage(Performative performative, NetworkAddress from,
+			Time timestamp, T data) {
+		super(performative, from, timestamp, data);
 	}
 
 	/**

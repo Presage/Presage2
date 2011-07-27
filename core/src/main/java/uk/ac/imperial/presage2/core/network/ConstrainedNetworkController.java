@@ -76,7 +76,7 @@ public class ConstrainedNetworkController extends NetworkController {
 	}
 
 	@Override
-	protected void handleMessage(Message m) {
+	protected void handleMessage(Message<?> m) {
 		// apply NetworkConstraints.
 		for (NetworkConstraint c : this.constraints) {
 			m = c.constrainMessage(m);
@@ -85,7 +85,7 @@ public class ConstrainedNetworkController extends NetworkController {
 	}
 
 	@Override
-	protected void deliverMessageTo(NetworkAddress to, Message m) {
+	protected void deliverMessageTo(NetworkAddress to, Message<?> m) {
 		boolean blockMessage = false;
 		// ask all networkconstraints if they want to block
 		for (NetworkConstraint c : this.constraints) {

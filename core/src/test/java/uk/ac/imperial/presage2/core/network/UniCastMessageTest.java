@@ -46,19 +46,19 @@ public class UniCastMessageTest extends MessageTest {
 	@Test
 	@Override
 	public void testMessage() {
-		Message m = this.getRandomMessage();
+		Message<?> m = this.getRandomMessage();
 		
 		assertNotNull(m);
 		
 	}
 
 	@Override
-	protected UnicastMessage getRandomMessage() {
+	protected UnicastMessage<?> getRandomMessage() {
 		this.lastTime = this.randomTime();
 		this.lastFrom = this.randomAddress();
 		this.lastTo = this.randomAddress();
 		this.lastPerf = this.randomPerformative();
-		return new UnicastMessage(lastPerf, lastFrom, lastTo, lastTime);
+		return new UnicastMessage<Object>(lastPerf, lastFrom, lastTo, lastTime);
 	}
 	
 	/**
@@ -66,7 +66,7 @@ public class UniCastMessageTest extends MessageTest {
 	 */
 	@Test
 	public void testGetTo() {
-		UnicastMessage m = this.getRandomMessage();
+		UnicastMessage<?> m = this.getRandomMessage();
 		assertEquals(this.lastTo, m.getTo());
 	}
 

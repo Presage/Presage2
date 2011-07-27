@@ -36,6 +36,6 @@ public interface NetworkChannel {
 	 * @param m
 	 * @throws NetworkException
 	 */
-	public void deliverMessage(Message m);
+	public void deliverMessage(Message<?> m);
 
 }

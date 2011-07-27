@@ -36,7 +36,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public abstract class Message implements Input {
+public abstract class Message<T> implements Input {
 
 	/**
 	 * FIPA performative of the message
@@ -53,6 +53,8 @@ public abstract class Message implements Input {
 	 */
 	protected NetworkAddress from;
 
+	protected T data;
+
 	/**
 	 * @param performative
 	 * @param from
@@ -64,6 +66,16 @@ public abstract class Message implements Input {
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
 		this.from = from;
+		this.data = null;
+	}
+
+	public Message(Performative performative, NetworkAddress from,
+			Time timestamp, T data) {
+		super();
+		this.performative = performative;
+		this.timestamp = timestamp.clone();
+		this.from = from;
+		this.data = data;
 	}
 
 	/**
@@ -108,6 +120,15 @@ public abstract class Message implements Input {
 		return this.getClass().getSimpleName() + ": (Time: "
 				+ this.timestamp.toString() + ", from: " + this.from.toString()
 				+ ", perf: " + this.performative.toString() + ")";
+	}
+
+	/**
+	 * Get the data in this message.
+	 * 
+	 * @return
+	 */
+	protected T getData() {
+		return data;
 	}
 
 }
