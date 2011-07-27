@@ -62,4 +62,6 @@ public interface ThreadPool {
 
 	int getThreadCount();
 
+	void shutdown();
+
 }
