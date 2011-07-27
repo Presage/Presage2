@@ -108,21 +108,9 @@ public class ConstrainedNetworkController extends NetworkController {
 	protected Pong getPong(Ping p) {
 		// start with all NetworkAddresses, then determine and remove those
 		// which will be blocked by constraints.
-		Set<NetworkAddress> links = new HashSet<NetworkAddress>(
-				this.devices.keySet());
+		Set<NetworkAddress> links = new HashSet<NetworkAddress>();
 		// Set<NetworkAddress> blocked = new HashSet<NetworkAddress>();
 		for (NetworkAddress a : this.devices.keySet()) {
-			if (blockedCache.containsKey(a)
-					&& blockedCache.get(a).contains(p.getFrom())) {
-				if (blockedCache.containsKey(p.getFrom())) {
-					blockedCache.get(p.getFrom()).add(a);
-				} else {
-					Set<NetworkAddress> s = new HashSet<NetworkAddress>();
-					s.add(a);
-					blockedCache.put(p.getFrom(), s);
-				}
-				continue;
-			}
 			for (NetworkConstraint c : this.constraints) {
 				if (!c.blockMessageDelivery(a, p)) {
 					links.add(a);

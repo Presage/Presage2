@@ -20,13 +20,14 @@ package uk.ac.imperial.presage2.core.network;
 
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public interface NetworkConstraint {
 
 	/**
 	 * Apply constraints to the {@link Message} m and return the modified
 	 * version of the message.
+	 * 
 	 * @param m
 	 * @return
 	 */
@@ -34,10 +35,13 @@ public interface NetworkConstraint {
 
 	/**
 	 * Block the message m from being delivered to recipient to.
-	 * @param to	a recipient of the message m
-	 * @param m		the message being sent.
-	 * @return		True if the NetworkController should block the message,
-	 * 			false otherwise.
+	 * 
+	 * @param to
+	 *            a recipient of the message m
+	 * @param m
+	 *            the message being sent.
+	 * @return True if the NetworkController should block the message, false
+	 *         otherwise.
 	 */
 	public boolean blockMessageDelivery(NetworkAddress to, Message m);
 

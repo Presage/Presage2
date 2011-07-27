@@ -86,4 +86,6 @@ public abstract class Simulator implements ThreadPool {
 		return time.clone();
 	}
 
+	public abstract void shutdown();
+
 }

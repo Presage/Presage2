@@ -59,6 +59,8 @@ public class ScenarioBuilder implements Scenario {
 
 	final private Set<TimeDriven> timedriven;
 
+	private TimeDriven environment;
+
 	private Time finishTime;
 
 	/**
@@ -129,6 +131,16 @@ public class ScenarioBuilder implements Scenario {
 	@Override
 	public Time getFinishTime() {
 		return this.finishTime;
+	}
+
+	@Override
+	public TimeDriven getEnvironment() {
+		return environment;
+	}
+
+	@Override
+	public void addEnvironment(TimeDriven e) {
+		this.environment = e;
 	}
 
 }

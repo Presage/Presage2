@@ -355,6 +355,7 @@ public abstract class RunnableSimulation implements Runnable {
 		if (this.database != null) {
 			this.database.stop();
 		}
+		this.simulator.shutdown();
 	}
 
 	private void updateDatabase() {

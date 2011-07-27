@@ -54,6 +54,8 @@ public interface Scenario {
 
 	public Set<Plugin> getPlugins();
 
+	public TimeDriven getEnvironment();
+
 	/**
 	 * Get the time at which the simulation should finish
 	 * 
@@ -66,6 +68,8 @@ public interface Scenario {
 	public abstract void addPlugin(Plugin p);
 
 	public abstract void addParticipant(Participant p);
+
+	public void addEnvironment(TimeDriven e);
 
 	static class Builder {
 

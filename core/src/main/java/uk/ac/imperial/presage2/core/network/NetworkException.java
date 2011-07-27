@@ -20,11 +20,10 @@
 package uk.ac.imperial.presage2.core.network;
 
 /**
- * Top level network exception. All network exceptions
- * are children of this.
+ * Top level network exception. All network exceptions are children of this.
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 abstract class NetworkException extends RuntimeException {
 
@@ -61,5 +60,5 @@ abstract class NetworkException extends RuntimeException {
 	public NetworkException(Throwable cause) {
 		super(cause);
 	}
-	
+
 }
