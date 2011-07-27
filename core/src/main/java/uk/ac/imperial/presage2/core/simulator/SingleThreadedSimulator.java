@@ -162,4 +162,9 @@ public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 	public void shutdown() {
 	}
 
+	@Override
+	public int getThreadCount() {
+		return 1;
+	}
+
 }

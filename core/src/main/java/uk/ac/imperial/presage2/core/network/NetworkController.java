@@ -95,7 +95,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected List<MessageHandler> threads = Collections
 			.synchronizedList(new LinkedList<MessageHandler>());
-	protected static int MAX_THREADS = 10;
+	protected int MAX_THREADS = 1;
 
 	/**
 	 * @param time
@@ -120,6 +120,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	@Inject
 	public void setThreadPool(ThreadPool pool) {
 		threadPool = pool;
+		this.MAX_THREADS = threadPool.getThreadCount();
 	}
 
 	/**
@@ -133,7 +134,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		}
 		this.deliver = false;
 
-		if (threadPool == null) {
+		if (threadPool == null || MAX_THREADS == 1) {
 			deliver = true;
 			new MessageHandler().run();
 		} else {

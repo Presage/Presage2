@@ -60,4 +60,6 @@ public interface ThreadPool {
 	 */
 	void waitFor(WaitCondition condition);
 
+	int getThreadCount();
+
 }

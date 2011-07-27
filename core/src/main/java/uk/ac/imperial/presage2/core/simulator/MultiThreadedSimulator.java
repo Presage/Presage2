@@ -275,4 +275,9 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 		threadPool.shutdown();
 	}
 
+	@Override
+	public int getThreadCount() {
+		return this.threads;
+	}
+
 }
