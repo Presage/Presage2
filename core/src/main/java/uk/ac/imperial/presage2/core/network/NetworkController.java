@@ -134,6 +134,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		this.deliver = false;
 
 		if (threadPool == null) {
+			deliver = true;
 			new MessageHandler().run();
 		} else {
 			spawnMessageHandler();
@@ -177,7 +178,8 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 								logger.trace("Delivering " + d.msg + " to "
 										+ d.to);
 							}
-							devices.get(d.to).deliverMessage(d.msg);
+							if (devices.containsKey(d.to))
+								devices.get(d.to).deliverMessage(d.msg);
 						}
 					}
 				}
