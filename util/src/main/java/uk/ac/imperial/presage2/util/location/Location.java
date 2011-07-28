@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.util.location;
 
 import org.apache.commons.math.geometry.Vector3D;
 
+import uk.ac.imperial.presage2.util.location.area.Area;
+
 /**
  * @author Sam Macbeth
  * 
@@ -36,7 +38,7 @@ public class Location extends Vector3D implements HasLocation, Cloneable {
 		super(x, y, z);
 	}
 
-	Location(Vector3D v) {
+	public Location(Vector3D v) {
 		super(v.getX(), v.getY(), v.getZ());
 	}
 

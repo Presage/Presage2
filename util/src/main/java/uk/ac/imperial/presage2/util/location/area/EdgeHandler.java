@@ -16,36 +16,16 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.util.location.area;
 
-package uk.ac.imperial.presage2.util.location;
+import uk.ac.imperial.presage2.util.location.Location;
+import uk.ac.imperial.presage2.util.location.Move;
+import uk.ac.imperial.presage2.util.location.area.Area.Edge;
 
-import com.google.inject.Inject;
+interface EdgeHandler {
 
-/**
- * @author Sam Macbeth
- * 
- */
-public final class Area2D implements Area {
+	void setEdge(Edge e);
 
-	final private int x;
-
-	final private int y;
-
-	/**
-	 * @param x
-	 * @param y
-	 */
-	@Inject
-	public Area2D(@SimSize.x int x, @SimSize.y int y) {
-		super();
-		this.x = x;
-		this.y = y;
-	}
-
-	@Override
-	public boolean contains(Location l) {
-		return l.getZ() == 0 && l.getX() >= 0 && l.getX() <= x && l.getY() >= 0
-				&& l.getY() <= y;
-	}
+	Move getValidMove(Location loc, Move m);
 
 }

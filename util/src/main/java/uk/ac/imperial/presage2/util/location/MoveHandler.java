@@ -31,6 +31,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.messaging.Input;
+import uk.ac.imperial.presage2.util.location.area.HasArea;
 
 @ServiceDependencies({ LocationService.class })
 public class MoveHandler implements ActionHandler {
@@ -73,13 +74,17 @@ public class MoveHandler implements ActionHandler {
 			} catch (CannotSeeAgent e) {
 				throw new ActionHandlingException(e);
 			}
-			final Location target = new Location(loc.add(m));
-			if (target.in(environment.getArea())) {
-				this.locationService.setAgentLocation(actor, target);
-			} else {
-				throw new ActionHandlingException(
-						"Cannot handle move to location outside of environment area.");
+			Location target = new Location(loc.add(m));
+			if (!target.in(environment.getArea())) {
+				try {
+					final Move mNew = environment.getArea()
+							.getValidMove(loc, m);
+					target = new Location(loc.add(mNew));
+				} catch (RuntimeException e) {
+					throw new ActionHandlingException(e);
+				}
 			}
+			this.locationService.setAgentLocation(actor, target);
 			return null;
 		}
 		throw new ActionHandlingException(

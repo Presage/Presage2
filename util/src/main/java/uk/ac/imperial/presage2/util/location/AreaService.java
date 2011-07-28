@@ -26,6 +26,8 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.SharedState;
 import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
+import uk.ac.imperial.presage2.util.location.area.Area;
+import uk.ac.imperial.presage2.util.location.area.HasArea;
 
 /**
  * <p>

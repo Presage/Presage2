@@ -16,26 +16,22 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.location;
+package uk.ac.imperial.presage2.util.location.area;
 
-import org.apache.commons.math.geometry.Vector3D;
+import uk.ac.imperial.presage2.util.location.Location;
+import uk.ac.imperial.presage2.util.location.Move;
+import uk.ac.imperial.presage2.util.location.area.Area.Edge;
 
-import uk.ac.imperial.presage2.core.Action;
+public class ExceptionEdgeHandler implements EdgeHandler {
 
-public class Move extends Vector3D implements Action {
-
-	private static final long serialVersionUID = 1L;
-
-	public Move(double x, double y) {
-		super(x, y, 0);
+	@Override
+	public Move getValidMove(Location loc, Move m) {
+		throw new RuntimeException(
+				"Cannot handle move outside of simulation area.");
 	}
 
-	public Move(double x, double y, double z) {
-		super(x, y, z);
-	}
-
-	public Move(Vector3D v) {
-		super(v.getX(), v.getY(), v.getZ());
+	@Override
+	public void setEdge(Edge e) {
 	}
 
 }
