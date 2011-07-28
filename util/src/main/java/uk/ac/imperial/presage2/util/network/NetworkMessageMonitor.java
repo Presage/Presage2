@@ -38,7 +38,7 @@ public class NetworkMessageMonitor implements Plugin {
 
 	private final Logger logger = Logger.getLogger(NetworkMessageMonitor.class);
 
-	private final StorageService db;
+	private StorageService db = null;
 	private final Time time;
 	private Table t = null;
 
@@ -47,11 +47,15 @@ public class NetworkMessageMonitor implements Plugin {
 	private int unicasts = 0;
 
 	@Inject
-	public NetworkMessageMonitor(StorageService db, EventBus eb, Time t) {
+	public NetworkMessageMonitor(EventBus eb, Time t) {
 		super();
-		this.db = db;
 		this.time = t;
 		eb.subscribe(this);
+	}
+
+	@Inject(optional = true)
+	public void setStorageService(StorageService db) {
+		this.db = db;
 	}
 
 	@EventListener
@@ -95,14 +99,17 @@ public class NetworkMessageMonitor implements Plugin {
 	@Override
 	public void initialise() {
 		// create db table
-		try {
-			t = db.buildTable("message_counts").forClass(getClass())
-					.withFields("Broadcasts", "Multicasts", "Unicasts")
-					.withTypes(Long.class, Long.class, Long.class)
-					.withOneRowPerTimeCycle().create();
-		} catch (Exception e) {
-			logger.warn("Could not create table.", e);
-		}
+		if (this.db != null) {
+			try {
+				t = db.buildTable("message_counts").forClass(getClass())
+						.withFields("Broadcasts", "Multicasts", "Unicasts")
+						.withTypes(Long.class, Long.class, Long.class)
+						.withOneRowPerTimeCycle().create();
+			} catch (Exception e) {
+				logger.warn("Could not create table.", e);
+			}
+		} else
+			logger.warn("No storage service, will not be monitoring messages.");
 	}
 
 	@Override
