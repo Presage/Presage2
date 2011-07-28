@@ -27,7 +27,14 @@ import uk.ac.imperial.presage2.util.location.Move;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.MapBinder;
 
+/**
+ * Represents the simulation area.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class Area {
 
 	final int x;
@@ -36,7 +43,7 @@ public class Area {
 
 	protected Map<Edge, EdgeHandler> edgeHandlers;
 
-	enum Edge {
+	public enum Edge {
 		X_MIN, Y_MIN, Z_MIN, X_MAX, Y_MAX, Z_MAX
 	}
 
@@ -104,7 +111,19 @@ public class Area {
 	 * @author Sam Macbeth
 	 * 
 	 */
-	public static class Bind {
+	public static class Bind extends AbstractModule {
+
+		private final int x;
+		private final int y;
+		private final int z;
+		private final Map<Edge, Class<? extends EdgeHandler>> edges = new HashMap<Edge, Class<? extends EdgeHandler>>();
+
+		public Bind(int x, int y, int z) {
+			super();
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
 
 		/**
 		 * Bind a 2D simulation area ({@link Area2D}) with size x, y.
@@ -116,19 +135,35 @@ public class Area {
 		 * @return {@link AbstractModule} which will bind {@link Area} to
 		 *         {@link Area2D} and it's x & y values to the provided x and y.
 		 */
-		public static AbstractModule area2D(final int x, final int y) {
-			return new AbstractModule() {
-				@Override
-				protected void configure() {
-					bind(Area.class).in(Singleton.class);
-					bind(Integer.class).annotatedWith(SimArea.x.class)
-							.toInstance(x);
-					bind(Integer.class).annotatedWith(SimArea.y.class)
-							.toInstance(y);
-					bind(Integer.class).annotatedWith(SimArea.z.class)
-							.toInstance(0);
-				}
-			};
+		public static Bind area2D(final int x, final int y) {
+			return new Bind(x, y, 0);
+		}
+
+		@Override
+		protected void configure() {
+			bind(Area.class).in(Singleton.class);
+			bind(Integer.class).annotatedWith(SimArea.x.class).toInstance(x);
+			bind(Integer.class).annotatedWith(SimArea.y.class).toInstance(y);
+			bind(Integer.class).annotatedWith(SimArea.z.class).toInstance(z);
+
+			MapBinder<Edge, EdgeHandler> edgeBinder = MapBinder.newMapBinder(
+					binder(), Edge.class, EdgeHandler.class);
+			for (Map.Entry<Edge, Class<? extends EdgeHandler>> e : edges
+					.entrySet()) {
+				edgeBinder.addBinding(e.getKey()).to(e.getValue());
+			}
+		}
+
+		public Bind edgeHandler(Class<? extends EdgeHandler> h) {
+			for (Edge e : Edge.values()) {
+				edges.put(e, h);
+			}
+			return this;
+		}
+
+		public Bind addEdgeHander(Edge e, Class<? extends EdgeHandler> h) {
+			edges.put(e, h);
+			return this;
 		}
 
 	}
