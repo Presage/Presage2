@@ -18,31 +18,32 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
+import org.apache.commons.math.geometry.Vector3D;
+
 /**
  * @author Sam Macbeth
  * 
  */
-public abstract class Location implements HasLocation, Cloneable {
+public class Location extends Vector3D implements HasLocation, Cloneable {
+
+	private static final long serialVersionUID = 1L;
+
+	public Location(double x, double y) {
+		super(x, y, 0);
+	}
+
+	public Location(double x, double y, double z) {
+		super(x, y, z);
+	}
+
+	Location(Vector3D v) {
+		super(v.getX(), v.getY(), v.getZ());
+	}
 
 	@Override
 	protected Location clone() throws CloneNotSupportedException {
-		return (Location) super.clone();
+		return new Location(getX(), getY(), getZ());
 	}
-
-	/**
-	 * 
-	 * @return String representation of a Location
-	 */
-	public abstract String toString();
-
-	/**
-	 * Test whether the given location is equal to this one.
-	 * 
-	 * @param l
-	 *            Location to compare to
-	 * @return true iff this Location represents the same Location as l
-	 */
-	public abstract boolean equals(Object l);
 
 	/**
 	 * Get the distance between this Location and the location l
@@ -50,19 +51,9 @@ public abstract class Location implements HasLocation, Cloneable {
 	 * @param l
 	 * @return
 	 */
-	public abstract double distanceTo(Location l);
-
-	/**
-	 * Modify this Location by the Move m.
-	 * 
-	 * @param m
-	 * @return this (for operation chaining)
-	 * @deprecated Location is now immutable
-	 */
-	@Deprecated
-	public Location add(Move m) {
-		return this;
-	};
+	public double distanceTo(Location l) {
+		return Vector3D.distance(this, l);
+	}
 
 	/**
 	 * Returns the result of {@link Area#contains(Location)} for a and this.
@@ -85,41 +76,35 @@ public abstract class Location implements HasLocation, Cloneable {
 				"HasLocation#setLocation() not available in this context.");
 	}
 
+	public Vector3D getVector() {
+		return this;
+	}
+
 	/**
-	 * Get the {@link Move} required to move from this location to a new
-	 * location l.
+	 * Get the direction vector between two point vectors.
 	 * 
 	 * @param l
 	 * @return {@link Move}
 	 */
-	public abstract Move getMoveTo(Location l);
+	public Vector3D getVectorTo(Location l) {
+		return l.subtract(this);
+	}
 
-	/**
-	 * Get the {@link Move} required to move from this location to a new
-	 * location l but limited to a maximum magnitude of speed.
-	 * 
-	 * @param l
-	 * @param speed
-	 * @return {@link Move}
-	 */
-	public abstract Move getMoveTo(Location l, double speed);
+	@Override
+	public Location getLocation() {
+		return this;
+	}
 
-	/**
-	 * Static application of a move to a location. This implementation ensures
-	 * no change to the location provided.
-	 * 
-	 * @param loc
-	 * @param m
-	 * @return
-	 */
-	public static Location add(Location loc, Move m) {
-		// 2D move
-		if (loc instanceof Location2D<?> && m instanceof Move2D<?>) {
-			return Location2D.add((Location2D<?>) loc, (Move2D<?>) m);
-		}
-		throw new UnsupportedOperationException("Add "
-				+ loc.getClass().getSimpleName() + " and "
-				+ m.getClass().getSimpleName());
+	public Move getMoveTo(Location l) {
+		return new Move(getVectorTo(l));
+	}
+
+	public Move getMoveTo(Location l, double speed) {
+		Vector3D v = getVectorTo(l);
+		if (v.getNorm() > speed)
+			return new Move(v.normalize().scalarMultiply(speed));
+		else
+			return new Move(v);
 	}
 
 }

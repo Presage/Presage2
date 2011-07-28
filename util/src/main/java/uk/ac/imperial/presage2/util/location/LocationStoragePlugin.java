@@ -34,14 +34,14 @@ import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
 public class LocationStoragePlugin implements Plugin {
 
 	private final Logger logger = Logger.getLogger(LocationStoragePlugin.class);
-	
+
 	private StorageService storage;
-	
+
 	private Table locationsTable;
-	
+
 	private final EnvironmentMembersService membersService;
 	private final LocationService locService;
-	
+
 	public LocationStoragePlugin() {
 		super();
 		storage = null;
@@ -49,42 +49,39 @@ public class LocationStoragePlugin implements Plugin {
 		membersService = null;
 		logger.info("I wasn't given a storage service, I won't do anything!");
 	}
-	
+
 	@Inject
-	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider) throws UnavailableServiceException {
+	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider)
+			throws UnavailableServiceException {
 		this.storage = null;
-		this.membersService = serviceProvider.getEnvironmentService(EnvironmentMembersService.class);
-		this.locService = serviceProvider.getEnvironmentService(LocationService.class);
+		this.membersService = serviceProvider
+				.getEnvironmentService(EnvironmentMembersService.class);
+		this.locService = serviceProvider
+				.getEnvironmentService(LocationService.class);
 	}
-	
-	@Inject(optional=true)
+
+	@Inject(optional = true)
 	public void setStorage(StorageService storage) {
 		this.storage = storage;
 	}
-	
+
 	@Override
 	public void incrementTime() {
-		if(this.storage != null) {
-			for(UUID pid : this.membersService.getParticipants()) {
+		if (this.storage != null) {
+			for (UUID pid : this.membersService.getParticipants()) {
 				Location l;
 				try {
 					l = this.locService.getAgentLocation(pid);
-				} catch(Exception e) {
+				} catch (Exception e) {
 					logger.debug("Exception getting agent location.", e);
 					continue;
 				}
-				if(l instanceof Location2D<?>) {
-					Location2D<?> l2 = (Location2D<?>) l;
-					try {
-						this.locationsTable.insert()
-							.atCurrentTimeStep()
-							.forParticipant(pid)
-							.set("x", l2.x.doubleValue())
-							.set("y", l2.y.doubleValue())
-							.commit();
-					} catch (Exception e) {
-						logger.warn("Error inserting participant location", e);
-					}
+				try {
+					this.locationsTable.insert().atCurrentTimeStep()
+							.forParticipant(pid).set("x", l.getX())
+							.set("y", l.getY()).set("z", l.getZ()).commit();
+				} catch (Exception e) {
+					logger.warn("Error inserting participant location", e);
 				}
 			}
 		}
@@ -93,13 +90,13 @@ public class LocationStoragePlugin implements Plugin {
 	@Override
 	public void initialise() {
 		// get table
-		if(this.storage != null) {
+		if (this.storage != null) {
 			try {
-				this.locationsTable = this.storage.buildTable("locations").forClass(getClass())
-					.withOneRowPerTimeCycle().withParticipantField()
-					.withFields("x", "y", "z")
-					.withTypes(Double.class, Double.class, Double.class)
-					.create();
+				this.locationsTable = this.storage.buildTable("locations")
+						.forClass(getClass()).withOneRowPerTimeCycle()
+						.withParticipantField().withFields("x", "y", "z")
+						.withTypes(Double.class, Double.class, Double.class)
+						.create();
 			} catch (Exception e) {
 				logger.warn("Unable to create table for location storage.", e);
 				this.storage = null;
@@ -110,9 +107,11 @@ public class LocationStoragePlugin implements Plugin {
 	}
 
 	@Override
-	public void execute() {}
+	public void execute() {
+	}
 
 	@Override
-	public void onSimulationComplete() {}
+	public void onSimulationComplete() {
+	}
 
 }

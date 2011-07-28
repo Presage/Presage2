@@ -18,10 +18,24 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
+import org.apache.commons.math.geometry.Vector3D;
+
 import uk.ac.imperial.presage2.core.Action;
 
-public interface Move extends Action {
+public class Move extends Vector3D implements Action {
 
-	public double getMagnitude();
+	private static final long serialVersionUID = 1L;
+
+	public Move(double x, double y) {
+		super(x, y, 0);
+	}
+
+	public Move(double x, double y, double z) {
+		super(x, y, z);
+	}
+
+	Move(Vector3D v) {
+		super(v.getX(), v.getY(), v.getZ());
+	}
 
 }

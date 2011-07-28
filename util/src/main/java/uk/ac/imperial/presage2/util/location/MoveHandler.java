@@ -36,21 +36,23 @@ import uk.ac.imperial.presage2.core.messaging.Input;
 public class MoveHandler implements ActionHandler {
 
 	private final Logger logger = Logger.getLogger(MoveHandler.class);
-	
+
 	final protected HasArea environment;
 	final protected LocationService locationService;
-	
+
 	/**
 	 * @param environment
 	 * @param serviceProvider
-	 * @throws UnavailableServiceException 
+	 * @throws UnavailableServiceException
 	 */
 	@Inject
 	public MoveHandler(HasArea environment,
-			EnvironmentServiceProvider serviceProvider) throws UnavailableServiceException {
+			EnvironmentServiceProvider serviceProvider)
+			throws UnavailableServiceException {
 		super();
 		this.environment = environment;
-		this.locationService = serviceProvider.getEnvironmentService(LocationService.class);
+		this.locationService = serviceProvider
+				.getEnvironmentService(LocationService.class);
 	}
 
 	@Override
@@ -61,9 +63,9 @@ public class MoveHandler implements ActionHandler {
 	@Override
 	public Input handle(Action action, UUID actor)
 			throws ActionHandlingException {
-		if(action instanceof Move) {
-			if(logger.isDebugEnabled())
-				logger.debug("Handling move "+action+" from "+actor);
+		if (action instanceof Move) {
+			if (logger.isDebugEnabled())
+				logger.debug("Handling move " + action + " from " + actor);
 			final Move m = (Move) action;
 			Location loc = null;
 			try {
@@ -71,15 +73,17 @@ public class MoveHandler implements ActionHandler {
 			} catch (CannotSeeAgent e) {
 				throw new ActionHandlingException(e);
 			}
-			final Location target = Location.add(loc, m);
-			if(target.in(environment.getArea())) {
+			final Location target = new Location(loc.add(m));
+			if (target.in(environment.getArea())) {
 				this.locationService.setAgentLocation(actor, target);
 			} else {
-				throw new ActionHandlingException("Cannot handle move to location outside of environment area.");
+				throw new ActionHandlingException(
+						"Cannot handle move to location outside of environment area.");
 			}
 			return null;
 		}
-		throw new ActionHandlingException("MoveHandler was asked to handle non Move action!");
+		throw new ActionHandlingException(
+				"MoveHandler was asked to handle non Move action!");
 	}
 
 }

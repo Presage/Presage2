@@ -21,5 +21,5 @@ package uk.ac.imperial.presage2.util.location;
 public interface HasArea {
 
 	public Area getArea();
-	
+
 }

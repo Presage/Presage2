@@ -23,14 +23,14 @@ import com.google.inject.Inject;
 
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public final class Area2D implements Area {
 
 	final private int x;
-	
+
 	final private int y;
-	
+
 	/**
 	 * @param x
 	 * @param y
@@ -44,14 +44,8 @@ public final class Area2D implements Area {
 
 	@Override
 	public boolean contains(Location l) {
-		if(l instanceof Location2D) {
-			Location2D<?> l2 = (Location2D<?>) l;
-			double x = l2.x.doubleValue();
-			double y = l2.y.doubleValue();
-			return x <= this.x && y <= this.y
-					&& x >= 0 && y >= 0;
-		} else 
-			return false;
+		return l.getZ() == 0 && l.getX() >= 0 && l.getX() <= x && l.getY() >= 0
+				&& l.getY() <= y;
 	}
 
 }

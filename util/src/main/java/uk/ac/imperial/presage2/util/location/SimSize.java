@@ -28,16 +28,27 @@ import java.lang.annotation.Target;
 
 import com.google.inject.BindingAnnotation;
 
-@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
+@BindingAnnotation
+@Target({ FIELD, PARAMETER, METHOD })
+@Retention(RUNTIME)
 public @interface SimSize {
 
-	@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
-	public @interface x {}
+	@BindingAnnotation
+	@Target({ FIELD, PARAMETER, METHOD })
+	@Retention(RUNTIME)
+	public @interface x {
+	}
 
-	@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
-	public @interface y {}
+	@BindingAnnotation
+	@Target({ FIELD, PARAMETER, METHOD })
+	@Retention(RUNTIME)
+	public @interface y {
+	}
 
-	@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
-	public @interface z {}
+	@BindingAnnotation
+	@Target({ FIELD, PARAMETER, METHOD })
+	@Retention(RUNTIME)
+	public @interface z {
+	}
 
 }
