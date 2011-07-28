@@ -63,14 +63,14 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected Time time;
 
-	protected Queue<Message> toDeliver;
+	protected Queue<Message<?>> toDeliver;
 	protected Queue<Delivery> awaitingDelivery = new LinkedList<NetworkController.Delivery>();
 
 	static class Delivery {
 		NetworkAddress to;
-		Message msg;
+		Message<?> msg;
 
-		Delivery(NetworkAddress to, Message msg) {
+		Delivery(NetworkAddress to, Message<?> msg) {
 			super();
 			this.to = to;
 			this.msg = msg;
@@ -107,7 +107,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		this.time = time;
 		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
-		this.toDeliver = new LinkedList<Message>();
+		this.toDeliver = new LinkedList<Message<?>>();
 		s.addTimeDriven(this);
 	}
 
@@ -186,11 +186,11 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 				}
 
 				// process toDeliver queue
-				List<Message> messages = new LinkedList<Message>();
+				List<Message<?>> messages = new LinkedList<Message<?>>();
 				boolean spawn = false;
 				synchronized (toDeliver) {
 					for (int i = 0; i < 20; i++) {
-						Message m = toDeliver.poll();
+						Message<?> m = toDeliver.poll();
 						if (m == null)
 							break;
 						messages.add(m);
@@ -215,7 +215,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 				if (spawn)
 					spawnMessageHandler();
 
-				for (Message m : messages) {
+				for (Message<?> m : messages) {
 					try {
 						if (logger.isTraceEnabled()) {
 							logger.trace("Handing message " + m);
@@ -247,21 +247,21 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 * @see uk.ac.imperial.presage2.core.network.NetworkChannel#deliverMessage(uk.ac.imperial.presage2.core.network.Message)
 	 */
 	@Override
-	public void deliverMessage(Message m) {
+	public void deliverMessage(Message<?> m) {
 		synchronized (this.toDeliver) {
 			this.toDeliver.add(m);
 			this.toDeliver.notifyAll();
 		}
 	}
 
-	protected void handleMessage(Message m) {
+	protected void handleMessage(Message<?> m) {
 		// check message type
 		if (m instanceof UnicastMessage) {
-			doUnicast((UnicastMessage) m);
+			doUnicast((UnicastMessage<?>) m);
 		} else if (m instanceof MulticastMessage) {
-			doMulticast((MulticastMessage) m);
+			doMulticast((MulticastMessage<?>) m);
 		} else if (m instanceof BroadcastMessage) {
-			doBroadcast((BroadcastMessage) m);
+			doBroadcast((BroadcastMessage<?>) m);
 		} else if (m instanceof Ping) {
 			// we do not constrain messages, so give them all registered network
 			// addresses
@@ -277,7 +277,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 * @param m
 	 * @throws NetworkException
 	 */
-	protected void doUnicast(UnicastMessage m) {
+	protected void doUnicast(UnicastMessage<?> m) {
 		try {
 			this.deliverMessageTo(m.getTo(), m);
 			if (this.logger.isDebugEnabled()) {
@@ -294,7 +294,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 * 
 	 * @param m
 	 */
-	protected void doMulticast(MulticastMessage m) {
+	protected void doMulticast(MulticastMessage<?> m) {
 		final List<NetworkAddress> recipients = m.getTo();
 		final List<NetworkAddress> unreachable = new LinkedList<NetworkAddress>();
 		for (NetworkAddress to : recipients) {
@@ -317,7 +317,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 * 
 	 * @param m
 	 */
-	protected void doBroadcast(BroadcastMessage m) {
+	protected void doBroadcast(BroadcastMessage<?> m) {
 		for (NetworkAddress to : this.devices.keySet()) {
 			// deliver to all but sender
 			if (m.getFrom() != to)
@@ -363,7 +363,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 * @param to
 	 * @param m
 	 */
-	protected void deliverMessageTo(NetworkAddress to, Message m) {
+	protected void deliverMessageTo(NetworkAddress to, Message<?> m) {
 		if (this.eventBus != null) {
 			this.eventBus
 					.publish(new MessageDeliveryEvent(time.clone(), m, to));

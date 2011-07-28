@@ -35,7 +35,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public class BroadcastMessage extends Message {
+public class BroadcastMessage<T> extends Message<T> {
 
 	/**
 	 * @param performative
@@ -45,6 +45,18 @@ public class BroadcastMessage extends Message {
 	public BroadcastMessage(Performative performative, NetworkAddress from,
 			Time timestamp) {
 		super(performative, from, timestamp);
+	}
+
+	/**
+	 * 
+	 * @param performative
+	 * @param from
+	 * @param timestamp
+	 * @param data
+	 */
+	public BroadcastMessage(Performative performative, NetworkAddress from,
+			Time timestamp, T data) {
+		super(performative, from, timestamp, data);
 	}
 
 }

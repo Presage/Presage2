@@ -33,7 +33,7 @@ public class UnreachableRecipientException extends NetworkException {
 	 */
 	private static final long serialVersionUID = -4463569707723015287L;
 
-	final protected Message message;
+	final protected Message<?> message;
 
 	final protected List<NetworkAddress> recipients;
 
@@ -42,7 +42,7 @@ public class UnreachableRecipientException extends NetworkException {
 	 * @param recipient
 	 * @param e
 	 */
-	public UnreachableRecipientException(Message message,
+	public UnreachableRecipientException(Message<?> message,
 			NetworkAddress recipient, Throwable e) {
 		super("Unable to send message " + message.toString() + " to recipient "
 				+ recipient.toString(), e);
@@ -51,7 +51,7 @@ public class UnreachableRecipientException extends NetworkException {
 		this.recipients.add(recipient);
 	}
 
-	public UnreachableRecipientException(Message message,
+	public UnreachableRecipientException(Message<?> message,
 			List<NetworkAddress> recipients) {
 		super("Unable to send message " + message.toString() + " to "
 				+ recipients.size() + " recipients");

@@ -84,7 +84,7 @@ public class NetworkConnectorWithNodeDiscovery extends BasicNetworkConnector
 	}
 
 	@Override
-	public synchronized void deliverMessage(Message m) {
+	public synchronized void deliverMessage(Message<?> m) {
 		// hijack pongs
 		if (m instanceof Pong) {
 			Pong p = (Pong) m;

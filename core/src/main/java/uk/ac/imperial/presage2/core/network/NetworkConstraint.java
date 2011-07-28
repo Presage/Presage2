@@ -31,7 +31,7 @@ public interface NetworkConstraint {
 	 * @param m
 	 * @return
 	 */
-	public Message constrainMessage(Message m);
+	public Message<?> constrainMessage(Message<?> m);
 
 	/**
 	 * Block the message m from being delivered to recipient to.
@@ -43,6 +43,6 @@ public interface NetworkConstraint {
 	 * @return True if the NetworkController should block the message, false
 	 *         otherwise.
 	 */
-	public boolean blockMessageDelivery(NetworkAddress to, Message m);
+	public boolean blockMessageDelivery(NetworkAddress to, Message<?> m);
 
 }
