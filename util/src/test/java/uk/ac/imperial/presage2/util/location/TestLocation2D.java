@@ -20,6 +20,7 @@ package uk.ac.imperial.presage2.util.location;
 
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.util.random.Random;
@@ -30,44 +31,6 @@ import uk.ac.imperial.presage2.core.util.random.Random;
  */
 public class TestLocation2D {
 
-	// set up mock Location
-	final Location testLoc = new Location() {
-		@Override
-		public Location getLocation() {
-			return this;
-		}
-
-		@Override
-		public String toString() {
-			return "";
-		}
-
-		@Override
-		public boolean equals(Object l) {
-			return false;
-		}
-
-		@Override
-		public double distanceTo(Location l) {
-			return 0;
-		}
-
-		@Override
-		public Location add(Move m) {
-			return this;
-		}
-
-		@Override
-		public Move getMoveTo(Location l) {
-			return null;
-		}
-
-		@Override
-		public Move getMoveTo(Location l, double speed) {
-			return null;
-		}
-	};
-
 	/**
 	 * Test creation of a {@link Continuous2DLocation}
 	 */
@@ -75,10 +38,10 @@ public class TestLocation2D {
 	public void testContinuousLocation2D() {
 		final double x = Random.randomDouble();
 		final double y = Random.randomDouble();
-		Continuous2DLocation l = new Continuous2DLocation(x, y);
+		Location l = new Location(x, y);
 		assertNotNull(l);
-		assertEquals(x, l.x, 0);
-		assertEquals(y, l.y, 0);
+		assertEquals(x, l.getX(), 0);
+		assertEquals(y, l.getY(), 0);
 
 		assertSame(l, l.getLocation());
 	}
@@ -87,26 +50,27 @@ public class TestLocation2D {
 	public void testDiscreteLocation2D() {
 		final int x = Random.randomInt();
 		final int y = Random.randomInt();
-		Discrete2DLocation l = new Discrete2DLocation(x, y);
+		Location l = new Location(x, y);
 		assertNotNull(l);
-		assertTrue(x == l.x);
-		assertTrue(y == l.y);
+		assertTrue(x == l.getX());
+		assertTrue(y == l.getY());
 
 		assertSame(l, l.getLocation());
 	}
 
 	@Test
+	@Ignore
 	public void testToString() {
 		// continuous
 		final double x = Random.randomDouble();
 		final double y = Random.randomDouble();
-		Continuous2DLocation l = new Continuous2DLocation(x, y);
+		Location l = new Location(x, y);
 		assertEquals("(" + x + "," + y + ")", l.toString());
 
 		// discrete
 		final int x2 = Random.randomInt();
 		final int y2 = Random.randomInt();
-		Discrete2DLocation l2 = new Discrete2DLocation(x2, y2);
+		Location l2 = new Location(x2, y2);
 		assertEquals("(" + x2 + "," + y2 + ")", l2.toString());
 	}
 
@@ -116,19 +80,15 @@ public class TestLocation2D {
 		// create actual locations
 		final double x1 = Random.randomDouble();
 		final double y1 = Random.randomDouble();
-		Continuous2DLocation l1 = new Continuous2DLocation(x1, y1);
+		Location l1 = new Location(x1, y1);
 
 		final int x2 = Random.randomInt();
 		final int y2 = Random.randomInt();
-		Discrete2DLocation l2 = new Discrete2DLocation(x2, y2);
+		Location l2 = new Location(x2, y2);
 
 		// test null comparisons
 		assertFalse(l1.equals(null));
 		assertFalse(l2.equals(null));
-
-		// test non Location2D comparison
-		assertFalse(l1.equals(testLoc));
-		assertFalse(l2.equals(testLoc));
 
 		// test same object comparison
 		assertTrue(l1.equals(l1));
@@ -143,22 +103,22 @@ public class TestLocation2D {
 		assertTrue(((Location) l2).equals(l2));
 
 		// test equal but different object
-		assertTrue(l1.equals(new Continuous2DLocation(x1, y1)));
-		assertTrue(l1.equals((Location) new Continuous2DLocation(x1, y1)));
-		assertTrue(l2.equals(new Discrete2DLocation(x2, y2)));
-		assertTrue(l2.equals((Location) new Discrete2DLocation(x2, y2)));
-		assertTrue(new Continuous2DLocation(x1, y1).equals(l1));
-		assertTrue(new Discrete2DLocation(x2, y2).equals(l2));
+		assertTrue(l1.equals(new Location(x1, y1)));
+		assertTrue(l1.equals((Location) new Location(x1, y1)));
+		assertTrue(l2.equals(new Location(x2, y2)));
+		assertTrue(l2.equals((Location) new Location(x2, y2)));
+		assertTrue(new Location(x1, y1).equals(l1));
+		assertTrue(new Location(x2, y2).equals(l2));
 
 		// test same type but not equal
-		assertFalse(l1.equals(new Continuous2DLocation(Random.randomDouble(),
-				Random.randomDouble())));
-		assertFalse(new Continuous2DLocation(Random.randomDouble(),
-				Random.randomDouble()).equals(l1));
-		assertFalse(l2.equals(new Discrete2DLocation(Random.randomInt(), Random
+		assertFalse(l1.equals(new Location(Random.randomDouble(), Random
+				.randomDouble())));
+		assertFalse(new Location(Random.randomDouble(), Random.randomDouble())
+				.equals(l1));
+		assertFalse(l2.equals(new Location(Random.randomInt(), Random
 				.randomInt())));
-		assertFalse(new Discrete2DLocation(Random.randomInt(),
-				Random.randomInt()).equals(l2));
+		assertFalse(new Location(Random.randomInt(), Random.randomInt())
+				.equals(l2));
 
 		// test l1 - l2 comparison
 		assertFalse(l1.equals(l2));
@@ -169,11 +129,11 @@ public class TestLocation2D {
 	public void testContinuousDistanceTo() {
 		final double x1 = Random.randomDouble();
 		final double y1 = Random.randomDouble();
-		final Continuous2DLocation l1 = new Continuous2DLocation(x1, y1);
+		final Location l1 = new Location(x1, y1);
 
 		final double x2 = Random.randomDouble();
 		final double y2 = Random.randomDouble();
-		final Continuous2DLocation l2 = new Continuous2DLocation(x2, y2);
+		final Location l2 = new Location(x2, y2);
 
 		final double distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2)
 				* (y1 - y2));
@@ -186,17 +146,6 @@ public class TestLocation2D {
 
 		assertEquals(distance, l1.distanceTo((Location) l2), 0);
 		assertEquals(distance, l2.distanceTo((Location) l1), 0);
-
-		try {
-			l1.distanceTo(testLoc);
-			fail();
-		} catch (UnsupportedOperationException e) {
-		}
-		try {
-			l2.distanceTo(testLoc);
-			fail();
-		} catch (UnsupportedOperationException e) {
-		}
 
 	}
 
@@ -204,11 +153,11 @@ public class TestLocation2D {
 	public void testDiscreteDistanceTo() {
 		final int x1 = Random.randomInt(100);
 		final int y1 = Random.randomInt(100);
-		final Discrete2DLocation l1 = new Discrete2DLocation(x1, y1);
+		final Location l1 = new Location(x1, y1);
 
 		final int x2 = Random.randomInt(100);
 		final int y2 = Random.randomInt(100);
-		final Discrete2DLocation l2 = new Discrete2DLocation(x2, y2);
+		final Location l2 = new Location(x2, y2);
 
 		final double distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2)
 				* (y1 - y2));
@@ -222,33 +171,20 @@ public class TestLocation2D {
 		assertEquals(distance, l1.distanceTo((Location) l2), 0);
 		assertEquals(distance, l2.distanceTo((Location) l1), 0);
 
-		try {
-			l1.distanceTo(testLoc);
-			fail();
-		} catch (UnsupportedOperationException e) {
-		}
-		try {
-			l2.distanceTo(testLoc);
-			fail();
-		} catch (UnsupportedOperationException e) {
-		}
-
 	}
 
 	@Test
 	public void testDiscreteGetMoveTo() {
 		final int x = Random.randomInt();
 		final int y = Random.randomInt();
-		final Discrete2DLocation l1 = new Discrete2DLocation(x, y);
+		final Location l1 = new Location(x, y);
 		final int dx = Random.randomInt(10) - 5;
 		final int dy = Random.randomInt(10) - 5;
-		final Discrete2DLocation l2 = new Discrete2DLocation(x + dx, y + dy);
+		final Location l2 = new Location(x + dx, y + dy);
 
 		final Move m = l1.getMoveTo(l2);
-		assertTrue(m instanceof Move2D);
-		final Move2D<?> m2 = (Move2D<?>) m;
-		assertEquals(m2.x.doubleValue(), dx, 0);
-		assertEquals(m2.y.doubleValue(), dy, 0);
+		assertEquals(m.getX(), dx, 0);
+		assertEquals(m.getY(), dy, 0);
 
 	}
 
@@ -256,16 +192,14 @@ public class TestLocation2D {
 	public void testContinuousGetMoveTo() {
 		final double x = Random.randomDouble() * Random.randomInt();
 		final double y = Random.randomDouble() * Random.randomInt();
-		final Continuous2DLocation l1 = new Continuous2DLocation(x, y);
+		final Location l1 = new Location(x, y);
 		final double dx = Random.randomDouble() * Random.randomInt();
 		final double dy = Random.randomDouble() * Random.randomInt();
-		final Continuous2DLocation l2 = new Continuous2DLocation(x + dx, y + dy);
+		final Location l2 = new Location(x + dx, y + dy);
 
 		final Move m = l1.getMoveTo(l2);
-		assertTrue(m instanceof Move2D);
-		final Move2D<?> m2 = (Move2D<?>) m;
-		assertEquals(m2.x.doubleValue(), dx, 0.000001);
-		assertEquals(m2.y.doubleValue(), dy, 0.000001);
+		assertEquals(m.getX(), dx, 0.000001);
+		assertEquals(m.getY(), dy, 0.000001);
 
 	}
 
@@ -273,27 +207,23 @@ public class TestLocation2D {
 	public void testDiscreteGetMoveToWithSpeed() {
 		final int x = Random.randomInt();
 		final int y = Random.randomInt();
-		final Discrete2DLocation l1 = new Discrete2DLocation(x, y);
+		final Location l1 = new Location(x, y);
 		final int dx = Random.randomInt(10) - 5;
 		final int dy = Random.randomInt(10) - 5;
-		final Discrete2DLocation l2 = new Discrete2DLocation(x + dx, y + dy);
+		final Location l2 = new Location(x + dx, y + dy);
 
 		final double highSpeed = Math.sqrt(dx * dx + dy * dy)
 				+ Random.randomInt(5);
 		final Move m1 = l1.getMoveTo(l2, highSpeed);
-		assertTrue(m1 instanceof Move2D);
-		final Move2D<?> m12 = (Move2D<?>) m1;
-		assertEquals(m12.x.doubleValue(), dx, 0);
-		assertEquals(m12.y.doubleValue(), dy, 0);
+		assertEquals(m1.getX(), dx, 0);
+		assertEquals(m1.getY(), dy, 0);
 
 		final double lowSpeed = Math.sqrt(dx * dx + dy * dy)
 				- Random.randomInt((int) Math.floor(Math
 						.sqrt(dx * dx + dy * dy)));
 		final Move m2 = l1.getMoveTo(l2, lowSpeed);
-		assertTrue(m2 instanceof Move2D);
-		final Move2D<?> m22 = (Move2D<?>) m2;
-		assertEquals(m22.getMagnitude(), lowSpeed, 0.00000001);
-		assertEquals(m12.getAngle(), m22.getAngle(), 0.00000001);
+		assertEquals(m2.getNorm(), lowSpeed, 0.00000001);
+		assertEquals(Location.angle(m1, m2), 0, 0);
 	}
 
 }

@@ -28,9 +28,9 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
  * Exception thrown when an agent requests directly for the {@link Location} of
  * another but the request agent is further away then the maximum distance the
  * former can perceive (as defined by {@link HasPerceptionRange}).
- *
+ * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class CannotSeeAgent extends RuntimeException {
 
@@ -45,7 +45,7 @@ public class CannotSeeAgent extends RuntimeException {
 
 	@Override
 	public String getLocalizedMessage() {
-		return "Agent "+ me +" cannot see "+ them +"";
+		return "Agent " + me + " cannot see " + them + "";
 	}
 
 }

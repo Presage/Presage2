@@ -26,19 +26,25 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.SharedState;
 import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
+import uk.ac.imperial.presage2.util.location.area.Area;
+import uk.ac.imperial.presage2.util.location.area.HasArea;
 
 /**
- * <p>Global environment service to get the simulation {@link Area} as defined 
- * by the environment and provided through {@link HasArea}.</p>
+ * <p>
+ * Global environment service to get the simulation {@link Area} as defined by
+ * the environment and provided through {@link HasArea}.
+ * </p>
  * 
  * <h3>Usage</h3>
  * 
- * <p>If you're extending {@link AbstractEnvironment} simply add an instance of
- * this service to the global environment services in {@link AbstractEnvironment#initialiseGlobalEnvironmentServices}.
+ * <p>
+ * If you're extending {@link AbstractEnvironment} simply add an instance of
+ * this service to the global environment services in
+ * {@link AbstractEnvironment#initialiseGlobalEnvironmentServices}.
  * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class AreaService extends EnvironmentService {
 
@@ -52,7 +58,8 @@ public class AreaService extends EnvironmentService {
 
 	/**
 	 * Get the simulation {@link Area}
-	 * @return	simulation {@link Area}
+	 * 
+	 * @return simulation {@link Area}
 	 */
 	public Area getSimulationArea() {
 		return ((HasArea) sharedState.getGlobal("area").getValue()).getArea();
@@ -60,7 +67,8 @@ public class AreaService extends EnvironmentService {
 
 	@Override
 	public void initialise(Map<String, SharedState<?>> globalSharedState) {
-		globalSharedState.put("area", new SharedState<HasArea>("area", this.area));
+		globalSharedState.put("area", new SharedState<HasArea>("area",
+				this.area));
 	}
 
 }

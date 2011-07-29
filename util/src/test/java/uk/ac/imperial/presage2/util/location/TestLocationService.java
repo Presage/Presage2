@@ -39,7 +39,7 @@ public class TestLocationService {
 		final EnvironmentSharedStateAccess mockEnv = context.mock(EnvironmentSharedStateAccess.class);
 		
 		final UUID validID = Random.randomUUID();
-		final Location loc = new Discrete2DLocation(0, 0);
+		final Location loc = new Location(0, 0);
 		final UUID invalidID = Random.randomUUID();
 		final LocationService serviceUnderTest = new LocationService(mockEnv);
 		

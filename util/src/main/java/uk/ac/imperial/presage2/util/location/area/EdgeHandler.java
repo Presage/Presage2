@@ -16,18 +16,23 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.location;
+package uk.ac.imperial.presage2.util.location.area;
+
+import uk.ac.imperial.presage2.util.location.Location;
+import uk.ac.imperial.presage2.util.location.Move;
+import uk.ac.imperial.presage2.util.location.area.Area.Edge;
 
 /**
- * A 2D Location consisting of integer coordinates.
+ * An interface for modifying {@link Move}s when they violate the simulation
+ * {@link Area}.
  * 
  * @author Sam Macbeth
- *
+ * 
  */
-public class Discrete2DLocation extends Location2D<Integer> {
+interface EdgeHandler {
 
-	public Discrete2DLocation(int x, int y) {
-		super(x,y);
-	}
-	
+	void setEdge(Edge e);
+
+	Move getValidMove(Location loc, Move m);
+
 }

@@ -18,34 +18,18 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
-public class Move2D<T extends Number> implements Move {
+import org.apache.commons.math.geometry.Vector3D;
 
-	final protected T x;
-	final protected T y;
+public class Move2D extends Move {
 
-	/**
-	 * @param x
-	 * @param y
-	 */
-	public Move2D(T x, T y) {
-		super();
-		this.x = x;
-		this.y = y;
+	private static final long serialVersionUID = 1L;
+
+	public Move2D(double x, double y) {
+		super(x, y);
 	}
 
-	@Override
-	public String toString() {
-		return "Move2D: (" + x + "," + y + ")";
-	}
-
-	@Override
-	public double getMagnitude() {
-		return Math.sqrt(x.doubleValue() * x.doubleValue() + y.doubleValue()
-				* y.doubleValue());
-	}
-
-	public double getAngle() {
-		return Math.atan2(y.doubleValue(), x.doubleValue());
+	Move2D(Vector3D v) {
+		this(v.getX(), v.getY());
 	}
 
 }

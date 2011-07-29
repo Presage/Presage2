@@ -16,18 +16,28 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.location;
+package uk.ac.imperial.presage2.util.location.area;
+
+import uk.ac.imperial.presage2.util.location.Location;
+import uk.ac.imperial.presage2.util.location.Move;
+import uk.ac.imperial.presage2.util.location.area.Area.Edge;
 
 /**
- * A 2D Location consisting of double coordinates.
+ * {@link EdgeHandler} which simply throws an exception when invoked.
  * 
  * @author Sam Macbeth
- *
+ * 
  */
-public class Continuous2DLocation extends Location2D<Double> {
+public class ExceptionEdgeHandler implements EdgeHandler {
 
-	public Continuous2DLocation(Double x, Double y) {
-		super(x, y);
+	@Override
+	public Move getValidMove(Location loc, Move m) {
+		throw new EdgeException(
+				"Cannot handle move outside of simulation area.");
 	}
-	
+
+	@Override
+	public void setEdge(Edge e) {
+	}
+
 }
