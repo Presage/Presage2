@@ -22,6 +22,13 @@ import uk.ac.imperial.presage2.util.location.Location;
 import uk.ac.imperial.presage2.util.location.Move;
 import uk.ac.imperial.presage2.util.location.area.Area.Edge;
 
+/**
+ * An interface for modifying {@link Move}s when they violate the simulation
+ * {@link Area}.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 interface EdgeHandler {
 
 	void setEdge(Edge e);

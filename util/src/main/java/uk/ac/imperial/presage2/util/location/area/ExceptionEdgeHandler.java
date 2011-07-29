@@ -22,6 +22,12 @@ import uk.ac.imperial.presage2.util.location.Location;
 import uk.ac.imperial.presage2.util.location.Move;
 import uk.ac.imperial.presage2.util.location.area.Area.Edge;
 
+/**
+ * {@link EdgeHandler} which simply throws an exception when invoked.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class ExceptionEdgeHandler implements EdgeHandler {
 
 	@Override

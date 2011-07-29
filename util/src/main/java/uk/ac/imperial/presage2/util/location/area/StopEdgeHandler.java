@@ -24,6 +24,13 @@ import uk.ac.imperial.presage2.util.location.Location;
 import uk.ac.imperial.presage2.util.location.Move;
 import uk.ac.imperial.presage2.util.location.area.Area.Edge;
 
+/**
+ * An {@link EdgeHandler} which modifies {@link Move}s so the agent stops at the
+ * extreme edge of the simulation {@link Area}.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class StopEdgeHandler implements EdgeHandler {
 
 	protected final int x;

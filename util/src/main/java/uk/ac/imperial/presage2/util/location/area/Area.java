@@ -66,11 +66,41 @@ public class Area {
 		}
 	}
 
+	/**
+	 * Check if the given {@link Location} falls inside of this area.
+	 * 
+	 * @param l
+	 * @return True if <code>l</code> is within the area defined by this
+	 *         {@link Area} object, false otherwise.
+	 */
 	public boolean contains(Location l) {
 		return l.getX() >= 0 && l.getX() <= x && l.getY() >= 0 && l.getY() <= y
 				&& l.getZ() >= 0 && l.getZ() <= z;
 	}
 
+	/**
+	 * <p>
+	 * If the {@link Move} <code>m</code> from {@link Location} <code>l</code>
+	 * results in a Location outside of this area we create and return a
+	 * modified {@link Move} based on the edge-case rules defined for this
+	 * {@link Area}.
+	 * </p>
+	 * 
+	 * <p>
+	 * The edge rules are defined for all 6 possible edges of the area via
+	 * {@link EdgeHandler}s. We determine which edge has been crossed then
+	 * invoke the appropriate handler to give us the modified move. By default
+	 * all edges have an {@link ExceptionEdgeHandler}.
+	 * </p>
+	 * 
+	 * @param loc
+	 * @param m
+	 * @return if <code>loc.add(m)</code> returns a {@link Location}
+	 *         <code>l</code> such that <code>this.contains(l) == false</code>
+	 *         returns a <code>m</code> modified according to the
+	 *         {@link EdgeHandler} on the edge which has been crossed. otherwise
+	 *         returns <code>m</code>
+	 */
 	public Move getValidMove(final Location loc, Move m) {
 		Location target = new Location(loc.add(m));
 		if (target.getX() < 0) {

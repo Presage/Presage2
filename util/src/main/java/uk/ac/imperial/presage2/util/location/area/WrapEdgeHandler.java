@@ -25,6 +25,13 @@ import com.google.inject.Inject;
 import uk.ac.imperial.presage2.util.location.Location;
 import uk.ac.imperial.presage2.util.location.Move;
 
+/**
+ * An {@link EdgeHandler} which wraps the simulation {@link Area} so an agent
+ * moving through an edge simply appears at the opposite edge.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class WrapEdgeHandler extends StopEdgeHandler {
 
 	@Inject

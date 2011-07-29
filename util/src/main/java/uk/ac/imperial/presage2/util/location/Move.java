@@ -22,18 +22,43 @@ import org.apache.commons.math.geometry.Vector3D;
 
 import uk.ac.imperial.presage2.core.Action;
 
+/**
+ * An Action which represents a change in {@link Location}. Defined by a
+ * {@link Vector3D}.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class Move extends Vector3D implements Action {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Create a {@link Move} in 2 dimensions.
+	 * 
+	 * @param x
+	 * @param y
+	 */
 	public Move(double x, double y) {
 		super(x, y, 0);
 	}
 
+	/**
+	 * Create a {@link Move} in 3 dimensions.
+	 * 
+	 * @param x
+	 * @param y
+	 * @param z
+	 */
 	public Move(double x, double y, double z) {
 		super(x, y, z);
 	}
 
+	/**
+	 * Create a move from an existing {@link Vector3D}.
+	 * 
+	 * @param v
+	 */
 	public Move(Vector3D v) {
 		super(v.getX(), v.getY(), v.getZ());
 	}
