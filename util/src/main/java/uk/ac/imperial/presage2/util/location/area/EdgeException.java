@@ -18,26 +18,12 @@
  */
 package uk.ac.imperial.presage2.util.location.area;
 
-import uk.ac.imperial.presage2.util.location.Location;
-import uk.ac.imperial.presage2.util.location.Move;
-import uk.ac.imperial.presage2.util.location.area.Area.Edge;
+public class EdgeException extends RuntimeException {
 
-/**
- * {@link EdgeHandler} which simply throws an exception when invoked.
- * 
- * @author Sam Macbeth
- * 
- */
-public class ExceptionEdgeHandler implements EdgeHandler {
+	private static final long serialVersionUID = 1L;
 
-	@Override
-	public Move getValidMove(Location loc, Move m) {
-		throw new EdgeException(
-				"Cannot handle move outside of simulation area.");
-	}
-
-	@Override
-	public void setEdge(Edge e) {
+	EdgeException(String message) {
+		super(message);
 	}
 
 }

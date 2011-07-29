@@ -31,6 +31,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.messaging.Input;
+import uk.ac.imperial.presage2.util.location.area.EdgeException;
 import uk.ac.imperial.presage2.util.location.area.HasArea;
 
 @ServiceDependencies({ LocationService.class })
@@ -80,7 +81,7 @@ public class MoveHandler implements ActionHandler {
 					final Move mNew = environment.getArea()
 							.getValidMove(loc, m);
 					target = new Location(loc.add(mNew));
-				} catch (RuntimeException e) {
+				} catch (EdgeException e) {
 					throw new ActionHandlingException(e);
 				}
 			}
