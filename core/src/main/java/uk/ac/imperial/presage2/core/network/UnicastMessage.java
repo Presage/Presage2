@@ -59,6 +59,11 @@ public class UnicastMessage<T> extends Message<T> {
 		super(performative, from, timestamp, data);
 	}
 
+	public UnicastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, T data) {
+		super(performative, type, timestamp, from, data);
+	}
+
 	/**
 	 * Gets the intended recipient of this message.
 	 * 

@@ -43,6 +43,8 @@ public abstract class Message<T> implements Input {
 	 */
 	protected final Performative performative;
 
+	protected final String type;
+
 	/**
 	 * Timestamp of when this message was sent.
 	 */
@@ -67,6 +69,7 @@ public abstract class Message<T> implements Input {
 		this.timestamp = timestamp.clone();
 		this.from = from;
 		this.data = null;
+		this.type = "";
 	}
 
 	public Message(Performative performative, NetworkAddress from,
@@ -74,6 +77,17 @@ public abstract class Message<T> implements Input {
 		super();
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
+		this.from = from;
+		this.data = data;
+		this.type = "";
+	}
+
+	public Message(Performative performative, String type, Time timestamp,
+			NetworkAddress from, T data) {
+		super();
+		this.performative = performative;
+		this.type = type;
+		this.timestamp = timestamp;
 		this.from = from;
 		this.data = data;
 	}
@@ -129,6 +143,11 @@ public abstract class Message<T> implements Input {
 	 */
 	protected T getData() {
 		return data;
+	}
+
+	@Override
+	public String getType() {
+		return this.type;
 	}
 
 }

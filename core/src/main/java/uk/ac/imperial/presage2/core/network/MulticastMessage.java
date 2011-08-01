@@ -67,7 +67,18 @@ public class MulticastMessage<T> extends Message<T> {
 	public MulticastMessage(Performative performative, NetworkAddress from,
 			Time timestamp, T data) {
 		super(performative, from, timestamp, data);
-		// TODO Auto-generated constructor stub
+	}
+
+	/**
+	 * @param performative
+	 * @param type
+	 * @param timestamp
+	 * @param from
+	 * @param data
+	 */
+	public MulticastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, T data) {
+		super(performative, type, timestamp, from, data);
 	}
 
 	/**

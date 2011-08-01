@@ -59,4 +59,16 @@ public class BroadcastMessage<T> extends Message<T> {
 		super(performative, from, timestamp, data);
 	}
 
+	/**
+	 * @param performative
+	 * @param type
+	 * @param timestamp
+	 * @param from
+	 * @param data
+	 */
+	public BroadcastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, T data) {
+		super(performative, type, timestamp, from, data);
+	}
+
 }
