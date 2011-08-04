@@ -32,9 +32,10 @@ public class SimulationStateNode extends NodeDelegate {
 		Transaction tx = db.beginTx();
 		SimulationStateNode s = null;
 		try {
-			s = new SimulationStateNode(db.createNode());
-			s.setProperty(KEY_NAME, state);
-			base.createRelationshipTo(s, StateRelationships.STATE);
+			Node n = db.createNode();
+			n.setProperty(KEY_NAME, state);
+			base.createRelationshipTo(n, StateRelationships.STATE);
+			s = new SimulationStateNode(n);
 			tx.success();
 		} finally {
 			tx.finish();

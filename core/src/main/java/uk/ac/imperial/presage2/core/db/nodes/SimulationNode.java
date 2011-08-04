@@ -41,12 +41,12 @@ public class SimulationNode extends NodeDelegate {
 							Direction.OUTGOING)
 					.getEndNode()
 					.createRelationshipTo(n, SimulationRelationships.SIMULATION);
-			n.createRelationshipTo(SimulationStateNode.get(db, state),
-					SimulationRelationships.CURRENT_STATE);
-			n.createRelationshipTo(SimulationTimeNode.get(db, currentTime),
-					SimulationRelationships.CURRENT_TIME);
-			n.createRelationshipTo(SimulationTimeNode.get(db, finishTime),
-					SimulationRelationships.FINISH_TIME);
+			n.createRelationshipTo(SimulationStateNode.get(db, state)
+					.getUnderlyingNode(), SimulationRelationships.CURRENT_STATE);
+			n.createRelationshipTo(SimulationTimeNode.get(db, currentTime)
+					.getUnderlyingNode(), SimulationRelationships.CURRENT_TIME);
+			n.createRelationshipTo(SimulationTimeNode.get(db, finishTime)
+					.getUnderlyingNode(), SimulationRelationships.FINISH_TIME);
 			s = new SimulationNode(n);
 			tx.success();
 		} finally {
@@ -137,7 +137,8 @@ public class SimulationNode extends NodeDelegate {
 			this.getSingleRelationship(SimulationRelationships.CURRENT_STATE,
 					Direction.OUTGOING).delete();
 			this.createRelationshipTo(
-					SimulationStateNode.get(this.getGraphDatabase(), newState),
+					SimulationStateNode.get(this.getGraphDatabase(), newState)
+							.getUnderlyingNode(),
 					SimulationRelationships.CURRENT_STATE);
 			tx.success();
 		} finally {
@@ -159,7 +160,8 @@ public class SimulationNode extends NodeDelegate {
 					SimulationRelationships.CURRENT_TIME, Direction.OUTGOING);
 			previousTime.delete();
 			this.createRelationshipTo(
-					SimulationTimeNode.get(getGraphDatabase(), time),
+					SimulationTimeNode.get(getGraphDatabase(), time)
+							.getUnderlyingNode(),
 					SimulationRelationships.CURRENT_TIME);
 			tx.success();
 		} finally {
@@ -190,7 +192,8 @@ public class SimulationNode extends NodeDelegate {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
 			Relationship paramRel = this.createRelationshipTo(
-					SimulationParameterNode.get(getGraphDatabase(), name),
+					SimulationParameterNode.get(getGraphDatabase(), name)
+							.getUnderlyingNode(),
 					SimulationRelationships.PARAMETER);
 			paramRel.setProperty(KEY_PARAMETER_VALUE, value);
 			tx.success();

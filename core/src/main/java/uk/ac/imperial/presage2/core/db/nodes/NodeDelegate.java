@@ -13,10 +13,14 @@ import org.neo4j.graphdb.Traverser.Order;
 public class NodeDelegate implements Node {
 
 	private final Node delegate;
-	
+
 	protected NodeDelegate(Node delegate) {
 		super();
 		this.delegate = delegate;
+	}
+
+	public Node getUnderlyingNode() {
+		return delegate;
 	}
 
 	public Relationship createRelationshipTo(Node arg0, RelationshipType arg1) {
@@ -126,6 +130,5 @@ public class NodeDelegate implements Node {
 			ReturnableEvaluator arg2, RelationshipType arg3, Direction arg4) {
 		return delegate.traverse(arg0, arg1, arg2, arg3, arg4);
 	}
-
 
 }
