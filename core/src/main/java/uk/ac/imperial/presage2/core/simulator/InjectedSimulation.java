@@ -22,7 +22,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.StorageService;
+import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.event.EventBus;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -89,22 +90,10 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 		scenario = Scenario.Builder.createFromModules(marray);
 		injector = Scenario.Builder.injector;
 		injector.injectMembers(this);
-		// start database
-		if (database != null) {
-			try {
-				database.start();
-			} catch (Exception e) {
-				logger.fatal("Error starting database", e);
-				throw new RuntimeException(e);
-			}
-		}
+
 		simulator = injector.getInstance(Simulator.class);
 		this.addToScenario(scenario);
 
-		// add simulation to database
-		if (storage != null) {
-			storage.insertSimulation(this);
-		}
 		this.state = SimulationState.READY;
 	}
 
@@ -122,8 +111,14 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 
 	@Override
 	@Inject(optional = true)
-	protected void setStorage(StorageService storage) {
-		super.setStorage(storage);
+	protected void setGraphDB(GraphDB db) {
+		super.setGraphDB(db);
+	}
+
+	@Override
+	@Inject
+	protected void setEventBus(EventBus e) {
+		super.setEventBus(e);
 	}
 
 }

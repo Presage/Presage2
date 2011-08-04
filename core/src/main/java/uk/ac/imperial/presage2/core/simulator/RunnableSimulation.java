@@ -22,6 +22,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,13 +31,16 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import com.google.inject.AbstractModule;
-
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.StorageService;
+import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.nodes.SimulationNode;
+import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventBusModule;
+import uk.ac.imperial.presage2.core.event.EventListener;
+
+import com.google.inject.AbstractModule;
 
 /**
  * <p>
@@ -62,7 +66,8 @@ public abstract class RunnableSimulation implements Runnable {
 	protected Simulator simulator;
 
 	protected DatabaseService database;
-	protected StorageService storage;
+	protected GraphDB graphDb;
+	protected SimulationNode simNode;
 
 	private Map<String, Field> fieldParameters = new HashMap<String, Field>();
 
@@ -141,6 +146,36 @@ public abstract class RunnableSimulation implements Runnable {
 	 */
 	public Simulator getSimulator() {
 		return this.simulator;
+	}
+
+	private void initDatabase() {
+		if (this.graphDb != null) {
+			simNode = SimulationNode.create(graphDb,
+					getClass().getSimpleName(), getClass().getCanonicalName(),
+					getState().name(), getCurrentSimulationTime().intValue(),
+					getSimulationFinishTime().intValue());
+			for (String s : getParameters().keySet()) {
+				simNode.addParameter(s, getParameter(s));
+			}
+			simNode.setStartedAt(new Date().getTime());
+		}
+	}
+
+	private void updateDatabase() {
+		if (this.graphDb != null) {
+			if (!getState().name().equals(simNode.getState())) {
+				simNode.setState(getState().name());
+				if (getState() == SimulationState.COMPLETE) {
+					simNode.setFinishedAt(new Date().getTime());
+				}
+			}
+			simNode.setCurrentTime(getCurrentSimulationTime().intValue());
+		}
+	}
+
+	@EventListener
+	public void onNewTimeCycle(EndOfTimeCycle e) {
+		updateDatabase();
 	}
 
 	final public Object getParameter(String name) {
@@ -249,8 +284,12 @@ public abstract class RunnableSimulation implements Runnable {
 		this.database = database;
 	}
 
-	protected void setStorage(StorageService storage) {
-		this.storage = storage;
+	protected void setGraphDB(GraphDB db) {
+		this.graphDb = db;
+	}
+
+	protected void setEventBus(EventBus e) {
+		e.subscribe(this);
 	}
 
 	/**
@@ -338,6 +377,14 @@ public abstract class RunnableSimulation implements Runnable {
 	@Override
 	public void run() {
 
+		if (this.database != null) {
+			try {
+				this.database.start();
+				initDatabase();
+			} catch (Exception e) {
+				logger.warn("Failed to start database.", e);
+			}
+		}
 		this.state = SimulationState.INITIALISING;
 		updateDatabase();
 		this.simulator.initialise();
@@ -356,12 +403,6 @@ public abstract class RunnableSimulation implements Runnable {
 			this.database.stop();
 		}
 		this.simulator.shutdown();
-	}
-
-	private void updateDatabase() {
-		if (this.storage != null) {
-			this.storage.updateSimulation();
-		}
 	}
 
 	/**
