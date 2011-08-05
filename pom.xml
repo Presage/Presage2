@@ -3,7 +3,7 @@
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.2.3-SNAPSHOT</version>
+	<version>0.2.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
@@ -117,7 +117,8 @@
 						http://google-guice.googlecode.com/svn/trunk/javadoc
 						-apiversion ${project.version}
 						-since http://presage.github.com/docs/javadoc/tags/0.2.1/reference/current.xml 0.2.1
-						-since http://presage.github.com/docs/javadoc/branches/master/reference/current.xml 0.2.2
+						-since http://presage.github.com/docs/javadoc/tags/0.2.2/reference/current.xml 0.2.2
+						-since http://presage.github.com/docs/javadoc/branches/master/reference/current.xml 0.2.3
 						-d ${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
