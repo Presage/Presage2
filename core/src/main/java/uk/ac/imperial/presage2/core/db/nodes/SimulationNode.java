@@ -94,7 +94,13 @@ public class SimulationNode extends NodeDelegate {
 	}
 
 	public void setStartedAt(long time) {
-		this.setProperty(KEY_STARTED_AT, time);
+		Transaction tx = this.getGraphDatabase().beginTx();
+		try {
+			this.setProperty(KEY_STARTED_AT, time);
+			tx.success();
+		} finally {
+			tx.finish();
+		}
 	}
 
 	public long getFinishedAt() {
