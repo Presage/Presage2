@@ -383,6 +383,8 @@ public abstract class RunnableSimulation implements Runnable {
 				initDatabase();
 			} catch (Exception e) {
 				logger.warn("Failed to start database.", e);
+				this.database = null;
+				this.graphDb = null;
 			}
 		}
 		this.state = SimulationState.INITIALISING;
