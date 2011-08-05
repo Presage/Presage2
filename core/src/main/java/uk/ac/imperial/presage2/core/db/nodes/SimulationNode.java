@@ -34,7 +34,7 @@ import uk.ac.imperial.presage2.core.db.GraphDB.BaseRelationships;
 public class SimulationNode extends NodeDelegate {
 
 	enum SimulationRelationships implements RelationshipType {
-		SIMULATION, CONSISTS_OF, CURRENT_STATE, PARAMETER, CURRENT_TIME, FINISH_TIME
+		SIMULATION, CONSISTS_OF, CURRENT_STATE, PREVIOUS_STATE, PARAMETER, CURRENT_TIME, FINISH_TIME
 	}
 
 	private static final String KEY_NAME = "name";
@@ -43,6 +43,7 @@ public class SimulationNode extends NodeDelegate {
 	private static final String KEY_STARTED_AT = "startedAt";
 	private static final String KEY_FINISHED_AT = "finishedAt";
 
+	private static final String KEY_PREV_STATE_TIME = "timestamp";
 	private static final String KEY_PARAMETER_VALUE = "value";
 
 	public static SimulationNode create(GraphDatabaseService db, String name,
@@ -158,8 +159,27 @@ public class SimulationNode extends NodeDelegate {
 	public void setState(String newState) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
-			this.getSingleRelationship(SimulationRelationships.CURRENT_STATE,
-					Direction.OUTGOING).delete();
+			Relationship oldStateRel = null;
+			try {
+				oldStateRel = this.getSingleRelationship(
+						SimulationRelationships.CURRENT_STATE,
+						Direction.OUTGOING);
+			} catch (RuntimeException e) {
+				// > 1 current_state relationship
+				for (Relationship r : this.getRelationships(
+						SimulationRelationships.CURRENT_STATE,
+						Direction.OUTGOING)) {
+					if (oldStateRel == null)
+						oldStateRel = r;
+					else
+						r.delete();
+				}
+			}
+			Relationship prevState = this.createRelationshipTo(
+					oldStateRel.getEndNode(),
+					SimulationRelationships.PREVIOUS_STATE);
+			prevState.setProperty(KEY_PREV_STATE_TIME, new Date().getTime());
+			oldStateRel.delete();
 			this.createRelationshipTo(
 					SimulationStateNode.get(this.getGraphDatabase(), newState)
 							.getUnderlyingNode(),
