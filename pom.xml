@@ -3,7 +3,7 @@
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.2.3</version>
+	<version>0.2.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
