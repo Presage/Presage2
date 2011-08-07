@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.db.nodes;
+package uk.ac.imperial.presage2.db.graph;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -28,7 +28,7 @@ import org.neo4j.graphdb.StopEvaluator;
 import org.neo4j.graphdb.Traverser;
 import org.neo4j.graphdb.Traverser.Order;
 
-public class NodeDelegate implements Node {
+class NodeDelegate implements Node {
 
 	private final Node delegate;
 

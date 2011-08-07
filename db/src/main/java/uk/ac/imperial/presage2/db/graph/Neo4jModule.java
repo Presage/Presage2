@@ -16,7 +16,11 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.db;
+package uk.ac.imperial.presage2.db.graph;
+
+import uk.ac.imperial.presage2.core.db.DatabaseModule;
+import uk.ac.imperial.presage2.core.db.DatabaseService;
+import uk.ac.imperial.presage2.core.db.GraphDB;
 
 import com.google.inject.Singleton;
 
@@ -25,7 +29,7 @@ public class Neo4jModule extends DatabaseModule {
 	public Neo4jModule() {
 		super();
 	}
-	
+
 	@Override
 	protected void configure() {
 		bind(Neo4jDatabase.class).in(Singleton.class);

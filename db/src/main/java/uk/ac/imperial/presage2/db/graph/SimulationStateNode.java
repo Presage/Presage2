@@ -16,45 +16,41 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.db.nodes;
+package uk.ac.imperial.presage2.db.graph;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
-import uk.ac.imperial.presage2.core.db.GraphDB.BaseRelationships;
+import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 
-public class SimulationParameterNode extends NodeDelegate {
+class SimulationStateNode extends NodeDelegate {
 
-	enum ParameterRelationships implements RelationshipType {
-		PARAMETER_TYPE
+	enum StateRelationships implements RelationshipType {
+		STATE
 	}
 
 	static final String KEY_NAME = "name";
 
-	static SimulationParameterNode get(GraphDatabaseService db,
-			String parameterName) {
-		Node base = db
-				.getReferenceNode()
-				.getSingleRelationship(BaseRelationships.SIMULATION_PARAMETERS,
-						Direction.OUTGOING).getEndNode();
-		for (Relationship r : base
-				.getRelationships(ParameterRelationships.PARAMETER_TYPE)) {
+	static SimulationStateNode get(GraphDatabaseService db,
+			final String state) {
+		Node base = Neo4jDatabase.getSubRefNode(db, SubRefs.SIMULATION_STATES);
+		for (Relationship r : base.getRelationships(StateRelationships.STATE)) {
 			if (r.getEndNode().getProperty(KEY_NAME).toString()
-					.equalsIgnoreCase(parameterName)) {
-				return new SimulationParameterNode(r.getEndNode());
+					.equalsIgnoreCase(state)) {
+				return new SimulationStateNode(r.getEndNode());
 			}
 		}
+		// create new node if it doesn't exist yet
 		Transaction tx = db.beginTx();
-		SimulationParameterNode s = null;
+		SimulationStateNode s = null;
 		try {
 			Node n = db.createNode();
-			n.setProperty("name", parameterName);
-			base.createRelationshipTo(n, ParameterRelationships.PARAMETER_TYPE);
-			s = new SimulationParameterNode(n);
+			n.setProperty(KEY_NAME, state);
+			base.createRelationshipTo(n, StateRelationships.STATE);
+			s = new SimulationStateNode(n);
 			tx.success();
 		} finally {
 			tx.finish();
@@ -62,8 +58,8 @@ public class SimulationParameterNode extends NodeDelegate {
 		return s;
 	}
 
-	protected SimulationParameterNode(Node delegate) {
-		super(delegate);
+	SimulationStateNode(Node underlyingNode) {
+		super(underlyingNode);
 	}
 
 	public String getName() {

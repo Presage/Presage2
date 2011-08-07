@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.db.nodes;
+package uk.ac.imperial.presage2.db.graph;
 
 import java.util.Date;
 import java.util.Hashtable;
@@ -30,17 +30,16 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 
-import com.google.inject.Inject;
-
-import uk.ac.imperial.presage2.core.db.GraphDB.BaseRelationships;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
+import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 
-public class SimulationNode extends NodeDelegate implements
-		PersistentSimulation {
+import com.google.inject.Inject;
+
+class SimulationNode extends NodeDelegate implements PersistentSimulation {
 
 	enum SimulationRelationships implements RelationshipType {
-		SIMULATIONS, SIMULATION, CONSISTS_OF, CURRENT_STATE, PREVIOUS_STATE, PARAMETER, CURRENT_TIME, FINISH_TIME
+		SIMULATION, CONSISTS_OF, CURRENT_STATE, PREVIOUS_STATE, PARAMETER, CURRENT_TIME, FINISH_TIME
 	}
 
 	private static final String KEY_ID = "id";
@@ -113,14 +112,14 @@ public class SimulationNode extends NodeDelegate implements
 
 		private Node getSubRefNode() {
 			Relationship r = db.getReferenceNode().getSingleRelationship(
-					SimulationRelationships.SIMULATIONS, Direction.OUTGOING);
+					SubRefs.SIMULATIONS, Direction.OUTGOING);
 			if (r == null) {
 				Transaction tx = db.beginTx();
 				try {
 					Node subRef = db.createNode();
 					subRef.setProperty(KEY_COUNTER, 0L);
 					r = db.getReferenceNode().createRelationshipTo(subRef,
-							SimulationRelationships.SIMULATIONS);
+							SubRefs.SIMULATIONS);
 					tx.success();
 				} finally {
 					tx.finish();
@@ -147,7 +146,7 @@ public class SimulationNode extends NodeDelegate implements
 			n.setProperty(KEY_CLASSNAME, classname);
 			n.setProperty(KEY_CREATED_AT, new Date().getTime());
 			db.getReferenceNode()
-					.getSingleRelationship(BaseRelationships.SIMULATIONS,
+					.getSingleRelationship(SubRefs.SIMULATIONS,
 							Direction.OUTGOING)
 					.getEndNode()
 					.createRelationshipTo(n, SimulationRelationships.SIMULATION);

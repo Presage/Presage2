@@ -1,8 +1,9 @@
-package uk.ac.imperial.presage2.core.db.nodes;
+package uk.ac.imperial.presage2.db.graph;
 
 import java.util.UUID;
 
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -10,10 +11,9 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.RelationshipIndex;
 
-import uk.ac.imperial.presage2.core.db.GraphDB;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
-public class AgentNode extends NodeDelegate {
+class AgentNode extends NodeDelegate {
 
 	enum AgentRelationships implements RelationshipType {
 		PARTICIPANT_IN
@@ -32,7 +32,7 @@ public class AgentNode extends NodeDelegate {
 		super(delegate);
 	}
 
-	public static AgentNode create(GraphDB db, Participant p) {
+	public static AgentNode create(GraphDatabaseService db, Participant p) {
 		Transaction tx = db.beginTx();
 		Index<Node> agentIndex = db.index().forNodes(INDEX_ID);
 		AgentNode a = null;

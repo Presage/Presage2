@@ -16,16 +16,15 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.db.nodes;
+package uk.ac.imperial.presage2.db.graph;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 
-import uk.ac.imperial.presage2.core.db.GraphDB.BaseRelationships;
+import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 
 public class SimulationTimeNode extends NodeDelegate {
 
@@ -46,11 +45,7 @@ public class SimulationTimeNode extends NodeDelegate {
 			Transaction tx = db.beginTx();
 			SimulationTimeNode t = null;
 			try {
-				Node base = db
-						.getReferenceNode()
-						.getSingleRelationship(
-								BaseRelationships.SIMULATION_TIMESTEPS,
-								Direction.OUTGOING).getEndNode();
+				Node base = Neo4jDatabase.getSubRefNode(db, SubRefs.SIMULATION_TIMESTEPS);
 				Node n = db.createNode();
 				n.setProperty(KEY_VALUE, time);
 				base.createRelationshipTo(n, TimeRelationships.TIME);

@@ -18,16 +18,10 @@
  */
 package uk.ac.imperial.presage2.core.db;
 
-import org.neo4j.graphdb.RelationshipType;
-
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 
 public interface GraphDB {
-
-	public enum BaseRelationships implements RelationshipType {
-		SIMULATIONS, SIMULATION_STATES, SIMULATION_PARAMETERS, SIMULATION_TIMESTEPS, PLUGINS, AGENTS
-	}
 
 	public SimulationFactory getSimulationFactory();
 
