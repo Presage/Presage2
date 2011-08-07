@@ -135,35 +135,6 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		}
 	}
 
-	public static PersistentSimulation create(GraphDatabaseService db,
-			String name, String classname, String state, int currentTime,
-			int finishTime) {
-		Transaction tx = db.beginTx();
-		PersistentSimulation s = null;
-		try {
-			Node n = db.createNode();
-			n.setProperty(KEY_NAME, name);
-			n.setProperty(KEY_CLASSNAME, classname);
-			n.setProperty(KEY_CREATED_AT, new Date().getTime());
-			db.getReferenceNode()
-					.getSingleRelationship(SubRefs.SIMULATIONS,
-							Direction.OUTGOING)
-					.getEndNode()
-					.createRelationshipTo(n, SimulationRelationships.SIMULATION);
-			n.createRelationshipTo(SimulationStateNode.get(db, state)
-					.getUnderlyingNode(), SimulationRelationships.CURRENT_STATE);
-			n.createRelationshipTo(SimulationTimeNode.get(db, currentTime)
-					.getUnderlyingNode(), SimulationRelationships.CURRENT_TIME);
-			n.createRelationshipTo(SimulationTimeNode.get(db, finishTime)
-					.getUnderlyingNode(), SimulationRelationships.FINISH_TIME);
-			s = new SimulationNode(n);
-			tx.success();
-		} finally {
-			tx.finish();
-		}
-		return s;
-	}
-
 	SimulationNode(Node underlyingNode) {
 		super(underlyingNode);
 	}
