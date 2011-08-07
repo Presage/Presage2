@@ -35,7 +35,7 @@ import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.GraphDB;
-import uk.ac.imperial.presage2.core.db.nodes.SimulationNode;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventBusModule;
 import uk.ac.imperial.presage2.core.event.EventListener;
@@ -67,7 +67,7 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected DatabaseService database;
 	protected GraphDB graphDb;
-	protected SimulationNode simNode;
+	protected PersistentSimulation simPersist;
 
 	private Map<String, Field> fieldParameters = new HashMap<String, Field>();
 
@@ -150,26 +150,26 @@ public abstract class RunnableSimulation implements Runnable {
 
 	private void initDatabase() {
 		if (this.graphDb != null) {
-			simNode = SimulationNode.create(graphDb,
+			simPersist = graphDb.getSimulationFactory().create(
 					getClass().getSimpleName(), getClass().getCanonicalName(),
-					getState().name(), getCurrentSimulationTime().intValue(),
-					getSimulationFinishTime().intValue());
+					getState().name(), getSimulationFinishTime().intValue());
+			graphDb.setSimulation(simPersist);
 			for (String s : getParameters().keySet()) {
-				simNode.addParameter(s, getParameter(s));
+				simPersist.addParameter(s, getParameter(s));
 			}
-			simNode.setStartedAt(new Date().getTime());
+			simPersist.setStartedAt(new Date().getTime());
 		}
 	}
 
 	private void updateDatabase() {
 		if (this.graphDb != null) {
-			if (!getState().name().equals(simNode.getState())) {
-				simNode.setState(getState().name());
+			if (!getState().name().equals(simPersist.getState())) {
+				simPersist.setState(getState().name());
 				if (getState() == SimulationState.COMPLETE) {
-					simNode.setFinishedAt(new Date().getTime());
+					simPersist.setFinishedAt(new Date().getTime());
 				}
 			}
-			simNode.setCurrentTime(getCurrentSimulationTime().intValue());
+			simPersist.setCurrentTime(getCurrentSimulationTime().intValue());
 		}
 	}
 

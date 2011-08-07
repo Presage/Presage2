@@ -35,7 +35,7 @@ public class SimulationStateNode extends NodeDelegate {
 
 	static final String KEY_NAME = "name";
 
-	public static SimulationStateNode get(GraphDatabaseService db,
+	static SimulationStateNode get(GraphDatabaseService db,
 			final String state) {
 		Node base = db
 				.getReferenceNode()

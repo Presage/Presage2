@@ -35,7 +35,7 @@ public class SimulationTimeNode extends NodeDelegate {
 
 	static final String KEY_VALUE = "time";
 
-	public static SimulationTimeNode get(GraphDatabaseService db, final int time) {
+	static SimulationTimeNode get(GraphDatabaseService db, final int time) {
 		Index<Node> timeIndex = db.index().forNodes("timesteps");
 		Node timeNode = timeIndex.get(KEY_VALUE, time).getSingle();
 		if (timeNode != null) {

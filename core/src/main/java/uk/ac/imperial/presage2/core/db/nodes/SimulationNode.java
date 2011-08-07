@@ -28,15 +28,22 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.index.Index;
+
+import com.google.inject.Inject;
 
 import uk.ac.imperial.presage2.core.db.GraphDB.BaseRelationships;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
+import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 
-public class SimulationNode extends NodeDelegate {
+public class SimulationNode extends NodeDelegate implements
+		PersistentSimulation {
 
 	enum SimulationRelationships implements RelationshipType {
-		SIMULATION, CONSISTS_OF, CURRENT_STATE, PREVIOUS_STATE, PARAMETER, CURRENT_TIME, FINISH_TIME
+		SIMULATIONS, SIMULATION, CONSISTS_OF, CURRENT_STATE, PREVIOUS_STATE, PARAMETER, CURRENT_TIME, FINISH_TIME
 	}
 
+	private static final String KEY_ID = "id";
 	private static final String KEY_NAME = "name";
 	private static final String KEY_CLASSNAME = "classname";
 	private static final String KEY_CREATED_AT = "createdAt";
@@ -46,10 +53,94 @@ public class SimulationNode extends NodeDelegate {
 	private static final String KEY_PREV_STATE_TIME = "timestamp";
 	private static final String KEY_PARAMETER_VALUE = "value";
 
-	public static SimulationNode create(GraphDatabaseService db, String name,
-			String classname, String state, int currentTime, int finishTime) {
+	static class Factory implements SimulationFactory {
+
+		final GraphDatabaseService db;
+
+		private static final String KEY_COUNTER = "id_counter";
+		private static final String SIMULATION_INDEX = "simulations";
+
+		@Inject
+		Factory(GraphDatabaseService db) {
+			this.db = db;
+		}
+
+		@Override
+		public PersistentSimulation create(String name, String classname,
+				String state, int finishTime) {
+			Transaction tx = db.beginTx();
+			PersistentSimulation s = null;
+			try {
+				// create node and properties
+				Node n = db.createNode();
+				long simID = getNextId();
+				n.setProperty(KEY_ID, simID);
+				n.setProperty(KEY_NAME, name);
+				n.setProperty(KEY_CLASSNAME, classname);
+				n.setProperty(KEY_CREATED_AT, new Date().getTime());
+				// relationships to subref, state, times
+				getSubRefNode().createRelationshipTo(n,
+						SimulationRelationships.SIMULATION);
+				n.createRelationshipTo(SimulationStateNode.get(db, state)
+						.getUnderlyingNode(),
+						SimulationRelationships.CURRENT_STATE);
+				n.createRelationshipTo(SimulationTimeNode.get(db, 0)
+						.getUnderlyingNode(),
+						SimulationRelationships.CURRENT_TIME);
+				n.createRelationshipTo(SimulationTimeNode.get(db, finishTime)
+						.getUnderlyingNode(),
+						SimulationRelationships.FINISH_TIME);
+				// index on id
+				Index<Node> simIndex = db.index().forNodes(SIMULATION_INDEX);
+				simIndex.add(n, KEY_ID, simID);
+				s = new SimulationNode(n);
+				tx.success();
+			} finally {
+				tx.finish();
+			}
+			return s;
+		}
+
+		@Override
+		public PersistentSimulation get(long simulationID) {
+			Index<Node> simIndex = db.index().forNodes(SIMULATION_INDEX);
+			Node result = simIndex.get(KEY_ID, simulationID).getSingle();
+			if (result == null)
+				return null;
+			else
+				return new SimulationNode(result);
+		}
+
+		private Node getSubRefNode() {
+			Relationship r = db.getReferenceNode().getSingleRelationship(
+					SimulationRelationships.SIMULATIONS, Direction.OUTGOING);
+			if (r == null) {
+				Transaction tx = db.beginTx();
+				try {
+					Node subRef = db.createNode();
+					subRef.setProperty(KEY_COUNTER, 0L);
+					r = db.getReferenceNode().createRelationshipTo(subRef,
+							SimulationRelationships.SIMULATIONS);
+					tx.success();
+				} finally {
+					tx.finish();
+				}
+			}
+			return r.getEndNode();
+		}
+
+		private synchronized long getNextId() {
+			Long counter = (Long) getSubRefNode().getProperty(KEY_COUNTER);
+			getSubRefNode().setProperty(KEY_COUNTER, new Long(counter + 1));
+			return counter;
+		}
+	}
+
+	public static PersistentSimulation create(GraphDatabaseService db,
+			String name, String classname, String state, int currentTime,
+			int finishTime) {
 		Transaction tx = db.beginTx();
-		SimulationNode s = null;
+		PersistentSimulation s = null;
 		try {
 			Node n = db.createNode();
 			n.setProperty(KEY_NAME, name);
@@ -78,22 +169,27 @@ public class SimulationNode extends NodeDelegate {
 		super(underlyingNode);
 	}
 
+	@Override
 	public String getName() {
 		return (String) this.getProperty(KEY_NAME);
 	}
 
+	@Override
 	public String getClassName() {
 		return (String) this.getProperty(KEY_CLASSNAME);
 	}
 
+	@Override
 	public long getCreatedAt() {
 		return (Long) this.getProperty(KEY_CREATED_AT);
 	}
 
+	@Override
 	public long getStartedAt() {
 		return (Long) this.getProperty(KEY_STARTED_AT, 0);
 	}
 
+	@Override
 	public void setStartedAt(long time) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
@@ -104,10 +200,12 @@ public class SimulationNode extends NodeDelegate {
 		}
 	}
 
+	@Override
 	public long getFinishedAt() {
 		return (Long) this.getProperty(KEY_FINISHED_AT, 0);
 	}
 
+	@Override
 	public void setFinishedAt(long time) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
@@ -118,7 +216,8 @@ public class SimulationNode extends NodeDelegate {
 		}
 	}
 
-	public SimulationNode getParentSimulation() {
+	@Override
+	public PersistentSimulation getParentSimulation() {
 		Relationship parentRel = this.getSingleRelationship(
 				SimulationRelationships.CONSISTS_OF, Direction.INCOMING);
 		if (parentRel == null)
@@ -127,10 +226,16 @@ public class SimulationNode extends NodeDelegate {
 			return new SimulationNode(parentRel.getStartNode());
 	}
 
-	public void setParentSimulation(SimulationNode parent) {
+	@Override
+	public void setParentSimulation(PersistentSimulation parent) {
+		if (!(parent instanceof SimulationNode)) {
+			throw new IllegalArgumentException("Parent type of "
+					+ parent.getClass().getCanonicalName()
+					+ " is not compatible with SimulationNode");
+		}
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
-			parent.createRelationshipTo(this,
+			((SimulationNode) parent).createRelationshipTo(this,
 					SimulationRelationships.CONSISTS_OF);
 			tx.success();
 		} finally {
@@ -138,10 +243,16 @@ public class SimulationNode extends NodeDelegate {
 		}
 	}
 
-	public void addChild(SimulationNode child) {
+	@Override
+	public void addChild(PersistentSimulation child) {
+		if (!(child instanceof SimulationNode)) {
+			throw new IllegalArgumentException("Parent type of "
+					+ child.getClass().getCanonicalName()
+					+ " is not compatible with SimulationNode");
+		}
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
-			this.createRelationshipTo(child,
+			this.createRelationshipTo((SimulationNode) child,
 					SimulationRelationships.CONSISTS_OF);
 			tx.success();
 		} finally {
@@ -149,6 +260,7 @@ public class SimulationNode extends NodeDelegate {
 		}
 	}
 
+	@Override
 	public String getState() {
 		return (String) this
 				.getSingleRelationship(SimulationRelationships.CURRENT_STATE,
@@ -156,6 +268,7 @@ public class SimulationNode extends NodeDelegate {
 				.getProperty(SimulationStateNode.KEY_NAME);
 	}
 
+	@Override
 	public void setState(String newState) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
@@ -190,6 +303,7 @@ public class SimulationNode extends NodeDelegate {
 		}
 	}
 
+	@Override
 	public int getCurrentTime() {
 		return (Integer) this
 				.getSingleRelationship(SimulationRelationships.CURRENT_TIME,
@@ -197,6 +311,7 @@ public class SimulationNode extends NodeDelegate {
 				.getProperty(SimulationTimeNode.KEY_VALUE);
 	}
 
+	@Override
 	public void setCurrentTime(int time) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
@@ -213,6 +328,7 @@ public class SimulationNode extends NodeDelegate {
 		}
 	}
 
+	@Override
 	public int getFinishTime() {
 		return (Integer) this
 				.getSingleRelationship(SimulationRelationships.FINISH_TIME,
@@ -220,6 +336,7 @@ public class SimulationNode extends NodeDelegate {
 				.getProperty(SimulationTimeNode.KEY_VALUE);
 	}
 
+	@Override
 	public Map<String, Object> getParameters() {
 		final Map<String, Object> params = new Hashtable<String, Object>();
 		for (Relationship r : this
@@ -232,6 +349,7 @@ public class SimulationNode extends NodeDelegate {
 		return params;
 	}
 
+	@Override
 	public void addParameter(String name, Object value) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
