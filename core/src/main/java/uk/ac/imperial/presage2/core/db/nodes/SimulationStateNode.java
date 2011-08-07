@@ -42,7 +42,8 @@ public class SimulationStateNode extends NodeDelegate {
 				.getSingleRelationship(BaseRelationships.SIMULATION_STATES,
 						Direction.OUTGOING).getEndNode();
 		for (Relationship r : base.getRelationships(StateRelationships.STATE)) {
-			if (r.getEndNode().getProperty(KEY_NAME).toString().equalsIgnoreCase(state)) {
+			if (r.getEndNode().getProperty(KEY_NAME).toString()
+					.equalsIgnoreCase(state)) {
 				return new SimulationStateNode(r.getEndNode());
 			}
 		}
