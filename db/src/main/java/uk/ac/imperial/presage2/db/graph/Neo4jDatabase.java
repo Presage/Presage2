@@ -47,6 +47,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB {
 	PersistentSimulation simulation;
 
 	private static String databasePath = "var/presagedb";
+	static final String LABEL = "label";
 
 	@Override
 	public void start() throws Exception {
@@ -93,6 +94,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB {
 			Transaction tx = db.beginTx();
 			try {
 				Node subRef = db.createNode();
+				subRef.setProperty(LABEL, type.name());
 				r = db.getReferenceNode().createRelationshipTo(subRef, type);
 				tx.success();
 			} finally {

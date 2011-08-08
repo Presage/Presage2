@@ -48,6 +48,7 @@ class SimulationStateNode extends NodeDelegate {
 		SimulationStateNode s = null;
 		try {
 			Node n = db.createNode();
+			n.setProperty(Neo4jDatabase.LABEL, "State: "+ state);
 			n.setProperty(KEY_NAME, state);
 			base.createRelationshipTo(n, StateRelationships.STATE);
 			s = new SimulationStateNode(n);

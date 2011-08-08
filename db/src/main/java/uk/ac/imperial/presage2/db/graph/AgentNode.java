@@ -56,6 +56,7 @@ class AgentNode extends NodeDelegate {
 		AgentNode a = null;
 		try {
 			Node n = db.createNode();
+			n.setProperty(Neo4jDatabase.LABEL, p.getName());
 			n.setProperty(KEY_ID, p.getID().toString());
 			n.setProperty(KEY_ID_RAW, rawUUID(p.getID()));
 			agentIndex.add(n, KEY_ID_RAW, rawUUID(p.getID()));

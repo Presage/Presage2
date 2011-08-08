@@ -73,6 +73,7 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 				// create node and properties
 				Node n = db.createNode();
 				long simID = getNextId();
+				n.setProperty(Neo4jDatabase.LABEL, "Simulation "+simID);
 				n.setProperty(KEY_ID, simID);
 				n.setProperty(KEY_NAME, name);
 				n.setProperty(KEY_CLASSNAME, classname);
@@ -117,6 +118,7 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 				Transaction tx = db.beginTx();
 				try {
 					Node subRef = db.createNode();
+					subRef.setProperty(Neo4jDatabase.LABEL, "Sim Subref");
 					subRef.setProperty(KEY_COUNTER, 0L);
 					r = db.getReferenceNode().createRelationshipTo(subRef,
 							SubRefs.SIMULATIONS);

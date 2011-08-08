@@ -48,6 +48,7 @@ class SimulationParameterNode extends NodeDelegate {
 		SimulationParameterNode s = null;
 		try {
 			Node n = db.createNode();
+			n.setProperty(Neo4jDatabase.LABEL, "Property: "+ parameterName);
 			n.setProperty("name", parameterName);
 			base.createRelationshipTo(n, ParameterRelationships.PARAMETER_TYPE);
 			s = new SimulationParameterNode(n);
