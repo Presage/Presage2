@@ -16,31 +16,22 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.db.graph;
+package uk.ac.imperial.presage2.core.db.persistent;
 
-import org.neo4j.graphdb.GraphDatabaseService;
+import java.util.UUID;
 
-import uk.ac.imperial.presage2.core.db.DatabaseModule;
-import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.GraphDB;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
+public interface PersistentAgent {
 
-import com.google.inject.Singleton;
-
-public class Neo4jModule extends DatabaseModule {
-
-	public Neo4jModule() {
-		super();
-	}
-
-	@Override
-	protected void configure() {
-		bind(Neo4jDatabase.class).in(Singleton.class);
-		bind(DatabaseService.class).to(Neo4jDatabase.class);
-		bind(GraphDB.class).to(Neo4jDatabase.class);
-		bind(GraphDatabaseService.class).toProvider(Neo4jDatabase.class);
-
-		bind(PersistentAgentFactory.class).to(AgentNode.Factory.class);
-	}
-
+	UUID getID();
+	
+	String getName();
+	
+	void setRegisteredAt(int time);
+	
+	void setDeRegisteredAt(int time);
+	
+	Object getProperty(String key);
+	
+	void setProperty(String key, Object value);
+	
 }

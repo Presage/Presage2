@@ -23,15 +23,18 @@ import java.util.UUID;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.RelationshipIndex;
 
-import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 
-class AgentNode extends NodeDelegate {
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+class AgentNode extends NodeDelegate implements PersistentAgent {
 
 	enum AgentRelationships implements RelationshipType {
 		PARTICIPANT_IN
@@ -50,34 +53,49 @@ class AgentNode extends NodeDelegate {
 		super(delegate);
 	}
 
-	public static AgentNode create(GraphDatabaseService db, Participant p) {
-		Transaction tx = db.beginTx();
-		Index<Node> agentIndex = db.index().forNodes(INDEX_ID);
-		AgentNode a = null;
-		try {
-			Node n = db.createNode();
-			n.setProperty(Neo4jDatabase.LABEL, p.getName());
-			n.setProperty(KEY_ID, p.getID().toString());
-			n.setProperty(KEY_ID_RAW, rawUUID(p.getID()));
-			agentIndex.add(n, KEY_ID_RAW, rawUUID(p.getID()));
-			n.setProperty(KEY_NAME, p.getName());
-			a = new AgentNode(n);
-			tx.success();
-		} finally {
-			tx.finish();
-		}
-		return a;
-	}
+	@Singleton
+	static class Factory implements PersistentAgentFactory {
 
-	public static AgentNode get(SimulationNode simulation, UUID agentID) {
-		RelationshipIndex agentIndex = simulation.getGraphDatabase().index()
-				.forRelationships(INDEX_RELATIONSHIP);
-		Relationship r = agentIndex.get(KEY_ID_RAW, rawUUID(agentID), null,
-				simulation.getUnderlyingNode()).getSingle();
-		if (r == null)
-			return null;
-		else
-			return new AgentNode(r.getStartNode());
+		GraphDB graph;
+		GraphDatabaseService db;
+
+		@Inject
+		Factory(GraphDB graph, GraphDatabaseService db) {
+			this.graph = graph;
+			this.db = db;
+		}
+
+		@Override
+		public PersistentAgent create(UUID id, String name) {
+			Transaction tx = db.beginTx();
+			Index<Node> agentIndex = db.index().forNodes(INDEX_ID);
+			AgentNode a = null;
+			try {
+				Node n = db.createNode();
+				n.setProperty(Neo4jDatabase.LABEL, name);
+				n.setProperty(KEY_ID, id.toString());
+				n.setProperty(KEY_ID_RAW, rawUUID(id));
+				agentIndex.add(n, KEY_ID_RAW, rawUUID(id));
+				n.setProperty(KEY_NAME, name);
+				a = new AgentNode(n);
+				a.addToSimulation((SimulationNode) this.graph.getSimulation());
+				tx.success();
+			} finally {
+				tx.finish();
+			}
+			return a;
+		}
+
+		@Override
+		public PersistentAgent get(UUID id) {
+			Index<Node> agentIndex = db.index().forNodes(INDEX_ID);
+			Node n = agentIndex.get(KEY_ID_RAW, rawUUID(id)).getSingle();
+			if (n == null)
+				return null;
+			else
+				return new AgentNode(n);
+		}
+
 	}
 
 	private static long[] rawUUID(UUID id) {
@@ -98,19 +116,23 @@ class AgentNode extends NodeDelegate {
 
 	}
 
+	@Override
 	public UUID getID() {
 		int[] rawID = (int[]) this.getProperty(KEY_ID_RAW);
 		return new UUID(rawID[0], rawID[1]);
 	}
 
+	@Override
 	public String getName() {
 		return (String) this.getProperty(KEY_NAME);
 	}
 
+	@Override
 	public void setRegisteredAt(int time) {
 		setPropertyOnParticipantInRelationship(KEY_REGISTERED_AT, time);
 	}
 
+	@Override
 	public void setDeRegisteredAt(int time) {
 		setPropertyOnParticipantInRelationship(KEY_DEREGISTERED_AT, time);
 	}
@@ -125,6 +147,17 @@ class AgentNode extends NodeDelegate {
 			tx.failure();
 			throw new RuntimeException(
 					"Agent does not have a simulation relationship", e);
+		} finally {
+			tx.finish();
+		}
+	}
+
+	@Override
+	public void setProperty(String arg0, Object arg1) {
+		Transaction tx = this.getGraphDatabase().beginTx();
+		try {
+			super.setProperty(arg0, arg1);
+			tx.success();
 		} finally {
 			tx.finish();
 		}

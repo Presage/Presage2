@@ -27,23 +27,28 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.GraphDB;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 
-class Neo4jDatabase implements DatabaseService, GraphDB {
+@Singleton
+class Neo4jDatabase implements DatabaseService, GraphDB,
+		Provider<GraphDatabaseService> {
 
 	enum SubRefs implements RelationshipType {
 		SIMULATIONS, SIMULATION_STATES, SIMULATION_PARAMETERS, SIMULATION_TIMESTEPS, PLUGINS, AGENTS
 	}
-	
+
 	protected final Logger logger = Logger.getLogger(Neo4jDatabase.class);
 
 	GraphDatabaseService graphDB = null;
-	
+
 	SimulationFactory simFactory;
-	
+
 	PersistentSimulation simulation;
 
 	private static String databasePath = "var/presagedb";
@@ -86,7 +91,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB {
 	public void setSimulation(PersistentSimulation sim) {
 		simulation = sim;
 	}
-	
+
 	static Node getSubRefNode(GraphDatabaseService db, SubRefs type) {
 		Relationship r = db.getReferenceNode().getSingleRelationship(type,
 				Direction.OUTGOING);
@@ -102,6 +107,18 @@ class Neo4jDatabase implements DatabaseService, GraphDB {
 			}
 		}
 		return r.getEndNode();
+	}
+
+	@Override
+	public GraphDatabaseService get() {
+		if(graphDB == null) {
+			try {
+				this.start();
+			} catch (Exception e) {
+				logger.fatal("Exception when starting database", e);
+			}
+		}
+		return graphDB;
 	}
 
 }
