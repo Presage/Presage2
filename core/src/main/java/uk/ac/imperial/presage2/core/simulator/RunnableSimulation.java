@@ -148,7 +148,7 @@ public abstract class RunnableSimulation implements Runnable {
 		return this.simulator;
 	}
 
-	private void initDatabase() {
+	protected void initDatabase() {
 		if (this.graphDb != null) {
 			simPersist = graphDb.getSimulationFactory().create(
 					getClass().getSimpleName(), getClass().getCanonicalName(),
@@ -282,6 +282,12 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void setDatabase(DatabaseService database) {
 		this.database = database;
+		try {
+			this.database.start();
+		} catch (Exception e) {
+			logger.warn("Failed to start database.", e);
+			this.database = null;
+		}
 	}
 
 	protected void setGraphDB(GraphDB db) {
@@ -377,16 +383,6 @@ public abstract class RunnableSimulation implements Runnable {
 	@Override
 	public void run() {
 
-		if (this.database != null) {
-			try {
-				this.database.start();
-				initDatabase();
-			} catch (Exception e) {
-				logger.warn("Failed to start database.", e);
-				this.database = null;
-				this.graphDb = null;
-			}
-		}
 		this.state = SimulationState.INITIALISING;
 		updateDatabase();
 		this.simulator.initialise();

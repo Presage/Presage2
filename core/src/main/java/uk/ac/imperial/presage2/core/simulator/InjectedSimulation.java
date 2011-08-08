@@ -87,9 +87,10 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 			marray[i] = mod;
 			i++;
 		}
-		scenario = Scenario.Builder.createFromModules(marray);
-		injector = Scenario.Builder.injector;
+		injector = new Scenario.Builder(marray).getInjector();
 		injector.injectMembers(this);
+		scenario = injector.getInstance(Scenario.class);
+		initDatabase();
 
 		simulator = injector.getInstance(Simulator.class);
 		this.addToScenario(scenario);
