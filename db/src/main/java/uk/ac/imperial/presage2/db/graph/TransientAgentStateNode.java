@@ -15,7 +15,7 @@ class TransientAgentStateNode extends NodeDelegate implements
 		TransientAgentState {
 
 	enum TransientAgentStateRel implements RelationshipType {
-		AT_TIME, NEXT
+		AT_TIME, NEXT_STATE
 	}
 
 	private final static String INDEX_STATE = "agent_state";
@@ -55,11 +55,11 @@ class TransientAgentStateNode extends NodeDelegate implements
 	}
 
 	void setPrevious(TransientAgentStateNode n) {
-		if (!hasRelationship(TransientAgentStateRel.NEXT, Direction.INCOMING)) {
+		if (!hasRelationship(TransientAgentStateRel.NEXT_STATE, Direction.INCOMING)) {
 			Transaction tx = getGraphDatabase().beginTx();
 			try {
 				n.createRelationshipTo(getUnderlyingNode(),
-						TransientAgentStateRel.NEXT);
+						TransientAgentStateRel.NEXT_STATE);
 				tx.success();
 			} finally {
 				tx.finish();
