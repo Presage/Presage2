@@ -34,8 +34,7 @@ class SimulationStateNode extends NodeDelegate {
 
 	static final String KEY_NAME = "name";
 
-	static SimulationStateNode get(GraphDatabaseService db,
-			final String state) {
+	static SimulationStateNode get(GraphDatabaseService db, final String state) {
 		Node base = Neo4jDatabase.getSubRefNode(db, SubRefs.SIMULATION_STATES);
 		for (Relationship r : base.getRelationships(StateRelationships.STATE)) {
 			if (r.getEndNode().getProperty(KEY_NAME).toString()
@@ -48,7 +47,7 @@ class SimulationStateNode extends NodeDelegate {
 		SimulationStateNode s = null;
 		try {
 			Node n = db.createNode();
-			n.setProperty(Neo4jDatabase.LABEL, "State: "+ state);
+			n.setProperty(Neo4jDatabase.LABEL, "State: " + state);
 			n.setProperty(KEY_NAME, state);
 			base.createRelationshipTo(n, StateRelationships.STATE);
 			s = new SimulationStateNode(n);

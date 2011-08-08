@@ -45,9 +45,10 @@ public class SimulationTimeNode extends NodeDelegate {
 			Transaction tx = db.beginTx();
 			SimulationTimeNode t = null;
 			try {
-				Node base = Neo4jDatabase.getSubRefNode(db, SubRefs.SIMULATION_TIMESTEPS);
+				Node base = Neo4jDatabase.getSubRefNode(db,
+						SubRefs.SIMULATION_TIMESTEPS);
 				Node n = db.createNode();
-				n.setProperty(Neo4jDatabase.LABEL, "Time: "+time);
+				n.setProperty(Neo4jDatabase.LABEL, "Time: " + time);
 				n.setProperty(KEY_VALUE, time);
 				base.createRelationshipTo(n, TimeRelationships.TIME);
 				t = new SimulationTimeNode(n);

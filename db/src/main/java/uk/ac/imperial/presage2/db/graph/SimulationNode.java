@@ -73,7 +73,7 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 				// create node and properties
 				Node n = db.createNode();
 				long simID = getNextId();
-				n.setProperty(Neo4jDatabase.LABEL, "Simulation "+simID);
+				n.setProperty(Neo4jDatabase.LABEL, "Simulation " + simID);
 				n.setProperty(KEY_ID, simID);
 				n.setProperty(KEY_NAME, name);
 				n.setProperty(KEY_CLASSNAME, classname);

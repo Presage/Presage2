@@ -23,6 +23,7 @@ import java.util.UUID;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
@@ -30,6 +31,7 @@ import org.neo4j.graphdb.index.Index;
 import uk.ac.imperial.presage2.core.db.GraphDB;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 
 import com.google.inject.Inject;
@@ -38,7 +40,7 @@ import com.google.inject.Singleton;
 class AgentNode extends NodeDelegate implements PersistentAgent {
 
 	enum AgentRelationships implements RelationshipType {
-		AGENT, PARTICIPANT_IN
+		AGENT, PARTICIPANT_IN, TRANSIENT_STATE
 	}
 
 	private static final String KEY_ID = "id";
@@ -48,6 +50,7 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 	private static final String KEY_DEREGISTERED_AT = "deregisteredAt";
 
 	private static final String INDEX_ID = "agentIDs";
+	private static final String INDEX_SIMS = "sim_to_agent";
 
 	protected AgentNode(Node delegate) {
 		super(delegate);
@@ -78,7 +81,7 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 				n.setProperty(KEY_ID_RAW, rawUUID(id));
 				n.setProperty(KEY_NAME, name);
 				// UUID index
-				agentIndex.add(n, KEY_ID_RAW, rawUUID(id));
+				agentIndex.add(n, KEY_ID, id.toString());
 
 				// relationship to agent subref node
 				Neo4jDatabase.getSubRefNode(db, SubRefs.AGENTS)
@@ -86,7 +89,8 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 
 				// relationship to simulation
 				a = new AgentNode(n);
-				a.addToSimulation((SimulationNode) this.graph.getSimulation());
+				a.addToSimulation((SimulationNode) this.graph.getSimulation(),
+						id);
 				tx.success();
 			} finally {
 				tx.finish();
@@ -95,13 +99,17 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 		}
 
 		@Override
-		public PersistentAgent get(UUID id) {
-			Index<Node> agentIndex = db.index().forNodes(INDEX_ID);
-			Node n = agentIndex.get(KEY_ID_RAW, rawUUID(id)).getSingle();
-			if (n == null)
+		public PersistentAgent get(PersistentSimulation sim, UUID id) {
+			Relationship agentToSim = db
+					.index()
+					.forRelationships(INDEX_SIMS)
+					.get(KEY_ID, id.toString(), null,
+							((SimulationNode) sim).getUnderlyingNode())
+					.getSingle();
+			if (agentToSim == null)
 				return null;
 			else
-				return new AgentNode(n);
+				return new AgentNode(agentToSim.getStartNode());
 		}
 
 	}
@@ -112,11 +120,13 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 		return rawID;
 	}
 
-	public void addToSimulation(SimulationNode sim) {
+	public void addToSimulation(SimulationNode sim, UUID id) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
-			this.createRelationshipTo(sim.getUnderlyingNode(),
-					AgentRelationships.PARTICIPANT_IN);
+			Relationship agentToSim = this.createRelationshipTo(
+					sim.getUnderlyingNode(), AgentRelationships.PARTICIPANT_IN);
+			this.getGraphDatabase().index().forRelationships(INDEX_SIMS)
+					.add(agentToSim, KEY_ID, id.toString());
 			tx.success();
 		} finally {
 			tx.finish();

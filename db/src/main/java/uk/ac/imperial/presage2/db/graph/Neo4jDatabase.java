@@ -18,6 +18,8 @@
  */
 package uk.ac.imperial.presage2.db.graph;
 
+import java.util.UUID;
+
 import org.apache.log4j.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -32,8 +34,10 @@ import com.google.inject.Singleton;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
+import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
 @Singleton
 class Neo4jDatabase implements DatabaseService, GraphDB,
@@ -49,7 +53,11 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 
 	SimulationFactory simFactory;
 
+	PersistentAgentFactory agentFactory;
+
 	PersistentSimulation simulation;
+
+	private Transaction txInProgress = null;
 
 	private static String databasePath = "var/presagedb";
 	static final String LABEL = "label";
@@ -61,6 +69,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 			graphDB = new EmbeddedGraphDatabase(databasePath);
 
 			simFactory = new SimulationNode.Factory(graphDB);
+			agentFactory = new AgentNode.Factory(this, get());
 		}
 	}
 
@@ -111,7 +120,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 
 	@Override
 	public GraphDatabaseService get() {
-		if(graphDB == null) {
+		if (graphDB == null) {
 			try {
 				this.start();
 			} catch (Exception e) {
@@ -119,6 +128,34 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 			}
 		}
 		return graphDB;
+	}
+
+	@Override
+	public TransientAgentState getAgentState(UUID agentID, int time) {
+		TransientAgentStateNode stateNode = TransientAgentStateNode.get(
+				(AgentNode) agentFactory.get(getSimulation(), agentID), time);
+		if (time > 0) {
+			stateNode.setPrevious(TransientAgentStateNode.get(
+					(AgentNode) agentFactory.get(getSimulation(), agentID),
+					time - 1));
+		}
+		return stateNode;
+	}
+
+	@Override
+	public synchronized void startBatchOperation() {
+		if (txInProgress == null) {
+			txInProgress = this.graphDB.beginTx();
+		}
+	}
+
+	@Override
+	public synchronized void endBatchOperation() {
+		if (txInProgress != null) {
+			txInProgress.success();
+			txInProgress.finish();
+			txInProgress = null;
+		}
 	}
 
 }

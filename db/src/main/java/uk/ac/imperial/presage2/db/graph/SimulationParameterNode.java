@@ -36,7 +36,8 @@ class SimulationParameterNode extends NodeDelegate {
 
 	static SimulationParameterNode get(GraphDatabaseService db,
 			String parameterName) {
-		Node base = Neo4jDatabase.getSubRefNode(db, SubRefs.SIMULATION_PARAMETERS);
+		Node base = Neo4jDatabase.getSubRefNode(db,
+				SubRefs.SIMULATION_PARAMETERS);
 		for (Relationship r : base
 				.getRelationships(ParameterRelationships.PARAMETER_TYPE)) {
 			if (r.getEndNode().getProperty(KEY_NAME).toString()
@@ -48,7 +49,7 @@ class SimulationParameterNode extends NodeDelegate {
 		SimulationParameterNode s = null;
 		try {
 			Node n = db.createNode();
-			n.setProperty(Neo4jDatabase.LABEL, "Property: "+ parameterName);
+			n.setProperty(Neo4jDatabase.LABEL, "Property: " + parameterName);
 			n.setProperty("name", parameterName);
 			base.createRelationshipTo(n, ParameterRelationships.PARAMETER_TYPE);
 			s = new SimulationParameterNode(n);
