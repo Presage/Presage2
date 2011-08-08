@@ -34,6 +34,7 @@ import com.google.inject.Singleton;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
@@ -56,8 +57,6 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 	PersistentAgentFactory agentFactory;
 
 	PersistentSimulation simulation;
-
-	private Transaction txInProgress = null;
 
 	private static String databasePath = "var/presagedb";
 	static final String LABEL = "label";
@@ -133,7 +132,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 	@Override
 	public TransientAgentState getAgentState(UUID agentID, int time) {
 		TransientAgentStateNode stateNode = TransientAgentStateNode.get(
-				(AgentNode) agentFactory.get(getSimulation(), agentID), time);
+				(AgentNode) getAgent(agentID), time);
 		if (time > 0) {
 			stateNode.setPrevious(TransientAgentStateNode.get(
 					(AgentNode) agentFactory.get(getSimulation(), agentID),
@@ -143,19 +142,39 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 	}
 
 	@Override
-	public synchronized void startBatchOperation() {
-		if (txInProgress == null) {
-			txInProgress = this.graphDB.beginTx();
+	public uk.ac.imperial.presage2.core.db.Transaction startTransaction() {
+		return new TransactionDelegate(this.graphDB.beginTx());
+	}
+
+	class TransactionDelegate implements
+			uk.ac.imperial.presage2.core.db.Transaction {
+
+		private final Transaction delegate;
+
+		private TransactionDelegate(Transaction delegate) {
+			super();
+			this.delegate = delegate;
+		}
+
+		@Override
+		public void failure() {
+			delegate.failure();
+		}
+
+		@Override
+		public void finish() {
+			delegate.finish();
+		}
+
+		@Override
+		public void success() {
+			delegate.success();
 		}
 	}
 
 	@Override
-	public synchronized void endBatchOperation() {
-		if (txInProgress != null) {
-			txInProgress.success();
-			txInProgress.finish();
-			txInProgress = null;
-		}
+	public PersistentAgent getAgent(UUID agentID) {
+		return agentFactory.get(getSimulation(), agentID);
 	}
 
 }

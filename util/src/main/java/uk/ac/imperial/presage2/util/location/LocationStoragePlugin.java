@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.Transaction;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
@@ -71,22 +72,26 @@ public class LocationStoragePlugin implements Plugin {
 	@Override
 	public void incrementTime() {
 		if (this.storage != null) {
-			this.storage.startBatchOperation();
-			for (UUID pid : this.membersService.getParticipants()) {
-				Location l;
-				try {
-					l = this.locService.getAgentLocation(pid);
-				} catch (Exception e) {
-					logger.debug("Exception getting agent location.", e);
-					continue;
+			Transaction tx = this.storage.startTransaction();
+			try {
+				for (UUID pid : this.membersService.getParticipants()) {
+					Location l;
+					try {
+						l = this.locService.getAgentLocation(pid);
+					} catch (Exception e) {
+						logger.debug("Exception getting agent location.", e);
+						continue;
+					}
+					TransientAgentState state = this.storage.getAgentState(pid,
+							time.intValue());
+					state.setProperty("x", l.getX());
+					state.setProperty("y", l.getY());
+					state.setProperty("z", l.getZ());
 				}
-				TransientAgentState state = this.storage.getAgentState(pid,
-						time.intValue());
-				state.setProperty("x", l.getX());
-				state.setProperty("y", l.getY());
-				state.setProperty("z", l.getZ());
+				tx.success();
+			} finally {
+				tx.finish();
 			}
-			this.storage.endBatchOperation();
 		}
 		time.increment();
 	}

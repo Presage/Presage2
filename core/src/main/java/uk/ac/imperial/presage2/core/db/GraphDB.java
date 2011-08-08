@@ -20,6 +20,7 @@ package uk.ac.imperial.presage2.core.db;
 
 import java.util.UUID;
 
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
@@ -32,10 +33,10 @@ public interface GraphDB {
 
 	public void setSimulation(PersistentSimulation sim);
 
+	public PersistentAgent getAgent(UUID agentID);
+
 	public TransientAgentState getAgentState(UUID agentID, int time);
 
-	public void startBatchOperation();
-
-	public void endBatchOperation();
+	public Transaction startTransaction();
 
 }
