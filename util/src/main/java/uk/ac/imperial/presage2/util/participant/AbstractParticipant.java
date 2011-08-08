@@ -212,8 +212,9 @@ public abstract class AbstractParticipant implements Participant,
 		this.time = t;
 	}
 
+	@SuppressWarnings("unused")
 	@Inject(optional = true)
-	public void persistParticipant(PersistentAgentFactory paFactory) {
+	private void persistParticipant(PersistentAgentFactory paFactory) {
 		this.persist = paFactory.create(getID(), getName());
 		this.persist.setProperty("type", getClass().getSimpleName());
 	}

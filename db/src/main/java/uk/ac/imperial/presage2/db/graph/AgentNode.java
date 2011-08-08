@@ -30,6 +30,7 @@ import org.neo4j.graphdb.index.Index;
 import uk.ac.imperial.presage2.core.db.GraphDB;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
+import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -37,7 +38,7 @@ import com.google.inject.Singleton;
 class AgentNode extends NodeDelegate implements PersistentAgent {
 
 	enum AgentRelationships implements RelationshipType {
-		PARTICIPANT_IN
+		AGENT, PARTICIPANT_IN
 	}
 
 	private static final String KEY_ID = "id";
@@ -47,7 +48,6 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 	private static final String KEY_DEREGISTERED_AT = "deregisteredAt";
 
 	private static final String INDEX_ID = "agentIDs";
-	private static final String INDEX_RELATIONSHIP = "agentParticipation";
 
 	protected AgentNode(Node delegate) {
 		super(delegate);
@@ -72,11 +72,19 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 			AgentNode a = null;
 			try {
 				Node n = db.createNode();
+				// properties
 				n.setProperty(Neo4jDatabase.LABEL, name);
 				n.setProperty(KEY_ID, id.toString());
 				n.setProperty(KEY_ID_RAW, rawUUID(id));
-				agentIndex.add(n, KEY_ID_RAW, rawUUID(id));
 				n.setProperty(KEY_NAME, name);
+				// UUID index
+				agentIndex.add(n, KEY_ID_RAW, rawUUID(id));
+
+				// relationship to agent subref node
+				Neo4jDatabase.getSubRefNode(db, SubRefs.AGENTS)
+						.createRelationshipTo(n, AgentRelationships.AGENT);
+
+				// relationship to simulation
 				a = new AgentNode(n);
 				a.addToSimulation((SimulationNode) this.graph.getSimulation());
 				tx.success();
