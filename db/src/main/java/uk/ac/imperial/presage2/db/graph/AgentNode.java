@@ -18,9 +18,11 @@
  */
 package uk.ac.imperial.presage2.db.graph;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -178,6 +180,29 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 			tx.success();
 		} finally {
 			tx.finish();
+		}
+	}
+
+	@Override
+	public void createRelationshipTo(PersistentAgent p, String type,
+			Map<String, Object> parameters) {
+		if (p instanceof AgentNode) {
+			AgentNode n = (AgentNode) p;
+			Transaction tx = this.getGraphDatabase().beginTx();
+			try {
+				Relationship rel = this.createRelationshipTo(
+						n.getUnderlyingNode(),
+						DynamicRelationshipType.withName(type));
+				for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+					rel.setProperty(entry.getKey(), entry.getValue());
+				}
+				tx.success();
+			} finally {
+				tx.finish();
+			}
+		} else {
+			throw new UnsupportedOperationException(
+					"Cannot create relationship to non-AgentNode PersistentAgent.");
 		}
 	}
 

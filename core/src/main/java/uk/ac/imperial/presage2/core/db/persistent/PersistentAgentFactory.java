@@ -23,7 +23,7 @@ import java.util.UUID;
 public interface PersistentAgentFactory {
 
 	public PersistentAgent create(UUID id, String name);
-	
+
 	public PersistentAgent get(PersistentSimulation sim, UUID id);
-	
+
 }

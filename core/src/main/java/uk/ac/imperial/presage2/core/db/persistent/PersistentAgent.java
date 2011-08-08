@@ -18,20 +18,24 @@
  */
 package uk.ac.imperial.presage2.core.db.persistent;
 
+import java.util.Map;
 import java.util.UUID;
 
 public interface PersistentAgent {
 
 	UUID getID();
-	
+
 	String getName();
-	
+
 	void setRegisteredAt(int time);
-	
+
 	void setDeRegisteredAt(int time);
-	
+
 	Object getProperty(String key);
-	
+
 	void setProperty(String key, Object value);
-	
+
+	void createRelationshipTo(PersistentAgent p, String type,
+			Map<String, Object> parameters);
+
 }
