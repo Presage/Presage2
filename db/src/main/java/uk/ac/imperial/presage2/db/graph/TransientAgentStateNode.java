@@ -27,10 +27,22 @@ class TransientAgentStateNode extends NodeDelegate implements
 
 	synchronized static TransientAgentStateNode get(AgentNode agent, int time) {
 		// check index
+
+		Relationship stateRel = null;
 		RelationshipIndex rIndex = agent.getGraphDatabase().index()
 				.forRelationships(INDEX_STATE);
-		Relationship stateRel = rIndex.get(KEY_TIME, time, agent, null)
-				.getSingle();
+		try {
+			stateRel = rIndex.get(KEY_TIME, time, agent, null).getSingle();
+		} catch (UnsupportedOperationException e) {
+			for (Relationship r : agent.getUnderlyingNode().getRelationships(
+					AgentRelationships.TRANSIENT_STATE, Direction.OUTGOING)) {
+				if (r.getProperty(KEY_TIME).equals(time)) {
+					stateRel = r;
+					break;
+				}
+			}
+		}
+
 		if (stateRel != null)
 			return new TransientAgentStateNode(stateRel.getEndNode());
 		else {
@@ -42,7 +54,8 @@ class TransientAgentStateNode extends NodeDelegate implements
 						AgentRelationships.TRANSIENT_STATE);
 				fromAgent.setProperty(KEY_TIME, time);
 				n.createRelationshipTo(
-						SimulationTimeNode.get(agent.getGraphDatabase(), time),
+						SimulationTimeNode.get(agent.getGraphDatabase(), time)
+								.getUnderlyingNode(),
 						TransientAgentStateRel.AT_TIME);
 				rIndex.add(fromAgent, KEY_TIME, time);
 				tsn = new TransientAgentStateNode(n);
@@ -55,7 +68,8 @@ class TransientAgentStateNode extends NodeDelegate implements
 	}
 
 	void setPrevious(TransientAgentStateNode n) {
-		if (!hasRelationship(TransientAgentStateRel.NEXT_STATE, Direction.INCOMING)) {
+		if (!hasRelationship(TransientAgentStateRel.NEXT_STATE,
+				Direction.INCOMING)) {
 			Transaction tx = getGraphDatabase().beginTx();
 			try {
 				n.createRelationshipTo(getUnderlyingNode(),

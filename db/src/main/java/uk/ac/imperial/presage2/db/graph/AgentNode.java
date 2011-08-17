@@ -102,16 +102,30 @@ class AgentNode extends NodeDelegate implements PersistentAgent {
 
 		@Override
 		public PersistentAgent get(PersistentSimulation sim, UUID id) {
-			Relationship agentToSim = db
-					.index()
-					.forRelationships(INDEX_SIMS)
-					.get(KEY_ID, id.toString(), null,
-							((SimulationNode) sim).getUnderlyingNode())
-					.getSingle();
-			if (agentToSim == null)
+			try {
+				Relationship agentToSim = db
+						.index()
+						.forRelationships(INDEX_SIMS)
+						.get(KEY_ID, id.toString(), null,
+								((SimulationNode) sim).getUnderlyingNode())
+						.getSingle();
+				if (agentToSim == null)
+					return null;
+				else
+					return new AgentNode(agentToSim.getStartNode());
+			} catch (UnsupportedOperationException e) {
+				// fallback for REST
+				for (Relationship agentToSim : ((SimulationNode) sim)
+						.getUnderlyingNode().getRelationships(
+								AgentRelationships.PARTICIPANT_IN,
+								Direction.INCOMING)) {
+					if (agentToSim.getStartNode().getProperty(KEY_ID)
+							.equals(id.toString())) {
+						return new AgentNode(agentToSim.getStartNode());
+					}
+				}
 				return null;
-			else
-				return new AgentNode(agentToSim.getStartNode());
+			}
 		}
 
 	}

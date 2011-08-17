@@ -105,9 +105,18 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		public PersistentSimulation get(long simulationID) {
 			Index<Node> simIndex = db.index().forNodes(SIMULATION_INDEX);
 			Node result = simIndex.get(KEY_ID, simulationID).getSingle();
-			if (result == null)
+			if (result == null) {
+				// try non-index lookup
+				for (Relationship r : Neo4jDatabase.getSubRefNode(db,
+						SubRefs.SIMULATIONS).getRelationships(
+						SimulationRelationships.SIMULATION, Direction.OUTGOING)) {
+					if (((Long) r.getEndNode().getProperty(KEY_ID, -1))
+							.longValue() == simulationID) {
+						return new SimulationNode(r.getEndNode());
+					}
+				}
 				return null;
-			else
+			} else
 				return new SimulationNode(result);
 		}
 
@@ -131,7 +140,8 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		}
 
 		private synchronized long getNextId() {
-			Long counter = (Long) getSubRefNode().getProperty(KEY_COUNTER);
+			Long counter = Long.parseLong(getSubRefNode().getProperty(
+					KEY_COUNTER, 0L).toString());
 			getSubRefNode().setProperty(KEY_COUNTER, new Long(counter + 1));
 			return counter;
 		}
