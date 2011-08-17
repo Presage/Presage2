@@ -25,18 +25,60 @@ import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
+/**
+ * The graphDB is an API for using a graph-based database to store simulation
+ * data.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public interface GraphDB {
 
+	/**
+	 * Get the {@link SimulationFactory} instance.
+	 * 
+	 * @return
+	 */
 	public SimulationFactory getSimulationFactory();
 
+	/**
+	 * Get the {@link PersistentSimulation} for the currently running
+	 * simulation.
+	 * 
+	 * @return
+	 */
 	public PersistentSimulation getSimulation();
 
+	/**
+	 * Set the {@link PersistentSimulation} to use.
+	 * 
+	 * @param sim
+	 */
 	public void setSimulation(PersistentSimulation sim);
 
+	/**
+	 * Get the {@link PersistentAgent} for this simulation with given UUID.
+	 * 
+	 * @param agentID
+	 * @return
+	 */
 	public PersistentAgent getAgent(UUID agentID);
 
+	/**
+	 * Get the {@link TransientAgentState} associated with agentID at a given
+	 * time.
+	 * 
+	 * @param agentID
+	 * @param time
+	 * @return
+	 */
 	public TransientAgentState getAgentState(UUID agentID, int time);
 
+	/**
+	 * Start a {@link Transaction} on the graph db.
+	 * 
+	 * @return
+	 */
 	public Transaction startTransaction();
 
 }

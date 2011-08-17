@@ -21,6 +21,11 @@ package uk.ac.imperial.presage2.core.db.persistent;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Persistent store for an agent.
+ * @author Sam Macbeth
+ *
+ */
 public interface PersistentAgent {
 
 	UUID getID();
@@ -31,10 +36,26 @@ public interface PersistentAgent {
 
 	void setDeRegisteredAt(int time);
 
+	/**
+	 * Get a property associated with this agent.
+	 * @param key
+	 * @return
+	 */
 	Object getProperty(String key);
 
+	/**
+	 * Set a property associated with this agent.
+	 * @param key
+	 * @param value
+	 */
 	void setProperty(String key, Object value);
 
+	/**
+	 * Create a relationship to another agent.
+	 * @param p
+	 * @param type
+	 * @param parameters
+	 */
 	void createRelationshipTo(PersistentAgent p, String type,
 			Map<String, Object> parameters);
 

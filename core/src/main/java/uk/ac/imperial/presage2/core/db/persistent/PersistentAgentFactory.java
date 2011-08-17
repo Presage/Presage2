@@ -22,8 +22,22 @@ import java.util.UUID;
 
 public interface PersistentAgentFactory {
 
+	/**
+	 * Create a Node in the database for an agent.
+	 * 
+	 * @param id
+	 * @param name
+	 * @return
+	 */
 	public PersistentAgent create(UUID id, String name);
 
+	/**
+	 * Get the {@link PersistentAgent} from a simulation and ID.
+	 * 
+	 * @param sim
+	 * @param id
+	 * @return
+	 */
 	public PersistentAgent get(PersistentSimulation sim, UUID id);
 
 }
