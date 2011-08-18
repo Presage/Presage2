@@ -39,9 +39,9 @@ import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-class AgentNode extends NodeDelegate implements PersistentAgent {
+public class AgentNode extends NodeDelegate implements PersistentAgent {
 
-	enum AgentRelationships implements RelationshipType {
+	public enum AgentRelationships implements RelationshipType {
 		AGENT, PARTICIPANT_IN, TRANSIENT_STATE
 	}
 

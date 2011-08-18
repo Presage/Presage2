@@ -11,10 +11,10 @@ import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.db.graph.AgentNode.AgentRelationships;
 
-class TransientAgentStateNode extends NodeDelegate implements
+public class TransientAgentStateNode extends NodeDelegate implements
 		TransientAgentState {
 
-	enum TransientAgentStateRel implements RelationshipType {
+	public enum TransientAgentStateRel implements RelationshipType {
 		AT_TIME, NEXT_STATE
 	}
 

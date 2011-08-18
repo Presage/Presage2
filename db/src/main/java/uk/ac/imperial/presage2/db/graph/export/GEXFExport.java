@@ -19,8 +19,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -31,9 +29,10 @@ public final class GEXFExport {
 	Element graph;
 	Element nodesElement;
 	Element edgesElement;
+	Element attributesElement;
 
 	final Set<Node> nodes = new HashSet<Node>();
-	final Set<Relationship> edges = new HashSet<Relationship>();
+	final Set<Edge> edges = new HashSet<Edge>();
 	boolean written = false;
 
 	GEXFExport() throws ParserConfigurationException {
@@ -53,6 +52,17 @@ public final class GEXFExport {
 		return g;
 	}
 
+	public static GEXFExport createDynamicGraph() {
+		GEXFExport g = null;
+		try {
+			g = new GEXFExport();
+		} catch (ParserConfigurationException e) {
+			return null;
+		}
+		g.dynamicHeader();
+		return g;
+	}
+
 	private void staticHeader() {
 		Element gexfRoot = dom.createElement("gexf");
 		dom.appendChild(gexfRoot);
@@ -61,6 +71,18 @@ public final class GEXFExport {
 
 		graph = dom.createElement("graph");
 		graph.setAttribute("mode", "static");
+		graph.setAttribute("defaultedgetype", "directed");
+		gexfRoot.appendChild(graph);
+	}
+
+	private void dynamicHeader() {
+		Element gexfRoot = dom.createElement("gexf");
+		dom.appendChild(gexfRoot);
+		gexfRoot.setAttribute("xmlns", "http://www.gexf.net/1.2draft");
+		gexfRoot.setAttribute("version", "1.2");
+
+		graph = dom.createElement("graph");
+		graph.setAttribute("mode", "dynamic");
 		graph.setAttribute("defaultedgetype", "directed");
 		gexfRoot.appendChild(graph);
 	}
@@ -81,6 +103,16 @@ public final class GEXFExport {
 		return edgesElement;
 	}
 
+	private Element getAttributesElement() {
+		if (attributesElement == null) {
+			attributesElement = dom.createElement("attributes");
+			attributesElement.setAttribute("class", "node");
+			attributesElement.setAttribute("mode", "dynamic");
+			graph.appendChild(attributesElement);
+		}
+		return attributesElement;
+	}
+
 	public void addNode(final Node n) {
 		nodes.add(n);
 	}
@@ -93,39 +125,33 @@ public final class GEXFExport {
 		IteratorUtil.addToCollection(it, this.nodes);
 	}
 
-	public void addEdge(final Relationship e) {
+	public void addEdge(final Edge e) {
 		this.edges.add(e);
 	}
 
-	public void addEdges(final Collection<Relationship> edges) {
+	public void addEdges(final Collection<Edge> edges) {
 		this.edges.addAll(edges);
 	}
 
-	public void addEdges(final Iterable<Relationship> edgeIt) {
+	public void addEdges(final Iterable<Edge> edgeIt) {
 		IteratorUtil.addToCollection(edgeIt, this.edges);
+	}
+
+	public void addAttribute(String id, String title, String type) {
+		Element attr = dom.createElement("attribute");
+		attr.setAttribute("id", id);
+		attr.setAttribute("title", title);
+		attr.setAttribute("type", "float");
+		getAttributesElement().appendChild(attr);
 	}
 
 	private void writeGraph() {
 		for (Node n : nodes) {
-			Element eNode = dom.createElement("node");
-			eNode.setAttribute("label", n.getProperty("label", "").toString());
-			for (String key : n.getPropertyKeys()) {
-				eNode.setAttribute(key, n.getProperty(key).toString());
-			}
-			eNode.setAttribute("id", Long.toString(n.getId()));
-			getNodesElement().appendChild(eNode);
+			getNodesElement().appendChild(n.getElement(dom));
 		}
 		nodes.clear();
-		for (Relationship r : edges) {
-			Element e = dom.createElement("edge");
-			for (String key : r.getPropertyKeys()) {
-				e.setAttribute(key, r.getProperty(key).toString());
-			}
-			e.setAttribute("id", Long.toString(r.getId()));
-			e.setAttribute("source", Long.toString(r.getStartNode().getId()));
-			e.setAttribute("target", Long.toString(r.getEndNode().getId()));
-			e.setAttribute("label", r.getType().name());
-			getEdgesElement().appendChild(e);
+		for (Edge r : edges) {
+			getEdgesElement().appendChild(r.getElement(dom));
 		}
 		edges.clear();
 	}
@@ -143,7 +169,7 @@ public final class GEXFExport {
 	public void writeTo(File file) throws FileNotFoundException {
 		FileOutputStream out = new FileOutputStream(file);
 		StreamResult result = new StreamResult(out);
-		
+
 		try {
 			writeTo(result);
 		} catch (TransformerFactoryConfigurationError e) {

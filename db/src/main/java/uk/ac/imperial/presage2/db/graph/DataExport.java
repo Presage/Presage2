@@ -4,6 +4,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.kernel.Traversal;
@@ -14,7 +15,9 @@ import uk.ac.imperial.presage2.db.graph.TransientAgentStateNode.TransientAgentSt
 import uk.ac.imperial.presage2.db.graph.export.GEXFExport;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+@Singleton
 public class DataExport {
 
 	final Neo4jDatabase db;
@@ -40,32 +43,13 @@ public class DataExport {
 						Direction.OUTGOING);
 		return trav.traverse(n);
 	}
-
-	final public static void main(String[] args) throws Exception {
-
-		if (args.length < 2) {
-			System.out
-					.println("Missing arguments, expected output file, simulation ID");
-		}
-		String path = args[0];
-		long simID = Long.parseLong(args[1]);
-
-		Neo4jDatabase db = new Neo4jDatabase();
-		db.start();
-
-		GEXFExport gexf = GEXFExport.createStaticGraph();
-		DataExport exp = new DataExport(db);
-		Traverser t = exp.getSimulationSubGraph(simID);
-		for (Node node : t.nodes()) {
-			gexf.addNode(node);
-		}
-		for (Relationship rel : t.relationships()) {
-			gexf.addEdge(rel);
-		}
-
-		gexf.writeTo(path);
-
-		db.stop();
+	
+	public Node getSimulationNode() {
+		return ((SimulationNode) db.getSimulation()).getUnderlyingNode();
+	}
+	
+	public RelationshipType getParticipantInRelationship() {
+		return AgentRelationships.PARTICIPANT_IN;
 	}
 
 }
