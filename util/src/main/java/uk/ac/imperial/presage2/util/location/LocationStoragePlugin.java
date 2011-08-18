@@ -35,7 +35,6 @@ import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 import uk.ac.imperial.presage2.db.graph.AgentNode.AgentRelationships;
 import uk.ac.imperial.presage2.db.graph.DataExport;
-import uk.ac.imperial.presage2.db.graph.TransientAgentStateNode.TransientAgentStateRel;
 import uk.ac.imperial.presage2.db.graph.export.DynamicNode;
 import uk.ac.imperial.presage2.db.graph.export.GEXFExport;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
