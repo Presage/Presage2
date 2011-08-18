@@ -18,7 +18,6 @@
  */
 package uk.ac.imperial.presage2.db.graph;
 
-import java.net.URI;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
@@ -28,8 +27,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
-import org.neo4j.rest.graphdb.RestGraphDatabase;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.GraphDB;
@@ -39,6 +36,7 @@ import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
@@ -52,6 +50,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 
 	protected final Logger logger = Logger.getLogger(Neo4jDatabase.class);
 
+	final GraphDatabaseFactory dbFactory;
 	GraphDatabaseService graphDB = null;
 
 	SimulationFactory simFactory;
@@ -60,16 +59,18 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 
 	PersistentSimulation simulation;
 
-	private static String databasePath = "var/presagedb";
 	static final String LABEL = "label";
+
+	@Inject
+	Neo4jDatabase(GraphDatabaseFactory dbFactory) {
+		this.dbFactory = dbFactory;
+	}
 
 	@Override
 	public void start() throws Exception {
 		if (graphDB == null) {
-			logger.info("Starting embedded Neo4j database at " + databasePath);
-			graphDB = new EmbeddedGraphDatabase(databasePath);
-			//graphDB = new RestGraphDatabase(new URI(
-			//		"http://localhost:7474/db/data"));
+			logger.info("Starting Neo4j database");
+			graphDB = dbFactory.create();
 
 			simFactory = new SimulationNode.Factory(graphDB);
 			agentFactory = new AgentNode.Factory(this, get());
