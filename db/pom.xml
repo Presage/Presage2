@@ -25,7 +25,7 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.15</version>
 			<scope>runtime</scope>
-			<optional>false</optional>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.imperial.presage2</groupId>
@@ -37,16 +37,12 @@
 			<artifactId>sqlite-jdbc</artifactId>
 			<version>3.7.2</version>
 			<scope>runtime</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j</artifactId>
 			<version>1.4.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-rest-graphdb</artifactId>
-			<version>0.2001-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>

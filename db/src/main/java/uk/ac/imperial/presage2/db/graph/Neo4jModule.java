@@ -25,7 +25,6 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
-import org.neo4j.rest.graphdb.RestGraphDatabase;
 
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
@@ -105,12 +104,13 @@ public class Neo4jModule extends DatabaseModule {
 
 		@Override
 		public GraphDatabaseService create() {
-			try {
+			throw new UnsupportedOperationException("REST support has not be fully integrated yet.");
+			/*try {
 				logger.info("Creating RestGraphDatabase with URI "+ databaseURI);
 				return new RestGraphDatabase(new URI(databaseURI));
 			} catch (URISyntaxException e) {
 				throw new RuntimeException(e);
-			}
+			}*/
 		}
 
 	}
