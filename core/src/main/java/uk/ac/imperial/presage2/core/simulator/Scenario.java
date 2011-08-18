@@ -73,28 +73,9 @@ public interface Scenario {
 
 	static class Builder {
 
-		public static Injector injector = null;
+		public final Injector injector;
 
-		/**
-		 * <p>
-		 * Create a {@link Scenario} from a given array of
-		 * {@link AbstractModule}
-		 * </p>
-		 * 
-		 * <p>
-		 * We store the {@link Injector} created in
-		 * {@link Scenario.Builder#injector} for others who wish to use it.
-		 * </p>
-		 * 
-		 * <p>
-		 * For other objects created outside of this method and requiring member
-		 * injection use {@link #injectMembers(Object)}.
-		 * </p>
-		 * 
-		 * @param modules
-		 * @return {@link Scenario}
-		 */
-		public static Scenario createFromModules(AbstractModule... modules) {
+		public Builder(AbstractModule... modules) {
 			final Set<AbstractModule> moduleSet = new HashSet<AbstractModule>(
 					Arrays.asList(modules));
 			moduleSet.add(new AbstractModule() {
@@ -104,18 +85,12 @@ public interface Scenario {
 							Singleton.class);
 				}
 			});
-			Scenario.Builder.injector = Guice.createInjector(moduleSet);
-			return Scenario.Builder.injector.getInstance(Scenario.class);
+			this.injector = Guice.createInjector(moduleSet);
 		}
 
-		/**
-		 * Wrapper for {@link Injector#injectMembers(Object)}s.
-		 * 
-		 * @param obj
-		 */
-		public static <T extends Object> T injectMembers(T obj) {
-			Scenario.Builder.injector.injectMembers(obj);
-			return obj;
+		public Injector getInjector() {
+			return injector;
 		}
+
 	}
 }

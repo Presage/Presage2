@@ -18,33 +18,43 @@
  */
 package uk.ac.imperial.presage2.util.network;
 
-import org.apache.log4j.Logger;
+import java.io.FileNotFoundException;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.traversal.Evaluators;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.traversal.Traverser;
+import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.Uniqueness;
 
 import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.db.StorageService;
-import uk.ac.imperial.presage2.core.db.Table;
+import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.Transaction;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.network.BroadcastMessage;
 import uk.ac.imperial.presage2.core.network.MessageBlockedEvent;
 import uk.ac.imperial.presage2.core.network.MessageDeliveryEvent;
-import uk.ac.imperial.presage2.core.network.MulticastMessage;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
-import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
+import uk.ac.imperial.presage2.db.graph.DataExport;
+import uk.ac.imperial.presage2.db.graph.export.Edge;
+import uk.ac.imperial.presage2.db.graph.export.GEXFExport;
 
 import com.google.inject.Inject;
 
 public class NetworkMessageMonitor implements Plugin {
 
-	private final Logger logger = Logger.getLogger(NetworkMessageMonitor.class);
-
-	private StorageService db = null;
+	private GraphDB db = null;
+	private DataExport exporter = null;
 	private final Time time;
-	private Table t = null;
 
-	private int broadcasts = 0;
-	private int multicasts = 0;
-	private int unicasts = 0;
+	Queue<MessageDeliveryEvent> deliveryQueue = new LinkedBlockingQueue<MessageDeliveryEvent>();
 
 	@Inject
 	public NetworkMessageMonitor(EventBus eb, Time t) {
@@ -54,19 +64,19 @@ public class NetworkMessageMonitor implements Plugin {
 	}
 
 	@Inject(optional = true)
-	public void setStorageService(StorageService db) {
+	public void setStorageService(GraphDB db) {
 		this.db = db;
 	}
 
+	@Inject(optional = true)
+	public void setDataExporter(DataExport exp) {
+		this.exporter = exp;
+	}
+
 	@EventListener
-	public synchronized void onMessageDelivery(MessageDeliveryEvent e) {
-		if (e.getMessage() instanceof BroadcastMessage) {
-			broadcasts++;
-		} else if (e.getMessage() instanceof MulticastMessage) {
-			multicasts++;
-		} else {
-			unicasts++;
-		}
+	public void onMessageDelivery(MessageDeliveryEvent e) {
+		deliveryQueue.offer(e);
+
 	}
 
 	@EventListener
@@ -74,42 +84,35 @@ public class NetworkMessageMonitor implements Plugin {
 
 	}
 
-	@EventListener
-	public synchronized void onEndOfTimeCycle(EndOfTimeCycle e) {
-		if (t != null) {
-			try {
-				t.insert().atTimeStep(time.intValue())
-						.set("Broadcasts", broadcasts)
-						.set("Multicasts", multicasts)
-						.set("Unicasts", unicasts).commit();
-			} catch (Exception e1) {
-				logger.warn("Error inserting to db", e1);
-			}
-			time.increment();
-			broadcasts = 0;
-			multicasts = 0;
-			unicasts = 0;
-		}
-	}
-
 	@Override
 	public void incrementTime() {
+		if (db != null) {
+			Transaction tx = db.startTransaction();
+			try {
+				while (deliveryQueue.peek() != null) {
+					MessageDeliveryEvent e = deliveryQueue.poll();
+					Map<String, Object> parameters = new Hashtable<String, Object>();
+					parameters.put("time", time.intValue());
+					parameters.put("type", e.getMessage().getType());
+					parameters.put("performative", e.getMessage()
+							.getPerformative().name());
+					parameters.put("class", e.getMessage().getClass()
+							.getSimpleName());
+					db.getAgent(e.getMessage().getFrom().getId())
+							.createRelationshipTo(
+									db.getAgent(e.getRecipient().getId()),
+									"SENT_MESSAGE", parameters);
+				}
+				tx.success();
+			} finally {
+				tx.finish();
+			}
+		}
+		time.increment();
 	}
 
 	@Override
 	public void initialise() {
-		// create db table
-		if (this.db != null) {
-			try {
-				t = db.buildTable("message_counts").forClass(getClass())
-						.withFields("Broadcasts", "Multicasts", "Unicasts")
-						.withTypes(Long.class, Long.class, Long.class)
-						.withOneRowPerTimeCycle().create();
-			} catch (Exception e) {
-				logger.warn("Could not create table.", e);
-			}
-		} else
-			logger.warn("No storage service, will not be monitoring messages.");
 	}
 
 	@Override
@@ -118,7 +121,38 @@ public class NetworkMessageMonitor implements Plugin {
 
 	@Override
 	public void onSimulationComplete() {
+		if (exporter != null) {
+			Node n = exporter.getSimulationNode();
+			TraversalDescription agentMessaging = Traversal
+					.description()
+					.breadthFirst()
+					.uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
+					.relationships(exporter.getParticipantInRelationship(),
+							Direction.INCOMING)
+					.relationships(
+							DynamicRelationshipType.withName("SENT_MESSAGE"))
+					.evaluator(Evaluators.excludeStartPosition());
+			Traverser t = agentMessaging.traverse(n);
+			GEXFExport gexf = GEXFExport.createStaticGraph();
+			for (Node node : t.nodes()) {
+				gexf.addNode(new uk.ac.imperial.presage2.db.graph.export.Node(
+						Long.toString(node.getId()), node.getProperty("label",
+								0).toString()));
+			}
+			for (Relationship r : t.relationships()) {
+				// exclude PARTICIPANT_IN relationships
+				if (!r.getEndNode().equals(n))
+					gexf.addEdge(new Edge(Long.toString(r.getId()), Long
+							.toString(r.getStartNode().getId()), Long
+							.toString(r.getEndNode().getId()), r
+							.getProperty("label", 0).toString()));
+			}
+			try {
+				gexf.writeTo("messaging.gexf");
+			} catch (FileNotFoundException e) {
 
+			}
+		}
 	}
 
 }

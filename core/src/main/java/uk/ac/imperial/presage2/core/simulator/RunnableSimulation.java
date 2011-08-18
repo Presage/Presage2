@@ -22,6 +22,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,13 +31,16 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import com.google.inject.AbstractModule;
-
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.StorageService;
+import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
+import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventBusModule;
+import uk.ac.imperial.presage2.core.event.EventListener;
+
+import com.google.inject.AbstractModule;
 
 /**
  * <p>
@@ -62,7 +66,8 @@ public abstract class RunnableSimulation implements Runnable {
 	protected Simulator simulator;
 
 	protected DatabaseService database;
-	protected StorageService storage;
+	protected GraphDB graphDb;
+	protected PersistentSimulation simPersist;
 
 	private Map<String, Field> fieldParameters = new HashMap<String, Field>();
 
@@ -141,6 +146,36 @@ public abstract class RunnableSimulation implements Runnable {
 	 */
 	public Simulator getSimulator() {
 		return this.simulator;
+	}
+
+	protected void initDatabase() {
+		if (this.graphDb != null) {
+			simPersist = graphDb.getSimulationFactory().create(
+					getClass().getSimpleName(), getClass().getCanonicalName(),
+					getState().name(), getSimulationFinishTime().intValue());
+			graphDb.setSimulation(simPersist);
+			for (String s : getParameters().keySet()) {
+				simPersist.addParameter(s, getParameter(s));
+			}
+			simPersist.setStartedAt(new Date().getTime());
+		}
+	}
+
+	private void updateDatabase() {
+		if (this.graphDb != null) {
+			if (!getState().name().equals(simPersist.getState())) {
+				simPersist.setState(getState().name());
+				if (getState() == SimulationState.COMPLETE) {
+					simPersist.setFinishedAt(new Date().getTime());
+				}
+			}
+			simPersist.setCurrentTime(getCurrentSimulationTime().intValue());
+		}
+	}
+
+	@EventListener
+	public void onNewTimeCycle(EndOfTimeCycle e) {
+		updateDatabase();
 	}
 
 	final public Object getParameter(String name) {
@@ -247,10 +282,20 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void setDatabase(DatabaseService database) {
 		this.database = database;
+		try {
+			this.database.start();
+		} catch (Exception e) {
+			logger.warn("Failed to start database.", e);
+			this.database = null;
+		}
 	}
 
-	protected void setStorage(StorageService storage) {
-		this.storage = storage;
+	protected void setGraphDB(GraphDB db) {
+		this.graphDb = db;
+	}
+
+	protected void setEventBus(EventBus e) {
+		e.subscribe(this);
 	}
 
 	/**
@@ -358,12 +403,6 @@ public abstract class RunnableSimulation implements Runnable {
 		this.simulator.shutdown();
 	}
 
-	private void updateDatabase() {
-		if (this.storage != null) {
-			this.storage.updateSimulation();
-		}
-	}
-
 	/**
 	 * <p>
 	 * Run a single simulation from commandline arguments. Takes the following
@@ -410,7 +449,7 @@ public abstract class RunnableSimulation implements Runnable {
 
 		// Additional modules we want for this simulation run
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
-		additionalModules.add(SimulatorModule.multiThreadedSimulator(12));
+		additionalModules.add(SimulatorModule.multiThreadedSimulator(4));
 		// additionalModules.add(SimulatorModule.singleThreadedSimulator());
 		additionalModules.add(new EventBusModule());
 		// database module

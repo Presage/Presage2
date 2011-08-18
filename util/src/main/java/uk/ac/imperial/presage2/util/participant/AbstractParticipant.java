@@ -30,6 +30,8 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
@@ -105,6 +107,11 @@ public abstract class AbstractParticipant implements Participant,
 	 * Set of {@link EnvironmentService}s available to the agent.
 	 */
 	protected final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
+
+	/**
+	 * Persistence of this agent into the database.
+	 */
+	protected PersistentAgent persist = null;
 
 	/**
 	 * Assisted Inject constructor.
@@ -205,6 +212,13 @@ public abstract class AbstractParticipant implements Participant,
 		this.time = t;
 	}
 
+	@SuppressWarnings("unused")
+	@Inject(optional = true)
+	private void persistParticipant(PersistentAgentFactory paFactory) {
+		this.persist = paFactory.create(getID(), getName());
+		this.persist.setProperty("type", getClass().getSimpleName());
+	}
+
 	/**
 	 * <p>
 	 * The initialisation process for the AbstractParticipant involves the
@@ -251,6 +265,9 @@ public abstract class AbstractParticipant implements Participant,
 		// process the returned environment services
 		processEnvironmentServices(response.getServices());
 
+		if (this.persist != null) {
+			this.persist.setRegisteredAt(this.getTime().intValue());
+		}
 	}
 
 	/**

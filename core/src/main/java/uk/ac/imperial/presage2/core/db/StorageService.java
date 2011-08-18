@@ -30,6 +30,7 @@ import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
  * @author Sam Macbeth
  * 
  */
+@Deprecated
 public interface StorageService {
 
 	/**
