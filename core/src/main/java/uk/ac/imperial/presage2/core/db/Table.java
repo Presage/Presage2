@@ -32,6 +32,7 @@ import uk.ac.imperial.presage2.core.participant.Participant;
  * @author Sam Macbeth
  * 
  */
+@Deprecated
 public interface Table {
 
 	/**
