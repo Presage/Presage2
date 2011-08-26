@@ -346,4 +346,9 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		}
 	}
 
+	@Override
+	public long getID() {
+		return (Long) this.getProperty(KEY_ID, Long.valueOf(0));
+	}
+
 }
