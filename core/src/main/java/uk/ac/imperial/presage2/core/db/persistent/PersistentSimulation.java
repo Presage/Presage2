@@ -22,6 +22,8 @@ import java.util.Map;
 
 public interface PersistentSimulation {
 
+	public long getID();
+
 	public void addParameter(String name, Object value);
 
 	public Map<String, Object> getParameters();

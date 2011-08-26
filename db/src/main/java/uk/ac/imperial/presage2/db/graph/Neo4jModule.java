@@ -18,8 +18,6 @@
  */
 package uk.ac.imperial.presage2.db.graph;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -95,7 +93,7 @@ public class Neo4jModule extends DatabaseModule {
 
 	class RestGraphDatabaseFactory implements GraphDatabaseFactory {
 
-		private final Logger logger = Logger.getLogger(RestGraphDatabaseFactory.class);
+		//private final Logger logger = Logger.getLogger(RestGraphDatabaseFactory.class);
 		private final String databaseURI;
 
 		RestGraphDatabaseFactory(String databaseURI) {
