@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>uk.ac.imperial.presage2</groupId>
@@ -69,6 +70,17 @@
 
 	</dependencies>
 
+	<repositories>
+		<repository>
+			<id>presage</id>
+			<name>Presage Repository</name>
+			<url>http://ee-sm1106.ee.ic.ac.uk:8080/nexus/content/groups/public/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 	<build>
 		<plugins>
 
@@ -110,15 +122,23 @@
 					<!-- | bootclasspath required by Sun's JVM -->
 					<bootclasspath>${sun.boot.class.path}</bootclasspath>
 					<additionalparam>
-						-federate JDK http://download.oracle.com/javase/6/docs/api/index.html?
+						-federate JDK
+						http://download.oracle.com/javase/6/docs/api/index.html?
 						-federationxml JDK
 						http://doclava.googlecode.com/svn/static/api/openjdk-6.xml
 						-federate "Google Guice"
 						http://google-guice.googlecode.com/svn/trunk/javadoc
-						-apiversion ${project.version}
-						-since http://presage.github.com/docs/javadoc/tags/0.2.1/reference/current.xml 0.2.1
-						-since http://presage.github.com/docs/javadoc/tags/0.2.2/reference/current.xml 0.2.2
-						-since http://presage.github.com/docs/javadoc/branches/master/reference/current.xml 0.2.3
+						-apiversion
+						${project.version}
+						-since
+						http://presage.github.com/docs/javadoc/tags/0.2.1/reference/current.xml
+						0.2.1
+						-since
+						http://presage.github.com/docs/javadoc/tags/0.2.2/reference/current.xml
+						0.2.2
+						-since
+						http://presage.github.com/docs/javadoc/branches/master/reference/current.xml
+						0.2.3
 						-d ${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
@@ -164,5 +184,16 @@
 		<connection>scm:git:git://github.com/Presage/Presage2.git</connection>
 		<developerConnection>scm:git:https://sammacbeth@github.com/Presage/Presage2.git</developerConnection>
 	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>presage-releases</id>
+			<url>http://ee-sm1106.ee.ic.ac.uk:8080/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>presage-snapshots</id>
+			<url>http://ee-sm1106.ee.ic.ac.uk:8080/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
 
