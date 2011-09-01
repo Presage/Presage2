@@ -35,7 +35,6 @@
 		<dependency>
 			<groupId>com.continuent.tungsten</groupId>
 			<artifactId>tungsten-fsm</artifactId>
-			<classifier>src</classifier>
 			<version>0.5</version>
 			<scope>compile</scope>
 		</dependency>
