@@ -92,7 +92,7 @@ public class FSM {
 		t.getAction().execute(e, entity, t);
 
 		for (StateChangeListener l : this.listeners) {
-			l.onStateChange(entity, this.currentState.getName(), t.getEnd().getName());
+			l.onStateChange(entity, this.currentState, t.getEnd());
 		}
 		this.currentState = t.getEnd();
 	}

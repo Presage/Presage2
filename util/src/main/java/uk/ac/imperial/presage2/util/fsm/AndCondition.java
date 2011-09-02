@@ -18,36 +18,25 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
-import java.util.HashSet;
-import java.util.Set;
+public class AndCondition implements TransitionCondition {
 
-public class State {
+	private final TransitionCondition[] conditions;
 
-	private final String name;
-	private final StateType type;
-
-	private final Set<Transition> transitions = new HashSet<Transition>();
-
-	State(String name, StateType type) {
+	/**
+	 * @param conditions
+	 */
+	public AndCondition(TransitionCondition... conditions) {
 		super();
-		this.name = name;
-		this.type = type;
+		this.conditions = conditions;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public StateType getType() {
-		return type;
-	}
-
-	void addTransition(Transition trans) {
-		transitions.add(trans);
-	}
-
-	Set<Transition> getTransitions() {
-		return transitions;
+	@Override
+	public boolean allow(Object event, Object entity, State state) {
+		boolean allow = true;
+		for (TransitionCondition condition : conditions) {
+			allow &= condition.allow(event, entity, state);
+		}
+		return allow;
 	}
 
 }
