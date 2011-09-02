@@ -18,7 +18,24 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
-public interface FSMDescription<E> {
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+public class FSMDescription {
+
+	private boolean built = false;
+
+	private Map<String, State> states = new HashMap<String, State>();
+	private String startState = null;
+
+	private Map<String, Transition> transitions = new HashMap<String, Transition>();
+
+	private void throwIfBuilt() throws FSMException {
+		if (built) {
+			throw new FSMException("Attempt to modify FSMDescription which has been built.");
+		}
+	}
 
 	/**
 	 * Add a state to the FSM.
@@ -26,16 +43,36 @@ public interface FSMDescription<E> {
 	 * @param name
 	 * @param type
 	 * @return this
+	 * @throws FSMException
 	 */
-	FSMDescription<E> addState(String name, StateType type);
+	public FSMDescription addState(final String name, final StateType type) throws FSMException {
+		throwIfBuilt();
+		if (!states.containsKey(name)) {
+			if (type == StateType.START) {
+				if (startState == null)
+					startState = name;
+				else
+					throw new FSMException("Could not add " + name + " as start state. State "
+							+ startState + " is already assigned start state");
+			}
+			states.put(name, new State(name, type));
+		} else {
+			throw new FSMException("Could not add state " + name
+					+ ". State with that name already exists.");
+		}
+		return this;
+	}
 
 	/**
 	 * Add a state of {@link StateType#ACTIVE} to the FSM.
 	 * 
 	 * @param name
 	 * @return this
+	 * @throws FSMException
 	 */
-	FSMDescription<E> addState(String name);
+	public FSMDescription addState(final String name) throws FSMException {
+		return this.addState(name, StateType.ACTIVE);
+	}
 
 	/**
 	 * Add a transition with {@link TransitionCondition} <code>condition</code>
@@ -61,41 +98,96 @@ public interface FSMDescription<E> {
 	 *            <code>null</code> in which case a noop will be used unless it
 	 *            is set by {@link #setTransitionAction(String, Action)}
 	 * @return this
+	 * @throws FSMException
 	 */
-	FSMDescription<E> addTransition(String name, TransitionCondition<? extends E> condition,
-			String start, String end, Action<? extends E> action);
-
-	State getState(String name);
-
-	Transition getTransition(String name);
+	public FSMDescription addTransition(final String name, TransitionCondition condition,
+			final String start, final String end, Action action) throws FSMException {
+		throwIfBuilt();
+		if (this.transitions.containsKey(name))
+			throw new FSMException("Could not add transition " + name
+					+ ". A transition with the same name already exists.");
+		if (!this.states.containsKey(start))
+			throw new FSMException("Could not add transition " + name + ". Start state " + start
+					+ " does not exist");
+		if (!this.states.containsKey(end))
+			throw new FSMException("Could not add transition " + name + ". End state " + end
+					+ " does not exist");
+		if (getState(start).getType() == StateType.END) {
+			throw new FSMException("End state cannot be origin of transitions");
+		}
+		if (condition == null)
+			condition = TransitionCondition.ALWAYS;
+		if (action == null)
+			action = Action.NOOP;
+		Transition t = new Transition(name, getState(start), getState(end), condition, action);
+		this.transitions.put(name, t);
+		getState(start).addTransition(t);
+		return this;
+	}
 
 	/**
 	 * Set the {@link TransitionCondition} associated with
 	 * <code>transitionName</code>. Will overwrite the existing condition for
-	 * this transition. May be called after {@link #build()} has been called.
+	 * this transition.
 	 * 
 	 * @param transitionName
 	 * @param condition
 	 * @return this
+	 * @throws FSMException
 	 */
-	FSMDescription<E> setTransitionCondition(String transitionName,
-			TransitionCondition<? extends E> condition);
+	public FSMDescription setTransitionCondition(String transitionName,
+			TransitionCondition condition) throws FSMException {
+		throwIfBuilt();
+		Transition t = getTransition(transitionName);
+		if (t == null)
+			throw new FSMException("Transition " + transitionName + " does not exist.");
+		t.setCondition(condition);
+		return this;
+	}
 
 	/**
 	 * Set the {@link Action} associated with <code>transitionName</code>. Will
-	 * overwrite the existing action for this transition. May be called after
-	 * {@link #build()} has been called.
+	 * overwrite the existing action for this transition.
 	 * 
 	 * @param transitionName
 	 * @param action
 	 * @return
+	 * @throws FSMException
 	 */
-	FSMDescription<E> setTransitionAction(String transitionName, Action<? extends E> action);
+	public FSMDescription setTransitionAction(String transitionName, Action action)
+			throws FSMException {
+		throwIfBuilt();
+		Transition t = getTransition(transitionName);
+		if (t == null)
+			throw new FSMException("Transition " + transitionName + " does not exist.");
+		t.setAction(action);
+		return this;
+	}
 
 	/**
 	 * Builds the FSM, making this description immutable.
 	 * 
 	 * @return this
+	 * @throws FSMException
 	 */
-	FSMDescription<E> build();
+	public synchronized FSMDescription build() throws FSMException {
+		throwIfBuilt();
+		this.built = true;
+		this.states = Collections.unmodifiableMap(this.states);
+		this.transitions = Collections.unmodifiableMap(this.transitions);
+		return this;
+	}
+
+	State getState(String name) {
+		return this.states.get(name);
+	}
+
+	Transition getTransition(String name) {
+		return this.transitions.get(name);
+	}
+
+	State getStartState() {
+		return getState(startState);
+	}
+
 }

@@ -18,8 +18,15 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
-public interface TransitionCondition<E> {
+public interface TransitionCondition {
 
-	public boolean allow(Event event, E entity, State state);
+	public static final TransitionCondition ALWAYS = new TransitionCondition() {
+		@Override
+		public boolean allow(Event event, Object entity, State state) {
+			return true;
+		}
+	};
+
+	public boolean allow(Event event, Object entity, State state);
 
 }

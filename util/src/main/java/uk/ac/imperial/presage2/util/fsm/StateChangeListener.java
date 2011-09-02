@@ -20,4 +20,6 @@ package uk.ac.imperial.presage2.util.fsm;
 
 public interface StateChangeListener {
 
+	public void onStateChange(Object entity, String prevState, String newState);
+
 }

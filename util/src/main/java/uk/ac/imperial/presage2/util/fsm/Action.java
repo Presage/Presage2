@@ -18,8 +18,17 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
-public interface Action<E> {
+public interface Action {
 
-	public void execute(Event event, E entity, Transition transition);
+	/**
+	 * A no-op Action which does nothing.
+	 */
+	public static final Action NOOP = new Action() {
+		@Override
+		public void execute(Event event, Object entity, Transition transition) {
+		}
+	};
+
+	public void execute(Event event, Object entity, Transition transition);
 
 }

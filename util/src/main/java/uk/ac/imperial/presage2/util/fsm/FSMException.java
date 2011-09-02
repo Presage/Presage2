@@ -18,36 +18,23 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
-import java.util.HashSet;
-import java.util.Set;
+public class FSMException extends Exception {
 
-class State {
+	private static final long serialVersionUID = 1L;
 
-	private final String name;
-	private final StateType type;
-
-	private final Set<Transition> transitions = new HashSet<Transition>();
-
-	State(String name, StateType type) {
-		super();
-		this.name = name;
-		this.type = type;
+	/**
+	 * @param message
+	 * @param cause
+	 */
+	FSMException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
-	String getName() {
-		return name;
-	}
-
-	StateType getType() {
-		return type;
-	}
-
-	void addTransition(Transition trans) {
-		transitions.add(trans);
-	}
-
-	Set<Transition> getTransitions() {
-		return transitions;
+	/**
+	 * @param message
+	 */
+	FSMException(String message) {
+		super(message);
 	}
 
 }
