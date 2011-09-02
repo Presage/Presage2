@@ -25,10 +25,10 @@ public interface Action {
 	 */
 	public static final Action NOOP = new Action() {
 		@Override
-		public void execute(Event event, Object entity, Transition transition) {
+		public void execute(Object event, Object entity, Transition transition) {
 		}
 	};
 
-	public void execute(Event event, Object entity, Transition transition);
+	public void execute(Object event, Object entity, Transition transition);
 
 }

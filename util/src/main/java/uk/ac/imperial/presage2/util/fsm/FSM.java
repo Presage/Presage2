@@ -53,7 +53,7 @@ public class FSM {
 		return entity;
 	}
 
-	public boolean canApplyEvent(Event event) {
+	public boolean canApplyEvent(Object event) {
 		for (Transition t : this.currentState.getTransitions()) {
 			if (t.getCondition().allow(event, entity, currentState)) {
 				return true;
@@ -62,7 +62,7 @@ public class FSM {
 		return false;
 	}
 
-	public void applyEvent(Event event) throws FSMException {
+	public void applyEvent(Object event) throws FSMException {
 		Set<Transition> possible = new HashSet<Transition>();
 		for (Transition t : this.currentState.getTransitions()) {
 			if (t.getCondition().allow(event, entity, currentState)) {
@@ -88,7 +88,7 @@ public class FSM {
 		}
 	}
 
-	private void doTransition(Event e, Transition t) {
+	private void doTransition(Object e, Transition t) {
 		t.getAction().execute(e, entity, t);
 
 		for (StateChangeListener l : this.listeners) {

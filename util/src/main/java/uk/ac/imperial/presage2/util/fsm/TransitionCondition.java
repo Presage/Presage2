@@ -22,11 +22,11 @@ public interface TransitionCondition {
 
 	public static final TransitionCondition ALWAYS = new TransitionCondition() {
 		@Override
-		public boolean allow(Event event, Object entity, State state) {
+		public boolean allow(Object event, Object entity, State state) {
 			return true;
 		}
 	};
 
-	public boolean allow(Event event, Object entity, State state);
+	public boolean allow(Object event, Object entity, State state);
 
 }
