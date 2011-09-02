@@ -18,18 +18,31 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
-import uk.ac.imperial.presage2.core.messaging.InputHandler;
+import uk.ac.imperial.presage2.core.network.NetworkAddress;
 
-public interface Conversation extends InputHandler {
+public class ConversationSpawnEvent {
 
-	UUID getID();
+	private final Set<NetworkAddress> targets = new HashSet<NetworkAddress>();
 
-	String getState();
+	ConversationSpawnEvent() {
+		super();
+	}
 
-	boolean isFinished();
+	ConversationSpawnEvent(NetworkAddress with) {
+		super();
+		targets.add(with);
+	}
 
-	Role getRole();
+	ConversationSpawnEvent(Set<NetworkAddress> with) {
+		super();
+		targets.addAll(with);
+	}
+
+	public Set<NetworkAddress> getTargets() {
+		return targets;
+	}
 
 }

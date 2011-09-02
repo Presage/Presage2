@@ -18,18 +18,13 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import java.util.UUID;
-
-import uk.ac.imperial.presage2.core.messaging.InputHandler;
-
-public interface Conversation extends InputHandler {
-
-	UUID getID();
-
-	String getState();
-
-	boolean isFinished();
-
-	Role getRole();
-
+public enum Role {
+	/**
+	 * The agent who initiated this conversation.
+	 */
+	INITIATOR,
+	/**
+	 * Agent who replied to another agent's initiating message.
+	 */
+	REPLIER
 }

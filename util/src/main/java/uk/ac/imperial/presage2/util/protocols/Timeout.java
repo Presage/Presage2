@@ -18,18 +18,10 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import java.util.UUID;
+class Timeout {
 
-import uk.ac.imperial.presage2.core.messaging.InputHandler;
-
-public interface Conversation extends InputHandler {
-
-	UUID getID();
-
-	String getState();
-
-	boolean isFinished();
-
-	Role getRole();
+	Timeout() {
+		super();
+	}
 
 }

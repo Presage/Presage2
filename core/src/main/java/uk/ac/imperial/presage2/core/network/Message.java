@@ -45,7 +45,7 @@ public abstract class Message<T> implements Input {
 	 */
 	protected final Performative performative;
 
-	protected final String type;
+	protected String type;
 
 	/**
 	 * Timestamp of when this message was sent.
@@ -61,6 +61,11 @@ public abstract class Message<T> implements Input {
 	 * Optional conversation key.
 	 */
 	protected UUID conversationKey;
+
+	/**
+	 * Optional protocol name.
+	 */
+	protected String protocol;
 
 	protected T data;
 
@@ -155,12 +160,24 @@ public abstract class Message<T> implements Input {
 		return this.type;
 	}
 
+	public void setType(String type) {
+		this.type = type;
+	}
+
 	public UUID getConversationKey() {
 		return conversationKey;
 	}
 
 	public void setConversationKey(UUID conversationKey) {
 		this.conversationKey = conversationKey;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
 	}
 
 }

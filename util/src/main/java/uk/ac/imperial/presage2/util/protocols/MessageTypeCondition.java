@@ -18,18 +18,26 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import java.util.UUID;
+import uk.ac.imperial.presage2.core.network.Message;
+import uk.ac.imperial.presage2.util.fsm.State;
+import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
 
-import uk.ac.imperial.presage2.core.messaging.InputHandler;
+public class MessageTypeCondition implements TransitionCondition {
 
-public interface Conversation extends InputHandler {
+	private final String type;
 
-	UUID getID();
+	public MessageTypeCondition(String type) {
+		super();
+		this.type = type;
+	}
 
-	String getState();
-
-	boolean isFinished();
-
-	Role getRole();
+	@Override
+	public boolean allow(Object event, Object entity, State state) {
+		if (event instanceof Message) {
+			Message<?> m = (Message<?>) event;
+			return type.equals(m.getType());
+		}
+		return false;
+	}
 
 }

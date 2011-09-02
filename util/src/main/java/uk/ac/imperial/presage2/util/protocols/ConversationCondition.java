@@ -18,18 +18,27 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import java.util.UUID;
+import uk.ac.imperial.presage2.core.network.Message;
+import uk.ac.imperial.presage2.util.fsm.State;
+import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
 
-import uk.ac.imperial.presage2.core.messaging.InputHandler;
+/**
+ * A FSM {@link Guard} which ensures that the message passed in the
+ * {@link Event} matches the conversation in the {@link Entity}. The
+ * {@link Entity} should be an instance of {@link ConversationEntity}.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
+public class ConversationCondition implements TransitionCondition {
 
-public interface Conversation extends InputHandler {
-
-	UUID getID();
-
-	String getState();
-
-	boolean isFinished();
-
-	Role getRole();
+	@Override
+	public boolean allow(Object event, Object entity, State state) {
+		if (event instanceof Message) {
+			Message<?> m = (Message<?>) event;
+			return ((FSMConversation) entity).getID().equals(m.getConversationKey());
+		}
+		return false;
+	}
 
 }
