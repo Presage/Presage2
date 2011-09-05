@@ -63,6 +63,10 @@ public class FSMDescription {
 		return this;
 	}
 
+	public FSMDescription addState(final Enum<?> name, final StateType type) throws FSMException {
+		return addState(name.name(), type);
+	}
+
 	/**
 	 * Add a state of {@link StateType#ACTIVE} to the FSM.
 	 * 
@@ -72,6 +76,10 @@ public class FSMDescription {
 	 */
 	public FSMDescription addState(final String name) throws FSMException {
 		return this.addState(name, StateType.ACTIVE);
+	}
+
+	public FSMDescription addState(final Enum<?> name) throws FSMException {
+		return addState(name.name());
 	}
 
 	/**
@@ -125,6 +133,11 @@ public class FSMDescription {
 		return this;
 	}
 
+	public FSMDescription addTransition(final Enum<?> name, TransitionCondition condition,
+			final Enum<?> start, final Enum<?> end, Action action) throws FSMException {
+		return addTransition(name.name(), condition, start.name(), end.name(), action);
+	}
+
 	/**
 	 * Set the {@link TransitionCondition} associated with
 	 * <code>transitionName</code>. Will overwrite the existing condition for
@@ -145,6 +158,11 @@ public class FSMDescription {
 		return this;
 	}
 
+	public FSMDescription setTransitionCondition(Enum<?> transitionName,
+			TransitionCondition condition) throws FSMException {
+		return setTransitionCondition(transitionName.name(), condition);
+	}
+
 	/**
 	 * Set the {@link Action} associated with <code>transitionName</code>. Will
 	 * overwrite the existing action for this transition.
@@ -162,6 +180,11 @@ public class FSMDescription {
 			throw new FSMException("Transition " + transitionName + " does not exist.");
 		t.setAction(action);
 		return this;
+	}
+
+	public FSMDescription setTransitionAction(Enum<?> transitionName, Action action)
+			throws FSMException {
+		return setTransitionAction(transitionName.name(), action);
 	}
 
 	/**
