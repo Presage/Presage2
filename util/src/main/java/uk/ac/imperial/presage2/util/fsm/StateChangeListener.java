@@ -18,6 +18,15 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
+/**
+ * Listener for state change events. Anything that implements this interface can
+ * register with an FSM with {@link FSM#addListener(StateChangeListener)} and
+ * the FSM will invoke {@link #onStateChange(Object, State, State)} each time
+ * it's state changes.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public interface StateChangeListener {
 
 	public void onStateChange(Object entity, State prevState, State newState);

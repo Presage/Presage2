@@ -18,12 +18,20 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
+/**
+ * {@link TransitionCondition} which does a boolean AND of all the conditions
+ * given to it and returns that result.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class AndCondition implements TransitionCondition {
 
 	private final TransitionCondition[] conditions;
 
 	/**
 	 * @param conditions
+	 *            {@link TransitionCondition} to AND together.
 	 */
 	public AndCondition(TransitionCondition... conditions) {
 		super();
@@ -32,11 +40,11 @@ public class AndCondition implements TransitionCondition {
 
 	@Override
 	public boolean allow(Object event, Object entity, State state) {
-		boolean allow = true;
 		for (TransitionCondition condition : conditions) {
-			allow &= condition.allow(event, entity, state);
+			if (!condition.allow(event, entity, state))
+				return false;
 		}
-		return allow;
+		return true;
 	}
 
 }

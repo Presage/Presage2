@@ -22,6 +22,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A description of an {@link FSM}. This is the data structure we use to
+ * traverse the state machine.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class FSMDescription {
 
 	private boolean built = false;

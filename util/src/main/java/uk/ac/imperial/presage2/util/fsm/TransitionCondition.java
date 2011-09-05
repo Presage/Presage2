@@ -18,6 +18,12 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
+/**
+ * Decides whether a transition may be made from a state given an event.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public interface TransitionCondition {
 
 	public static final TransitionCondition ALWAYS = new TransitionCondition() {
@@ -27,6 +33,19 @@ public interface TransitionCondition {
 		}
 	};
 
+	/**
+	 * Test whether this state transition is allowed given the event object and
+	 * current state.
+	 * 
+	 * @param event
+	 *            The event which is being applied on the state machine.
+	 * @param entity
+	 *            Entity associated with this state machine.
+	 * @param state
+	 *            Current state of the FSM.
+	 * @return true if this transition is allowed from <code>state</code> given
+	 *         <code>event</code>
+	 */
 	public boolean allow(Object event, Object entity, State state);
 
 }

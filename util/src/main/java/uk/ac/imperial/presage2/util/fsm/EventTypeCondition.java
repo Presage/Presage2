@@ -18,6 +18,13 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
+/**
+ * {@link TransitionCondition} which returns true iff the java class type of the
+ * event is the same as the type this class is instaniated with.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class EventTypeCondition implements TransitionCondition {
 
 	private final Class<?> type;
@@ -26,6 +33,9 @@ public class EventTypeCondition implements TransitionCondition {
 		this.type = type;
 	}
 
+	/**
+	 * @return true iff <code>event</code> is an instance of {@link #type}
+	 */
 	@Override
 	public boolean allow(Object event, Object entity, State state) {
 		return (type.isInstance(event));
