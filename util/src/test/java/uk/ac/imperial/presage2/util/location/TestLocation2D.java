@@ -18,9 +18,12 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.util.random.Random;
@@ -56,22 +59,6 @@ public class TestLocation2D {
 		assertTrue(y == l.getY());
 
 		assertSame(l, l.getLocation());
-	}
-
-	@Test
-	@Ignore
-	public void testToString() {
-		// continuous
-		final double x = Random.randomDouble();
-		final double y = Random.randomDouble();
-		Location l = new Location(x, y);
-		assertEquals("(" + x + "," + y + ")", l.toString());
-
-		// discrete
-		final int x2 = Random.randomInt();
-		final int y2 = Random.randomInt();
-		Location l2 = new Location(x2, y2);
-		assertEquals("(" + x2 + "," + y2 + ")", l2.toString());
 	}
 
 	@Test
@@ -111,14 +98,10 @@ public class TestLocation2D {
 		assertTrue(new Location(x2, y2).equals(l2));
 
 		// test same type but not equal
-		assertFalse(l1.equals(new Location(Random.randomDouble(), Random
-				.randomDouble())));
-		assertFalse(new Location(Random.randomDouble(), Random.randomDouble())
-				.equals(l1));
-		assertFalse(l2.equals(new Location(Random.randomInt(), Random
-				.randomInt())));
-		assertFalse(new Location(Random.randomInt(), Random.randomInt())
-				.equals(l2));
+		assertFalse(l1.equals(new Location(Random.randomDouble(), Random.randomDouble())));
+		assertFalse(new Location(Random.randomDouble(), Random.randomDouble()).equals(l1));
+		assertFalse(l2.equals(new Location(Random.randomInt(), Random.randomInt())));
+		assertFalse(new Location(Random.randomInt(), Random.randomInt()).equals(l2));
 
 		// test l1 - l2 comparison
 		assertFalse(l1.equals(l2));
@@ -135,8 +118,7 @@ public class TestLocation2D {
 		final double y2 = Random.randomDouble();
 		final Location l2 = new Location(x2, y2);
 
-		final double distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2)
-				* (y1 - y2));
+		final double distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
 		assertEquals(0, l1.distanceTo(l1), 0);
 		assertEquals(0, l2.distanceTo(l2), 0);
@@ -159,8 +141,7 @@ public class TestLocation2D {
 		final int y2 = Random.randomInt(100);
 		final Location l2 = new Location(x2, y2);
 
-		final double distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2)
-				* (y1 - y2));
+		final double distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
 		assertEquals(0, l1.distanceTo(l1), 0);
 		assertEquals(0, l2.distanceTo(l2), 0);
@@ -212,15 +193,13 @@ public class TestLocation2D {
 		final int dy = Random.randomInt(10) - 5;
 		final Location l2 = new Location(x + dx, y + dy);
 
-		final double highSpeed = Math.sqrt(dx * dx + dy * dy)
-				+ Random.randomInt(5);
+		final double highSpeed = Math.sqrt(dx * dx + dy * dy) + Random.randomInt(5);
 		final Move m1 = l1.getMoveTo(l2, highSpeed);
 		assertEquals(m1.getX(), dx, 0);
 		assertEquals(m1.getY(), dy, 0);
 
 		final double lowSpeed = Math.sqrt(dx * dx + dy * dy)
-				- Random.randomInt((int) Math.floor(Math
-						.sqrt(dx * dx + dy * dy)));
+				- Random.randomInt((int) Math.max(Math.floor(Math.sqrt(dx * dx + dy * dy)), 1));
 		final Move m2 = l1.getMoveTo(l2, lowSpeed);
 		assertEquals(m2.getNorm(), lowSpeed, 0.00000001);
 		assertEquals(Location.angle(m1, m2), 0, 0);
