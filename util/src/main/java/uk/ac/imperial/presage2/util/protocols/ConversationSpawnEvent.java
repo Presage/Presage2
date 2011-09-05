@@ -23,6 +23,12 @@ import java.util.Set;
 
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
 
+/**
+ * Event to spawn a new conversation and initialise it with recipients.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class ConversationSpawnEvent {
 
 	private final Set<NetworkAddress> targets = new HashSet<NetworkAddress>();
@@ -41,6 +47,12 @@ public class ConversationSpawnEvent {
 		targets.addAll(with);
 	}
 
+	/**
+	 * Gets the {@link NetworkAddress}es of the agents this conversation should
+	 * talk to.
+	 * 
+	 * @return
+	 */
 	public Set<NetworkAddress> getTargets() {
 		return targets;
 	}

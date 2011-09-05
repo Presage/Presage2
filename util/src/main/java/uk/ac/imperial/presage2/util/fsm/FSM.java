@@ -21,6 +21,23 @@ package uk.ac.imperial.presage2.util.fsm;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * <p>
+ * Instance of a Finite State Machine. Takes a {@link FSMDescription} describing
+ * the state machine which then can be executed with called to
+ * {@link #applyEvent(Object)}.
+ * </p>
+ * 
+ * <p>
+ * The state machine is described with a set of {@link State}s and
+ * {@link Transition}s. Transitions have {@link TransitionCondition}s which
+ * determine whether a transition should be taken for a given event. If a
+ * transition is taken the {@link Action} associated with it will be executed.
+ * </p>
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class FSM {
 
 	private final FSMDescription desc;

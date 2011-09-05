@@ -23,9 +23,17 @@ import java.util.Set;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
+import uk.ac.imperial.presage2.util.fsm.FSM;
 import uk.ac.imperial.presage2.util.fsm.FSMDescription;
 import uk.ac.imperial.presage2.util.fsm.FSMException;
 
+/**
+ * {@link Protocol} implementation using an {@link FSM} to control state changes
+ * and actions.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class FSMProtocol extends Protocol {
 
 	protected final FSMDescription description;

@@ -22,6 +22,12 @@ import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.messaging.InputHandler;
 
+/**
+ * A Conversation is a stateful exchange of messages between 2 or more agents.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public interface Conversation extends InputHandler {
 
 	UUID getID();

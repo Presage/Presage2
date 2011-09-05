@@ -28,6 +28,29 @@ import uk.ac.imperial.presage2.core.messaging.InputHandler;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
 
+/**
+ * <p>
+ * An {@link InputHandler} which manages a set of {@link Conversation}s which
+ * produce and consume {@link Message}s of this protocol. The handler will be
+ * able to handle messages whose protocol name matches the <code>name</code>
+ * field of this object.
+ * </p>
+ * 
+ * <p>
+ * The protocol keeps a list of active {@link Conversation}s of this protocol.
+ * When a new {@link Message} of this protocol arrives it hands it to any of
+ * these active conversations who can handle it. If none can handle we
+ * {@link #spawn(Message)} a new conversation from the message.
+ * </p>
+ * 
+ * <p>
+ * The protocol can also be used to spawn new active conversations with 0, 1 or
+ * many {@link NetworkAddress}es provided.
+ * </p>
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public abstract class Protocol implements InputHandler {
 
 	protected final String name;
@@ -48,19 +71,21 @@ public abstract class Protocol implements InputHandler {
 
 	@Override
 	public void handle(Input in) {
-		// pass this input to all conversation that could handle it.
-		int handleCount = 0;
-		for (Iterator<Conversation> it = activeConversations.iterator(); it.hasNext();) {
-			Conversation c = it.next();
-			if (c.canHandle(in)) {
-				c.handle(in);
-				handleCount++;
+		if (canHandle(in)) {
+			// pass this input to all conversation that could handle it.
+			int handleCount = 0;
+			for (Iterator<Conversation> it = activeConversations.iterator(); it.hasNext();) {
+				Conversation c = it.next();
+				if (c.canHandle(in)) {
+					c.handle(in);
+					handleCount++;
+				}
+				if (c.isFinished())
+					it.remove();
 			}
-			if (c.isFinished())
-				it.remove();
-		}
-		if (handleCount == 0) {
-			spawn((Message<?>) in);
+			if (handleCount == 0) {
+				spawn((Message<?>) in);
+			}
 		}
 	}
 

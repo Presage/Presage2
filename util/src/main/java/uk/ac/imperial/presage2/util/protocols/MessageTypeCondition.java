@@ -22,6 +22,13 @@ import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.util.fsm.State;
 import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
 
+/**
+ * FSM {@link TransitionCondition} to check the <code>type</code> property of a
+ * received message matches a given value.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public class MessageTypeCondition implements TransitionCondition {
 
 	private final String type;
