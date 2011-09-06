@@ -18,35 +18,32 @@
  */
 package uk.ac.imperial.presage2.util.fsm;
 
-import java.util.Arrays;
+import static org.junit.Assert.*;
 
-/**
- * {@link TransitionCondition} which does a boolean AND of all the conditions
- * given to it and returns that result.
- * 
- * @author Sam Macbeth
- * 
- */
-public class AndCondition implements TransitionCondition {
+import org.junit.Test;
 
-	private final TransitionCondition[] conditions;
+public class EventTypeConditionTest {
 
-	/**
-	 * @param conditions
-	 *            {@link TransitionCondition} to AND together.
-	 */
-	public AndCondition(TransitionCondition... conditions) {
-		super();
-		this.conditions = Arrays.copyOf(conditions, conditions.length);
-	}
+	private static class TestEvent {
+	};
 
-	@Override
-	public boolean allow(Object event, Object entity, State state) {
-		for (TransitionCondition condition : conditions) {
-			if (!condition.allow(event, entity, state))
-				return false;
-		}
-		return true;
+	private static final TestEvent event = new TestEvent();
+
+	private static class OtherEvent extends TestEvent {
+	};
+
+	@Test
+	public void test() {
+
+		EventTypeCondition condition = new EventTypeCondition(TestEvent.class);
+
+		assertTrue(condition.allow(event, null, null));
+
+		assertFalse(condition.allow(null, null, null));
+
+		assertFalse(condition.allow(new Object(), null, null));
+
+		assertTrue(condition.allow(new OtherEvent(), null, null));
 	}
 
 }

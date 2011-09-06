@@ -54,7 +54,7 @@ public class FSMDescription {
 	 */
 	public FSMDescription addState(final String name, final StateType type) throws FSMException {
 		throwIfBuilt();
-		if (!states.containsKey(name)) {
+		if (name != null && !states.containsKey(name)) {
 			if (type == StateType.START) {
 				if (startState == null)
 					startState = name;
@@ -196,6 +196,10 @@ public class FSMDescription {
 
 	/**
 	 * Builds the FSM, making this description immutable.
+	 * 
+	 * TODO The point of this function needs to be better defined. It should
+	 * create a copy of the description into an immutable container separate
+	 * from this instance.
 	 * 
 	 * @return this
 	 * @throws FSMException
