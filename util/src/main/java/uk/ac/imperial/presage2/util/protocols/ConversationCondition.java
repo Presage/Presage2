@@ -23,8 +23,9 @@ import uk.ac.imperial.presage2.util.fsm.State;
 import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
 
 /**
- * A FSM {@link TransitionCondition} which ensures that the message passed in the
- * <code>event</code> matches the conversation in the {@link FSMConversation}.
+ * A FSM {@link TransitionCondition} which ensures that the message passed in
+ * the <code>event</code> matches the conversation in the
+ * {@link FSMConversation}.
  * 
  * @author Sam Macbeth
  * 

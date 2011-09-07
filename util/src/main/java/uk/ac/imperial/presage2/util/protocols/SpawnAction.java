@@ -36,7 +36,10 @@ public abstract class SpawnAction implements Action {
 	@Override
 	public void execute(Object event, Object entity, Transition transition) {
 		try {
-			processSpawn((ConversationSpawnEvent) event, (FSMConversation) entity, transition);
+			FSMConversation conv = (FSMConversation) entity;
+			ConversationSpawnEvent e = (ConversationSpawnEvent) event;
+			conv.recipients.addAll(e.getTargets());
+			processSpawn(e, conv, transition);
 		} catch (ClassCastException e) {
 			throw new RuntimeException("Unexpected types passed to SpawnAction", e);
 		}
@@ -51,9 +54,7 @@ public abstract class SpawnAction implements Action {
 	 * @param conv
 	 * @param transition
 	 */
-	public void processSpawn(ConversationSpawnEvent event, FSMConversation conv,
-			Transition transition) {
-		conv.recipients.addAll(event.getTargets());
-	}
+	public abstract void processSpawn(ConversationSpawnEvent event, FSMConversation conv,
+			Transition transition);
 
 }

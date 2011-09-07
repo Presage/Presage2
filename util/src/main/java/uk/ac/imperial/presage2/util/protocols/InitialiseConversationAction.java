@@ -29,7 +29,7 @@ import uk.ac.imperial.presage2.util.fsm.Transition;
  * @author Sam Macbeth
  * 
  */
-public class InitialiseConversationAction extends MessageAction {
+public abstract class InitialiseConversationAction extends MessageAction {
 
 	/**
 	 * Initialises the conversation key and recipient of the given
@@ -40,9 +40,12 @@ public class InitialiseConversationAction extends MessageAction {
 	 *      uk.ac.imperial.presage2.util.fsm.Transition)
 	 */
 	@Override
-	public void processMessage(Message<?> message, FSMConversation conv, Transition transition) {
+	public final void processMessage(Message<?> message, FSMConversation conv, Transition transition) {
 		conv.setConversationKey(message.getConversationKey());
 		conv.recipients.add(message.getFrom());
 	}
+
+	public abstract void processInitialMessage(Message<?> message, FSMConversation conv,
+			Transition transition);
 
 }
