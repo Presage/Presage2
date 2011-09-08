@@ -48,20 +48,28 @@ public class UnicastMessage<T> extends Message<T> {
 	 * @param timestamp
 	 * @param to
 	 */
-	public UnicastMessage(Performative performative, NetworkAddress from,
-			NetworkAddress to, Time timestamp) {
+	public UnicastMessage(Performative performative, NetworkAddress from, NetworkAddress to,
+			Time timestamp) {
 		super(performative, from, timestamp);
 		this.to = to;
 	}
 
-	public UnicastMessage(Performative performative, NetworkAddress from,
+	public UnicastMessage(Performative performative, NetworkAddress from, NetworkAddress to,
 			Time timestamp, T data) {
 		super(performative, from, timestamp, data);
+		this.to = to;
 	}
 
-	public UnicastMessage(Performative performative, String type,
-			Time timestamp, NetworkAddress from, T data) {
+	public UnicastMessage(Performative performative, String type, Time timestamp,
+			NetworkAddress from, NetworkAddress to, T data) {
 		super(performative, type, timestamp, from, data);
+		this.to = to;
+	}
+
+	public UnicastMessage(Performative performative, String type, Time timestamp,
+			NetworkAddress from, NetworkAddress to) {
+		super(performative, type, timestamp, from);
+		this.to = to;
 	}
 
 	/**
@@ -78,9 +86,8 @@ public class UnicastMessage<T> extends Message<T> {
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ": (Time: "
-				+ this.timestamp.toString() + ", from: " + this.from.toString()
-				+ ", to: " + this.to.toString() + ", perf: "
+		return this.getClass().getSimpleName() + ": (Time: " + this.timestamp.toString()
+				+ ", from: " + this.from.toString() + ", to: " + this.to.toString() + ", perf: "
 				+ this.performative.toString() + ")";
 	}
 

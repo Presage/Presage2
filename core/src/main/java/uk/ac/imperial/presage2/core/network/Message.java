@@ -102,6 +102,14 @@ public abstract class Message<T> implements Input {
 		this.data = data;
 	}
 
+	public Message(Performative performative, String type, Time timestamp, NetworkAddress from) {
+		super();
+		this.performative = performative;
+		this.type = type;
+		this.timestamp = timestamp;
+		this.from = from;
+	}
+
 	/**
 	 * @see uk.ac.imperial.presage2.core.messaging.Input#getPerformative()
 	 */
