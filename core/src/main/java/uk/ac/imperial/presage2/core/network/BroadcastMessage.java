@@ -42,8 +42,7 @@ public class BroadcastMessage<T> extends Message<T> {
 	 * @param from
 	 * @param timestamp
 	 */
-	public BroadcastMessage(Performative performative, NetworkAddress from,
-			Time timestamp) {
+	public BroadcastMessage(Performative performative, NetworkAddress from, Time timestamp) {
 		super(performative, from, timestamp);
 	}
 
@@ -54,8 +53,7 @@ public class BroadcastMessage<T> extends Message<T> {
 	 * @param timestamp
 	 * @param data
 	 */
-	public BroadcastMessage(Performative performative, NetworkAddress from,
-			Time timestamp, T data) {
+	public BroadcastMessage(Performative performative, NetworkAddress from, Time timestamp, T data) {
 		super(performative, from, timestamp, data);
 	}
 
@@ -66,9 +64,15 @@ public class BroadcastMessage<T> extends Message<T> {
 	 * @param from
 	 * @param data
 	 */
-	public BroadcastMessage(Performative performative, String type,
-			Time timestamp, NetworkAddress from, T data) {
+	public BroadcastMessage(Performative performative, String type, Time timestamp,
+			NetworkAddress from, T data) {
 		super(performative, type, timestamp, from, data);
+	}
+
+	public BroadcastMessage(Performative performative, String type, Time timestamp,
+			NetworkAddress from) {
+		super(performative, type, timestamp, from);
+		// TODO Auto-generated constructor stub
 	}
 
 }

@@ -18,9 +18,11 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
+import java.util.Set;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.messaging.InputHandler;
+import uk.ac.imperial.presage2.core.network.NetworkAddress;
 
 /**
  * A Conversation is a stateful exchange of messages between 2 or more agents.
@@ -30,12 +32,33 @@ import uk.ac.imperial.presage2.core.messaging.InputHandler;
  */
 public interface Conversation extends InputHandler {
 
+	/**
+	 * @return The conversation's unique key.
+	 */
 	UUID getID();
 
+	/**
+	 * @return The state of this conversation.
+	 */
 	String getState();
 
+	/**
+	 * @return True if the conversation has been completed.
+	 */
 	boolean isFinished();
 
+	/**
+	 * Get your role in this conversation
+	 * 
+	 * @return
+	 */
 	Role getRole();
+
+	/**
+	 * 
+	 * @return {@link NetworkAddress}es of all the participants in this
+	 *         conversation
+	 */
+	Set<NetworkAddress> getMembers();
 
 }

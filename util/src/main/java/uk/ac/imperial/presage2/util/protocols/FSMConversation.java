@@ -19,6 +19,7 @@
 package uk.ac.imperial.presage2.util.protocols;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -135,6 +136,11 @@ public class FSMConversation implements Conversation {
 			return network.getConnectedNodes();
 		}
 
+	}
+
+	@Override
+	public Set<NetworkAddress> getMembers() {
+		return new HashSet<NetworkAddress>(this.recipients);
 	}
 
 }
