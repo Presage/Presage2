@@ -38,16 +38,10 @@ public class SimTime {
 	private final ImmutableTime immutableTime;
 
 	@Inject
-	public SimTime(Time t, EventBus eb) {
+	public SimTime(Time t) {
 		this.time = t;
 		this.immutableTime = new ImmutableTime(this.time);
-		eb.subscribe(this);
 		SimTime.instance = this;
-	}
-
-	@EventListener
-	public void incrementTime(EndOfTimeCycle event) {
-		this.time.increment();
 	}
 
 	public static Time get() {

@@ -44,7 +44,7 @@ public abstract class Simulator implements ThreadPool {
 	public Simulator(Scenario scenario, Time t, EventBus eventBus) {
 		this.scenario = scenario;
 		this.time = t;
-		this.simTime = new SimTime(t, eventBus);
+		this.simTime = new SimTime(t);
 		this.eventBus = eventBus;
 	}
 
