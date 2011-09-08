@@ -43,6 +43,7 @@ public abstract class InitialiseConversationAction extends MessageAction {
 	public final void processMessage(Message<?> message, FSMConversation conv, Transition transition) {
 		conv.setConversationKey(message.getConversationKey());
 		conv.recipients.add(message.getFrom());
+		processInitialMessage(message, conv, transition);
 	}
 
 	public abstract void processInitialMessage(Message<?> message, FSMConversation conv,
