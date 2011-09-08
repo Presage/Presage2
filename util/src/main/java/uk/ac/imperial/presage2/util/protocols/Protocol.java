@@ -18,6 +18,8 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -126,7 +128,21 @@ public abstract class Protocol implements InputHandler {
 	 * @return
 	 */
 	public Set<Conversation> getActiveConversations() {
-		return null;
+		return Collections.unmodifiableSet(new HashSet<Conversation>(this.activeConversations));
+	}
+
+	/**
+	 * Get the set of {@link NetworkAddress}es involved in an active
+	 * conversation with us in this protocol.
+	 * 
+	 * @return
+	 */
+	public Set<NetworkAddress> getActiveConversationMembers() {
+		Set<NetworkAddress> members = new HashSet<NetworkAddress>();
+		for (Conversation c : getActiveConversations()) {
+			members.addAll(c.getMembers());
+		}
+		return Collections.unmodifiableSet(members);
 	}
 
 }
