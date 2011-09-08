@@ -57,6 +57,7 @@ abstract public class SimulatorTest {
 			{
 				allowing(time).clone();
 				will(returnValue(time));
+				allowing(eventBus).subscribe(with(anything()));
 			}
 		});
 	}
@@ -76,8 +77,7 @@ abstract public class SimulatorTest {
 		final int nParticipants = Random.randomInt(10);
 		final Set<Participant> partSet = new HashSet<Participant>();
 		for (int i = 0; i < nParticipants; i++) {
-			final Participant p = context.mock(Participant.class, "participant"
-					+ i);
+			final Participant p = context.mock(Participant.class, "participant" + i);
 			partSet.add(p);
 		}
 
@@ -144,10 +144,8 @@ abstract public class SimulatorTest {
 				exactly(nCycles).of(env).incrementTime();
 				exactly(nCycles).of(plug1).incrementTime();
 				exactly(nCycles).of(plug2).incrementTime();
-				exactly(nCycles).of(eventBus).publish(
-						with(any(ParticipantsComplete.class)));
-				exactly(nCycles).of(eventBus).publish(
-						with(any(EndOfTimeCycle.class)));
+				exactly(nCycles).of(eventBus).publish(with(any(ParticipantsComplete.class)));
+				exactly(nCycles).of(eventBus).publish(with(any(EndOfTimeCycle.class)));
 			}
 		});
 

@@ -36,6 +36,7 @@ public abstract class Simulator implements ThreadPool {
 	 */
 	protected Scenario scenario;
 	protected final Time time;
+	protected final SimTime simTime;
 	protected DatabaseService database;
 	protected EventBus eventBus;
 
@@ -43,6 +44,7 @@ public abstract class Simulator implements ThreadPool {
 	public Simulator(Scenario scenario, Time t, EventBus eventBus) {
 		this.scenario = scenario;
 		this.time = t;
+		this.simTime = new SimTime(t, eventBus);
 		this.eventBus = eventBus;
 	}
 
