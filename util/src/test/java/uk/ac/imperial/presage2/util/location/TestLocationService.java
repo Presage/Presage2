@@ -26,6 +26,7 @@ import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Test;
 
+import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
@@ -37,11 +38,12 @@ public class TestLocationService {
 	public void testGetAgentLocation() throws CannotSeeAgent {
 		final Mockery context = new Mockery();
 		final EnvironmentSharedStateAccess mockEnv = context.mock(EnvironmentSharedStateAccess.class);
+		final EnvironmentServiceProvider mockServiceProvider = context.mock(EnvironmentServiceProvider.class);
 		
 		final UUID validID = Random.randomUUID();
 		final Location loc = new Location(0, 0);
 		final UUID invalidID = Random.randomUUID();
-		final LocationService serviceUnderTest = new LocationService(mockEnv);
+		final LocationService serviceUnderTest = new LocationService(mockEnv, mockServiceProvider);
 		
 		context.checking(new Expectations() {{
 			allowing(mockEnv).get("util.location", validID); will(returnValue(new ParticipantSharedState<Location>("util.location", loc, validID)));

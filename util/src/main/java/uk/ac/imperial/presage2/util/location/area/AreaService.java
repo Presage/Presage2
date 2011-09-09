@@ -16,9 +16,12 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.location;
+package uk.ac.imperial.presage2.util.location.area;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import com.google.inject.Inject;
 
@@ -26,8 +29,8 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.SharedState;
 import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
-import uk.ac.imperial.presage2.util.location.area.Area;
-import uk.ac.imperial.presage2.util.location.area.HasArea;
+import uk.ac.imperial.presage2.util.location.Cell;
+import uk.ac.imperial.presage2.util.location.Location;
 
 /**
  * <p>
@@ -50,6 +53,8 @@ public class AreaService extends EnvironmentService {
 
 	private HasArea area;
 
+	private boolean cellArea = false;
+
 	@Inject
 	public AreaService(EnvironmentSharedStateAccess sharedState, HasArea area) {
 		super(sharedState);
@@ -65,10 +70,62 @@ public class AreaService extends EnvironmentService {
 		return ((HasArea) sharedState.getGlobal("area").getValue()).getArea();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void initialise(Map<String, SharedState<?>> globalSharedState) {
-		globalSharedState.put("area", new SharedState<HasArea>("area",
-				this.area));
+		globalSharedState.put("area", new SharedState<HasArea>("area", this.area));
+		globalSharedState.put(
+				"area.cells",
+				new SharedState<Set<UUID>[][][]>("area.cells", new Set[Math.max(
+						this.area.getArea().x, 1)][Math.max(this.area.getArea().y, 1)][Math.max(
+						this.area.getArea().z, 1)]));
+	}
+
+	/**
+	 * Get the cell corresponding to the coordinates <code>x,y,z</code>. This
+	 * cell contains the set of agents currently in this cell.
+	 * 
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
+	public Set<UUID> getCell(int x, int y, int z) {
+		cellArea = true;
+		@SuppressWarnings("unchecked")
+		Set<UUID>[][][] cellMap = (Set<UUID>[][][]) sharedState.getGlobal("area.cells").getValue();
+
+		try {
+			Set<UUID> cell = cellMap[x][y][z];
+			if (cell == null)
+				cell = cellMap[x][y][z] = new HashSet<UUID>();
+
+			return cell;
+		} catch (ArrayIndexOutOfBoundsException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public int getSizeX() {
+		return this.area.getArea().x;
+	}
+
+	public int getSizeY() {
+		return this.area.getArea().y;
+	}
+
+	public int getSizeZ() {
+		return Math.max(this.area.getArea().z, 1);
+	}
+
+	/**
+	 * Returns true if {@link Cell}s are being used instead of basic
+	 * {@link Location}s.
+	 * 
+	 * @return
+	 */
+	public boolean isCellArea() {
+		return cellArea;
 	}
 
 }
