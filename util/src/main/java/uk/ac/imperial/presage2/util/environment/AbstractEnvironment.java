@@ -84,7 +84,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	protected Set<ActionHandler> actionHandlers;
 
-	protected Set<EnvironmentService> globalEnvironmentServices;
+	protected Set<EnvironmentService> globalEnvironmentServices = new HashSet<EnvironmentService>();
 
 	protected boolean deferActions;
 
@@ -110,18 +110,15 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		public void handle() {
 			try {
 				if (logger.isDebugEnabled())
-					logger.debug("Deferredly handling " + action + " from "
-							+ actor);
+					logger.debug("Deferredly handling " + action + " from " + actor);
 				Input i = handler.handle(action, actor);
 				if (i != null)
 					registeredParticipants.get(actor).enqueueInput(i);
 			} catch (ActionHandlingException e) {
-				logger.warn("Exception when handling action " + action
-						+ " for " + actor, e);
+				logger.warn("Exception when handling action " + action + " for " + actor, e);
 			} catch (RuntimeException e) {
-				logger.warn("Runtime exception thrown by handler " + handler
-						+ " with action " + action + " performed by " + actor,
-						e);
+				logger.warn("Runtime exception thrown by handler " + handler + " with action "
+						+ action + " performed by " + actor, e);
 			}
 		}
 
@@ -195,10 +192,8 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		super();
 		// these data structures must be synchronised as synchronous access is
 		// probable.
-		registeredParticipants = Collections
-				.synchronizedMap(new HashMap<UUID, Participant>());
-		globalSharedState = Collections
-				.synchronizedMap(new HashMap<String, SharedState<?>>());
+		registeredParticipants = Collections.synchronizedMap(new HashMap<UUID, Participant>());
+		globalSharedState = Collections.synchronizedMap(new HashMap<String, SharedState<?>>());
 		participantState = Collections
 				.synchronizedMap(new HashMap<UUID, Map<String, ParticipantSharedState<?>>>());
 		// for authkeys we don't synchronize, but we must remember to do so
@@ -206,9 +201,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		authkeys = new HashMap<UUID, UUID>();
 
 		// Initialise global services and add EnvironmentMembersService
-		globalEnvironmentServices = new HashSet<EnvironmentService>();
-		globalEnvironmentServices.addAll(this
-				.initialiseGlobalEnvironmentServices());
+		globalEnvironmentServices.addAll(this.initialiseGlobalEnvironmentServices());
 
 		for (EnvironmentService es : globalEnvironmentServices) {
 			es.initialise(globalSharedState);
@@ -260,6 +253,9 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	@Inject(optional = true)
 	protected void addGlobalEnvironmentServices(Set<EnvironmentService> services) {
 		this.globalEnvironmentServices.addAll(services);
+		for (EnvironmentService s : services) {
+			s.initialise(globalSharedState);
+		}
 	}
 
 	@Inject(optional = true)
@@ -296,20 +292,16 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		try {
 			participantUUID = request.getParticipant().getID();
 		} catch (NullPointerException e) {
-			this.logger.warn(
-					"Failed to register participant, invalid request.", e);
+			this.logger.warn("Failed to register participant, invalid request.", e);
 			throw e;
 		}
 		if (participantUUID == null && request.getParticipantID() != null) {
 			participantUUID = request.getParticipantID();
 			this.logger
 					.warn("Participant.getID() returned null. Using UUID provided in request instead.");
-		} else if (participantUUID == null
-				&& request.getParticipantID() == null) {
-			NullPointerException e = new NullPointerException(
-					"Null Participant UUID");
-			this.logger.warn(
-					"Failed to register participant, invalid request.", e);
+		} else if (participantUUID == null && request.getParticipantID() == null) {
+			NullPointerException e = new NullPointerException("Null Participant UUID");
+			this.logger.warn("Failed to register participant, invalid request.", e);
 			throw e;
 		}
 		// register participant
@@ -350,12 +342,8 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		EnvironmentRegistrationResponse response = new EnvironmentRegistrationResponse(
 				authkeys.get(participantUUID), services);
 		if (this.logger.isDebugEnabled()) {
-			this.logger
-					.debug("Responding to environment registration request from "
-							+ participantUUID
-							+ " with "
-							+ services.size()
-							+ " services.");
+			this.logger.debug("Responding to environment registration request from "
+					+ participantUUID + " with " + services.size() + " services.");
 		}
 
 		return response;
@@ -382,8 +370,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 *      java.util.UUID, java.util.UUID)
 	 */
 	@Override
-	public void act(Action action, UUID actor, UUID authkey)
-			throws ActionHandlingException {
+	public void act(Action action, UUID actor, UUID authkey) throws ActionHandlingException {
 		// verify authkey
 		if (authkeys.get(actor) == null) {
 			UnregisteredParticipantException e = new UnregisteredParticipantException(
@@ -392,24 +379,22 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			throw e;
 		}
 		if (authkeys.get(actor) != authkey) {
-			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "
-					+ actor + " attempting to act with incorrect authkey!");
+			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent " + actor
+					+ " attempting to act with incorrect authkey!");
 			this.logger.warn(e);
 			throw e;
 		}
 		if (action == null) {
-			ActionHandlingException e = new ActionHandlingException(
-					"Participant " + authkey
-							+ " attempting to perform null action");
+			ActionHandlingException e = new ActionHandlingException("Participant " + authkey
+					+ " attempting to perform null action");
 			logger.warn(e);
 			throw e;
 		}
 
 		// Action processing
 		if (actionHandlers.size() == 0) {
-			ActionHandlingException e = new ActionHandlingException(this
-					.getClass().getCanonicalName()
-					+ " has no ActionHandlers cannot execute action request ");
+			ActionHandlingException e = new ActionHandlingException(this.getClass()
+					.getCanonicalName() + " has no ActionHandlers cannot execute action request ");
 			logger.warn(e);
 			throw e;
 		}
@@ -423,11 +408,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 
 		if (canHandle.size() == 0) {
-			ActionHandlingException e = new ActionHandlingException(this
-					.getClass().getCanonicalName()
+			ActionHandlingException e = new ActionHandlingException(this.getClass()
+					.getCanonicalName()
 					+ " has no ActionHandlers which can handle "
-					+ action.getClass().getCanonicalName()
-					+ " - cannot execute action request");
+					+ action.getClass().getCanonicalName() + " - cannot execute action request");
 			logger.warn(e);
 			throw e;
 		}
@@ -473,13 +457,11 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 		if (authkeys.get(participantID) == null) {
 			UnregisteredParticipantException e = new UnregisteredParticipantException(
-					"Unregistered participant " + participantID
-							+ " attempting to deregister");
+					"Unregistered participant " + participantID + " attempting to deregister");
 			this.logger.warn(e);
 			throw e;
 		} else if (authkeys.get(participantID) != authkey) {
-			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "
-					+ participantID
+			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent " + participantID
 					+ " attempting to deregister with incorrect authkey!");
 			this.logger.warn(e);
 			throw e;
@@ -505,14 +487,12 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		SharedState<?> global = globalSharedState.get(name);
 		if (global == null) {
 			SharedStateAccessException e = new SharedStateAccessException(
-					"Invalid global shared state access. State '" + name
-							+ "' does not exist!");
+					"Invalid global shared state access. State '" + name + "' does not exist!");
 			this.logger.warn(e);
 			throw e;
 		} else {
 			if (this.logger.isTraceEnabled()) {
-				this.logger.trace("Returning global environment state '" + name
-						+ "'");
+				this.logger.trace("Returning global environment state '" + name + "'");
 			}
 			return global;
 		}
@@ -533,24 +513,20 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			state = participantState.get(participantID).get(name);
 		} catch (NullPointerException e) {
 			SharedStateAccessException sse = new SharedStateAccessException(
-					"Invalid shared state access: '" + participantID + "."
-							+ name + "'. Participant does not exist", e);
+					"Invalid shared state access: '" + participantID + "." + name
+							+ "'. Participant does not exist", e);
 			this.logger.warn(sse);
 			throw sse;
 		}
 		if (state == null) {
 			SharedStateAccessException e = new SharedStateAccessException(
-					"Invalid shared state access: '"
-							+ participantID
-							+ "."
-							+ name
+					"Invalid shared state access: '" + participantID + "." + name
 							+ "'. Participant does not have a state with this name");
 			this.logger.warn(e);
 			throw e;
 		}
 		if (this.logger.isTraceEnabled()) {
-			this.logger.trace("Returning participant state '" + participantID
-					+ "." + name + "'");
+			this.logger.trace("Returning participant state '" + participantID + "." + name + "'");
 		}
 		return state;
 	}
@@ -563,11 +539,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	}
 
 	@Override
-	public void change(String name, UUID participantID,
-			ParticipantStateTransformer change) {
+	public void change(String name, UUID participantID, ParticipantStateTransformer change) {
 		synchronized (this.participantStateChange) {
-			this.participantStateChange.add(new ParticipantSharedStateChanger(
-					participantID, name, change));
+			this.participantStateChange.add(new ParticipantSharedStateChanger(participantID, name,
+					change));
 		}
 	}
 
@@ -589,10 +564,8 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			t.getTransformer().transform(s);
 		}
 		while (this.participantStateChange.peek() != null) {
-			ParticipantSharedStateChanger t = this.participantStateChange
-					.poll();
-			ParticipantSharedState<?> s = this.get(t.getName(),
-					t.getParticipant());
+			ParticipantSharedStateChanger t = this.participantStateChange.poll();
+			ParticipantSharedState<?> s = this.get(t.getName(), t.getParticipant());
 			t.getTransformer().transform(s);
 		}
 	}

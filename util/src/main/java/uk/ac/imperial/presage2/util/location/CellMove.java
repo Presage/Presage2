@@ -18,18 +18,20 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
-import org.apache.commons.math.geometry.Vector3D;
-
-public class Move2D extends Move {
+public class CellMove extends Move {
 
 	private static final long serialVersionUID = 1L;
 
-	public Move2D(double x, double y) {
+	public CellMove(int x, int y, int z) {
+		super(x, y, z);
+	}
+
+	public CellMove(int x, int y) {
 		super(x, y);
 	}
 
-	Move2D(Vector3D v) {
-		this(v.getX(), v.getY());
+	public CellMove(Location c) {
+		super(Math.floor(c.getX() + 0.5), Math.floor(c.getY() + 0.5), Math.floor(c.getZ() + 0.5));
 	}
 
 }

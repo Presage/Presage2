@@ -34,6 +34,7 @@ import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
+import uk.ac.imperial.presage2.util.location.area.AreaService;
 import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
 
 /**
@@ -56,8 +57,7 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
  * {@link #createSharedState(UUID, HasLocation)}:
  * 
  * <pre class="prettyprint">
- * ParticipantSharedState&lt;Location&gt; ss = ParticipantLocationService
- * 		.createSharedState(myID, myLoc);
+ * ParticipantSharedState&lt;Location&gt; ss = ParticipantLocationService.createSharedState(myID, myLoc);
  * </pre>
  * 
  * </p>
@@ -67,8 +67,8 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
  * {@link EnvironmentRegistrationResponse}:
  * 
  * <pre class="prettyprint">
- * ParticipantLocationService p = new ParticipantLocationService(participant,
- * 		sharedState, serviceProvider);
+ * ParticipantLocationService p = new ParticipantLocationService(participant, sharedState,
+ * 		serviceProvider);
  * </pre>
  * 
  * </p>
@@ -79,8 +79,7 @@ import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
 @ServiceDependencies({ EnvironmentMembersService.class })
 public class ParticipantLocationService extends LocationService {
 
-	private final Logger logger = Logger
-			.getLogger(ParticipantLocationService.class);
+	private final Logger logger = Logger.getLogger(ParticipantLocationService.class);
 
 	/**
 	 * {@link ParticipantSharedState} for this agent's Location.
@@ -120,26 +119,29 @@ public class ParticipantLocationService extends LocationService {
 	 *            {@link EnvironmentServiceProvider} for fetching dependencies
 	 */
 	public ParticipantLocationService(Participant p, HasLocation hasLoc,
-			HasPerceptionRange hasRange,
-			EnvironmentSharedStateAccess sharedState,
+			HasPerceptionRange hasRange, EnvironmentSharedStateAccess sharedState,
 			EnvironmentServiceProvider serviceProvider) {
-		super(sharedState);
+		super(sharedState, serviceProvider);
 		this.me = p;
 		this.locationProvider = hasLoc;
 		this.rangeProvider = hasRange;
 		this.state = new ParticipantSharedState<HasLocation>("util.location",
 				this.locationProvider, p.getID());
 		this.membersService = getMembersService(serviceProvider);
+		try {
+			this.areaService = serviceProvider.getEnvironmentService(AreaService.class);
+		} catch (UnavailableServiceException e) {
+			logger.warn("Area service not available", e);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public ParticipantLocationService(Participant p,
-			EnvironmentSharedStateAccess sharedState,
+	public ParticipantLocationService(Participant p, EnvironmentSharedStateAccess sharedState,
 			EnvironmentServiceProvider serviceProvider) {
-		super(sharedState);
+		super(sharedState, serviceProvider);
 		this.me = p;
-		this.state = (ParticipantSharedState<HasLocation>) sharedState.get(
-				"util.location", p.getID());
+		this.state = (ParticipantSharedState<HasLocation>) sharedState.get("util.location",
+				p.getID());
 		this.locationProvider = this.state.getValue();
 		if (p instanceof HasPerceptionRange) {
 			this.rangeProvider = (HasPerceptionRange) p;
@@ -151,17 +153,20 @@ public class ParticipantLocationService extends LocationService {
 			}
 		}
 		this.membersService = getMembersService(serviceProvider);
+		try {
+			this.areaService = serviceProvider.getEnvironmentService(AreaService.class);
+		} catch (UnavailableServiceException e) {
+			logger.warn("Area service not available", e);
+		}
 	}
 
 	/**
 	 * @param serviceProvider
 	 * @return
 	 */
-	private EnvironmentMembersService getMembersService(
-			EnvironmentServiceProvider serviceProvider) {
+	private EnvironmentMembersService getMembersService(EnvironmentServiceProvider serviceProvider) {
 		try {
-			return serviceProvider
-					.getEnvironmentService(EnvironmentMembersService.class);
+			return serviceProvider.getEnvironmentService(EnvironmentMembersService.class);
 		} catch (UnavailableServiceException e) {
 			logger.warn("Could not retrieve EnvironmentMembersService; functionality limited.");
 			return null;
@@ -180,8 +185,7 @@ public class ParticipantLocationService extends LocationService {
 			final Location theirLoc = super.getAgentLocation(participantID);
 			final Location myLoc = this.locationProvider.getLocation();
 
-			if (myLoc.distanceTo(theirLoc) <= this.rangeProvider
-					.getPerceptionRange()) {
+			if (myLoc.distanceTo(theirLoc) <= this.rangeProvider.getPerceptionRange()) {
 				return theirLoc;
 			} else {
 				throw new CannotSeeAgent(this.me.getID(), participantID);
@@ -202,11 +206,36 @@ public class ParticipantLocationService extends LocationService {
 	 * Get the agents who are visible to me at this time and their
 	 * {@link Location}s.
 	 * 
+	 * If we are using {@link Cell}s we do a cell lookup, otherwise we go
+	 * through the full agent list.
+	 * 
 	 * @return {@link HashMap} of agent's {@link UUID} to {@link Location}
 	 */
 	public Map<UUID, Location> getNearbyAgents() {
 		if (this.membersService == null) {
 			throw new UnsupportedOperationException();
+		} else if (this.areaService != null && this.areaService.isCellArea()) {
+			final Map<UUID, Location> agents = new HashMap<UUID, Location>();
+			Cell myLoc = (Cell) this.locationProvider.getLocation();
+			double range = this.rangeProvider.getPerceptionRange();
+
+			for (int x = Math.max(0, (int) (myLoc.getX() - range)); x < Math.min(
+					areaService.getSizeX(), (int) (myLoc.getX() + range)); x++) {
+				for (int y = Math.max(0, (int) (myLoc.getY() - range)); y < Math.min(
+						areaService.getSizeY(), (int) (myLoc.getY() + range)); y++) {
+					for (int z = Math.max(0, (int) (myLoc.getZ() - range)); z < Math.min(
+							areaService.getSizeZ(), (int) (myLoc.getZ() + range)); z++) {
+						Cell c = new Cell(x, y, z);
+						if (myLoc.distanceTo(c) <= range) {
+							for (UUID a : areaService.getCell(x, y, z)) {
+								agents.put(a, c);
+							}
+						}
+					}
+				}
+			}
+			agents.remove(this.me.getID());
+			return agents;
 		} else {
 			final Map<UUID, Location> agents = new HashMap<UUID, Location>();
 			for (UUID pid : this.membersService.getParticipants()) {
@@ -239,10 +268,8 @@ public class ParticipantLocationService extends LocationService {
 	 * @return {@link ParticipantSharedState} on the type that this service
 	 *         uses.
 	 */
-	public static ParticipantSharedState<HasLocation> createSharedState(
-			UUID pid, HasLocation loc) {
-		return new ParticipantSharedState<HasLocation>("util.location", loc,
-				pid);
+	public static ParticipantSharedState<HasLocation> createSharedState(UUID pid, HasLocation loc) {
+		return new ParticipantSharedState<HasLocation>("util.location", loc, pid);
 	}
 
 }

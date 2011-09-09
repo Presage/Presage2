@@ -28,33 +28,33 @@ import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
+import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.messaging.Input;
+import uk.ac.imperial.presage2.util.location.area.Area;
+import uk.ac.imperial.presage2.util.location.area.AreaService;
 import uk.ac.imperial.presage2.util.location.area.EdgeException;
 import uk.ac.imperial.presage2.util.location.area.HasArea;
 
-@ServiceDependencies({ LocationService.class })
+@ServiceDependencies({ LocationService.class, AreaService.class })
 public class MoveHandler implements ActionHandler {
 
 	private final Logger logger = Logger.getLogger(MoveHandler.class);
 
 	final protected HasArea environment;
 	final protected LocationService locationService;
+	final protected EnvironmentSharedStateAccess sharedState;
+	final protected AreaService areaService;
 
-	/**
-	 * @param environment
-	 * @param serviceProvider
-	 * @throws UnavailableServiceException
-	 */
 	@Inject
-	public MoveHandler(HasArea environment,
-			EnvironmentServiceProvider serviceProvider)
-			throws UnavailableServiceException {
+	public MoveHandler(HasArea environment, EnvironmentServiceProvider serviceProvider,
+			EnvironmentSharedStateAccess sharedState) throws UnavailableServiceException {
 		super();
 		this.environment = environment;
-		this.locationService = serviceProvider
-				.getEnvironmentService(LocationService.class);
+		this.locationService = serviceProvider.getEnvironmentService(LocationService.class);
+		this.sharedState = sharedState;
+		this.areaService = serviceProvider.getEnvironmentService(AreaService.class);
 	}
 
 	@Override
@@ -62,9 +62,43 @@ public class MoveHandler implements ActionHandler {
 		return action instanceof Move;
 	}
 
+	/**
+	 * Processes a {@link Move} action.
+	 * 
+	 * In the case of a basic {@link Move} we do a vector addition of the
+	 * agent's current location with the move to determine a resultant location.
+	 * This is then passed to the {@link LocationService} to update the agent's
+	 * location. If the resultant location is not in the simulation {@link Area}
+	 * we ask the area for a valid version of the move and apply that instead.
+	 * 
+	 * In the case of a {@link CellMove} we simply check the destination cell,
+	 * and if it's empty we set the new location through the
+	 * {@link LocationService}. Otherwise we throw an
+	 * {@link ActionHandlingException}.
+	 */
 	@Override
-	public Input handle(Action action, UUID actor)
-			throws ActionHandlingException {
+	public Input handle(Action action, UUID actor) throws ActionHandlingException {
+		if (action instanceof CellMove) {
+			final Move m = (CellMove) action;
+			synchronized (areaService) {
+				if (areaService.getCell((int) m.getX(), (int) m.getY(), (int) m.getZ()).size() == 0) {
+					Location target = new Cell((int) m.getX(), (int) m.getY(), (int) m.getZ());
+					if (!target.in(environment.getArea())) {
+						try {
+							Location loc = locationService.getAgentLocation(actor);
+							final Move mNew = environment.getArea().getValidMove(loc, m);
+							target = new Location(loc.add(mNew));
+						} catch (EdgeException e) {
+							throw new ActionHandlingException(e);
+						}
+					}
+					this.locationService.setAgentLocation(actor, target);
+					return null;
+				} else {
+					throw new ActionHandlingException("Target cell already occupied.");
+				}
+			}
+		}
 		if (action instanceof Move) {
 			if (logger.isDebugEnabled())
 				logger.debug("Handling move " + action + " from " + actor);
@@ -78,8 +112,7 @@ public class MoveHandler implements ActionHandler {
 			Location target = new Location(loc.add(m));
 			if (!target.in(environment.getArea())) {
 				try {
-					final Move mNew = environment.getArea()
-							.getValidMove(loc, m);
+					final Move mNew = environment.getArea().getValidMove(loc, m);
 					target = new Location(loc.add(mNew));
 				} catch (EdgeException e) {
 					throw new ActionHandlingException(e);
@@ -88,8 +121,7 @@ public class MoveHandler implements ActionHandler {
 			this.locationService.setAgentLocation(actor, target);
 			return null;
 		}
-		throw new ActionHandlingException(
-				"MoveHandler was asked to handle non Move action!");
+		throw new ActionHandlingException("MoveHandler was asked to handle non Move action!");
 	}
 
 }
