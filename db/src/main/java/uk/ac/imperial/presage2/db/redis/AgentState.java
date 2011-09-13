@@ -21,7 +21,7 @@ package uk.ac.imperial.presage2.db.redis;
 import java.util.UUID;
 
 import redis.clients.jedis.JedisPool;
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
@@ -29,10 +29,10 @@ public class AgentState extends JedisPoolUser implements TransientAgentState {
 
 	final UUID agentID;
 	final int time;
-	final GraphDB db;
+	final StorageService db;
 	final Keys.AgentState key;
 
-	AgentState(UUID agentID, int time, GraphDB db, JedisPool pool) {
+	AgentState(UUID agentID, int time, StorageService db, JedisPool pool) {
 		super(pool);
 		this.agentID = agentID;
 		this.time = time;

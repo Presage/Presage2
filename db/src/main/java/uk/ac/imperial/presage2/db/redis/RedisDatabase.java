@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.Transaction;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
@@ -39,7 +39,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
-public class RedisDatabase implements DatabaseService, GraphDB, Provider<JedisPool> {
+public class RedisDatabase implements DatabaseService, StorageService, Provider<JedisPool> {
 
 	private final Logger logger = Logger.getLogger(RedisDatabase.class);
 	private final String host;
@@ -65,6 +65,14 @@ public class RedisDatabase implements DatabaseService, GraphDB, Provider<JedisPo
 	}
 
 	@Override
+	public PersistentSimulation createSimulation(String name, String classname, String state,
+			int finishTime) {
+		PersistentSimulation sim = simFactory.create(name, classname, state, finishTime);
+		this.setSimulation(sim);
+		return sim;
+	}
+
+	@Override
 	public PersistentSimulation getSimulation() {
 		return this.simulation;
 	}
@@ -72,6 +80,11 @@ public class RedisDatabase implements DatabaseService, GraphDB, Provider<JedisPo
 	@Override
 	public void setSimulation(PersistentSimulation sim) {
 		this.simulation = sim;
+	}
+
+	@Override
+	public PersistentAgent createAgent(UUID agentID, String name) {
+		return agentFactory.create(agentID, name);
 	}
 
 	@Override

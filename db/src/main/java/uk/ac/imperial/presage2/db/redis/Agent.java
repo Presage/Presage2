@@ -27,7 +27,7 @@ import com.google.inject.Singleton;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
@@ -37,11 +37,11 @@ public class Agent extends JedisPoolUser implements PersistentAgent {
 	@Singleton
 	static class Factory implements PersistentAgentFactory {
 
-		private final GraphDB db;
+		private final StorageService db;
 		private final JedisPool pool;
 
 		@Inject
-		Factory(GraphDB db, JedisPool pool) {
+		Factory(StorageService db, JedisPool pool) {
 			this.db = db;
 			this.pool = pool;
 		}
