@@ -21,7 +21,6 @@ package uk.ac.imperial.presage2.db.graph;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
@@ -30,7 +29,6 @@ import org.neo4j.kernel.Uniqueness;
 
 import uk.ac.imperial.presage2.db.graph.AgentNode.AgentRelationships;
 import uk.ac.imperial.presage2.db.graph.TransientAgentStateNode.TransientAgentStateRel;
-import uk.ac.imperial.presage2.db.graph.export.GEXFExport;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

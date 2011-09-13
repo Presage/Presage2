@@ -26,8 +26,7 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.GraphDB;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
+import uk.ac.imperial.presage2.core.db.StorageService;
 
 import com.google.inject.Singleton;
 
@@ -54,11 +53,11 @@ public class Neo4jModule extends DatabaseModule {
 		super();
 		String mode = props.getProperty(PROPERTY_MODE, MODE_EMBEDDED);
 		if (mode.equalsIgnoreCase(MODE_REST)) {
-			dbFactory = new RestGraphDatabaseFactory(props.getProperty(
-					PROPERTY_REST_URI, DEFAULT_REST_URI));
+			dbFactory = new RestGraphDatabaseFactory(props.getProperty(PROPERTY_REST_URI,
+					DEFAULT_REST_URI));
 		} else {
-			dbFactory = new EmbeddedGraphDatabaseFactory(props.getProperty(
-					PROPERTY_EMBEDDED_PATH, DEFAULT_EMBEDDED_PATH));
+			dbFactory = new EmbeddedGraphDatabaseFactory(props.getProperty(PROPERTY_EMBEDDED_PATH,
+					DEFAULT_EMBEDDED_PATH));
 		}
 	}
 
@@ -66,10 +65,8 @@ public class Neo4jModule extends DatabaseModule {
 	protected void configure() {
 		bind(Neo4jDatabase.class).in(Singleton.class);
 		bind(DatabaseService.class).to(Neo4jDatabase.class);
-		bind(GraphDB.class).to(Neo4jDatabase.class);
+		bind(StorageService.class).to(Neo4jDatabase.class);
 		bind(GraphDatabaseService.class).toProvider(Neo4jDatabase.class);
-
-		bind(PersistentAgentFactory.class).to(AgentNode.Factory.class);
 
 		bind(GraphDatabaseFactory.class).toInstance(dbFactory);
 	}
@@ -85,7 +82,7 @@ public class Neo4jModule extends DatabaseModule {
 
 		@Override
 		public GraphDatabaseService create() {
-			logger.info("Creating EmbeddedGraphDatabase using "+ databasePath);
+			logger.info("Creating EmbeddedGraphDatabase using " + databasePath);
 			return new EmbeddedGraphDatabase(databasePath);
 		}
 
@@ -93,22 +90,22 @@ public class Neo4jModule extends DatabaseModule {
 
 	class RestGraphDatabaseFactory implements GraphDatabaseFactory {
 
-		//private final Logger logger = Logger.getLogger(RestGraphDatabaseFactory.class);
-		private final String databaseURI;
+		// private final Logger logger =
+		// Logger.getLogger(RestGraphDatabaseFactory.class);
+		//private final String databaseURI;
 
 		RestGraphDatabaseFactory(String databaseURI) {
-			this.databaseURI = databaseURI;
+			//this.databaseURI = databaseURI;
 		}
 
 		@Override
 		public GraphDatabaseService create() {
 			throw new UnsupportedOperationException("REST support has not be fully integrated yet.");
-			/*try {
-				logger.info("Creating RestGraphDatabase with URI "+ databaseURI);
-				return new RestGraphDatabase(new URI(databaseURI));
-			} catch (URISyntaxException e) {
-				throw new RuntimeException(e);
-			}*/
+			/*
+			 * try { logger.info("Creating RestGraphDatabase with URI "+
+			 * databaseURI); return new RestGraphDatabase(new URI(databaseURI));
+			 * } catch (URISyntaxException e) { throw new RuntimeException(e); }
+			 */
 		}
 
 	}
