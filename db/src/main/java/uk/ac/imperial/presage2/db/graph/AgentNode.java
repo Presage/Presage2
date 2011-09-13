@@ -30,7 +30,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
@@ -61,11 +61,11 @@ public class AgentNode extends NodeDelegate implements PersistentAgent {
 	@Singleton
 	static class Factory implements PersistentAgentFactory {
 
-		GraphDB graph;
+		StorageService graph;
 		GraphDatabaseService db;
 
 		@Inject
-		Factory(GraphDB graph, GraphDatabaseService db) {
+		Factory(StorageService graph, GraphDatabaseService db) {
 			this.graph = graph;
 			this.db = db;
 		}

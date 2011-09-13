@@ -29,7 +29,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
@@ -41,8 +41,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
-class Neo4jDatabase implements DatabaseService, GraphDB,
-		Provider<GraphDatabaseService> {
+class Neo4jDatabase implements DatabaseService, StorageService, Provider<GraphDatabaseService> {
 
 	enum SubRefs implements RelationshipType {
 		SIMULATIONS, SIMULATION_STATES, SIMULATION_PARAMETERS, SIMULATION_TIMESTEPS, PLUGINS, AGENTS
@@ -96,6 +95,14 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 	}
 
 	@Override
+	public PersistentSimulation createSimulation(String name, String classname, String state,
+			int finishTime) {
+		PersistentSimulation sim = simFactory.create(name, classname, state, finishTime);
+		this.setSimulation(sim);
+		return sim;
+	}
+
+	@Override
 	public PersistentSimulation getSimulation() {
 		return simulation;
 	}
@@ -106,8 +113,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 	}
 
 	static Node getSubRefNode(GraphDatabaseService db, SubRefs type) {
-		Relationship r = db.getReferenceNode().getSingleRelationship(type,
-				Direction.OUTGOING);
+		Relationship r = db.getReferenceNode().getSingleRelationship(type, Direction.OUTGOING);
 		if (r == null) {
 			Transaction tx = db.beginTx();
 			try {
@@ -140,8 +146,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 				(AgentNode) getAgent(agentID), time);
 		if (time > 0) {
 			stateNode.setPrevious(TransientAgentStateNode.get(
-					(AgentNode) agentFactory.get(getSimulation(), agentID),
-					time - 1));
+					(AgentNode) agentFactory.get(getSimulation(), agentID), time - 1));
 		}
 		return stateNode;
 	}
@@ -151,8 +156,7 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 		return new TransactionDelegate(this.graphDB.beginTx());
 	}
 
-	class TransactionDelegate implements
-			uk.ac.imperial.presage2.core.db.Transaction {
+	class TransactionDelegate implements uk.ac.imperial.presage2.core.db.Transaction {
 
 		private final Transaction delegate;
 
@@ -175,6 +179,11 @@ class Neo4jDatabase implements DatabaseService, GraphDB,
 		public void success() {
 			delegate.success();
 		}
+	}
+
+	@Override
+	public PersistentAgent createAgent(UUID agentID, String name) {
+		return agentFactory.create(agentID, name);
 	}
 
 	@Override

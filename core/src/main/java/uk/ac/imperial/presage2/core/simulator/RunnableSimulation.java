@@ -34,7 +34,7 @@ import org.apache.log4j.Logger;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventBusModule;
@@ -66,7 +66,7 @@ public abstract class RunnableSimulation implements Runnable {
 	protected Simulator simulator;
 
 	protected DatabaseService database;
-	protected GraphDB graphDb;
+	protected StorageService graphDb;
 	protected PersistentSimulation simPersist;
 
 	private Map<String, Field> fieldParameters = new HashMap<String, Field>();
@@ -122,8 +122,7 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @return
 	 */
 	public int getSimluationPercentComplete() {
-		if (getSimulationFinishTime() == null
-				|| getCurrentSimulationTime() == null)
+		if (getSimulationFinishTime() == null || getCurrentSimulationTime() == null)
 			return 0;
 		else
 			return 100 * getCurrentSimulationTime().intValue()
@@ -150,10 +149,8 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void initDatabase() {
 		if (this.graphDb != null) {
-			simPersist = graphDb.getSimulationFactory().create(
-					getClass().getSimpleName(), getClass().getCanonicalName(),
-					getState().name(), getSimulationFinishTime().intValue());
-			graphDb.setSimulation(simPersist);
+			simPersist = graphDb.createSimulation(getClass().getSimpleName(), getClass()
+					.getCanonicalName(), getState().name(), getSimulationFinishTime().intValue());
 			for (String s : getParameters().keySet()) {
 				simPersist.addParameter(s, getParameter(s));
 			}
@@ -206,8 +203,7 @@ public abstract class RunnableSimulation implements Runnable {
 		parameters.putAll(getParametersFromFields());
 		parameters.putAll(getParametersFromMethods());
 		if (logger.isDebugEnabled()) {
-			logger.debug("Got " + parameters.size()
-					+ " parameters in simulation "
+			logger.debug("Got " + parameters.size() + " parameters in simulation "
 					+ this.getClass().getSimpleName());
 		}
 		return parameters;
@@ -253,9 +249,8 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 */
-	final public void setParameter(String name, String value)
-			throws IllegalArgumentException, IllegalAccessException,
-			InvocationTargetException {
+	final public void setParameter(String name, String value) throws IllegalArgumentException,
+			IllegalAccessException, InvocationTargetException {
 		if (fieldParameters.containsKey(name)) {
 			Class<?> type = fieldParameters.get(name).getType();
 			if (type == String.class) {
@@ -263,19 +258,16 @@ public abstract class RunnableSimulation implements Runnable {
 			} else if (type == Integer.class || type == Integer.TYPE) {
 				fieldParameters.get(name).setInt(this, Integer.parseInt(value));
 			} else if (type == Double.class || type == Double.TYPE) {
-				fieldParameters.get(name).setDouble(this,
-						Double.parseDouble(value));
+				fieldParameters.get(name).setDouble(this, Double.parseDouble(value));
 			}
 		} else if (methodParameters.containsKey(name)) {
 			Class<?> type = methodParameters.get(name).getParameterTypes()[0];
 			if (type == String.class) {
 				methodParameters.get(name).invoke(this, value);
 			} else if (type == Integer.class || type == Integer.TYPE) {
-				methodParameters.get(name)
-						.invoke(this, Integer.parseInt(value));
+				methodParameters.get(name).invoke(this, Integer.parseInt(value));
 			} else if (type == Double.class || type == Double.TYPE) {
-				methodParameters.get(name).invoke(this,
-						Double.parseDouble(value));
+				methodParameters.get(name).invoke(this, Double.parseDouble(value));
 			}
 		}
 	}
@@ -290,7 +282,7 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 	}
 
-	protected void setGraphDB(GraphDB db) {
+	protected void setGraphDB(StorageService db) {
 		this.graphDb = db;
 	}
 
@@ -321,17 +313,15 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	final public static RunnableSimulation newFromClassName(String className,
-			Object... ctorParams) throws ClassNotFoundException,
-			NoSuchMethodException, InvocationTargetException,
+	final public static RunnableSimulation newFromClassName(String className, Object... ctorParams)
+			throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
 			InstantiationException, IllegalAccessException {
 		final Logger logger = Logger.getLogger(RunnableSimulation.class);
 
 		// Find Class and assert it is a RunnableSimulation
 		Class<? extends RunnableSimulation> clazz = null;
 		try {
-			clazz = Class.forName(className).asSubclass(
-					RunnableSimulation.class);
+			clazz = Class.forName(className).asSubclass(RunnableSimulation.class);
 		} catch (ClassNotFoundException e) {
 			logger.fatal(className + " is not on the classpath!", e);
 			throw e;
@@ -430,8 +420,8 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws IllegalAccessException
 	 */
 	final public static void main(String[] args) throws ClassNotFoundException,
-			NoSuchMethodException, InvocationTargetException,
-			InstantiationException, IllegalAccessException {
+			NoSuchMethodException, InvocationTargetException, InstantiationException,
+			IllegalAccessException {
 
 		if (args.length < 1) {
 			System.err.println("No args provided, expected 1 or more.");
@@ -474,8 +464,7 @@ public abstract class RunnableSimulation implements Runnable {
 		// set parameters
 		for (Map.Entry<String, Class<?>> entry : parameters.entrySet()) {
 			if (!providedParams.containsKey(entry.getKey())) {
-				System.err.println("No value provied for " + entry.getKey()
-						+ " parameter.");
+				System.err.println("No value provied for " + entry.getKey() + " parameter.");
 				return;
 			}
 			sim.setParameter(entry.getKey(), providedParams.get(entry.getKey()));
@@ -490,9 +479,8 @@ public abstract class RunnableSimulation implements Runnable {
 	private static class ObjectFactory {
 
 		@SuppressWarnings("unchecked")
-		static <T> Constructor<? extends T> getConstructor(
-				final Class<T> clazz, Class<?>... paramTypes)
-				throws NoSuchMethodException {
+		static <T> Constructor<? extends T> getConstructor(final Class<T> clazz,
+				Class<?>... paramTypes) throws NoSuchMethodException {
 
 			for (Constructor<?> ctor : clazz.getConstructors()) {
 				Class<?>[] ctorParams = ctor.getParameterTypes();
@@ -511,9 +499,8 @@ public abstract class RunnableSimulation implements Runnable {
 						return (Constructor<? extends T>) ctor;
 				}
 			}
-			throw new NoSuchMethodException(
-					"Could not find constructor to match parameters for "
-							+ clazz.getSimpleName());
+			throw new NoSuchMethodException("Could not find constructor to match parameters for "
+					+ clazz.getSimpleName());
 		}
 
 	}

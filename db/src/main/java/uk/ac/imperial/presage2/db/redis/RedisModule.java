@@ -24,8 +24,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.GraphDB;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
+import uk.ac.imperial.presage2.core.db.StorageService;
 
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
@@ -52,10 +51,8 @@ public class RedisModule extends DatabaseModule {
 
 		bind(RedisDatabase.class).in(Singleton.class);
 		bind(DatabaseService.class).to(RedisDatabase.class);
-		bind(GraphDB.class).to(RedisDatabase.class);
+		bind(StorageService.class).to(RedisDatabase.class);
 		bind(JedisPool.class).toProvider(RedisDatabase.class);
-
-		bind(PersistentAgentFactory.class).to(Agent.Factory.class);
 	}
 
 }

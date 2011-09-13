@@ -24,7 +24,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.Transaction;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
@@ -37,7 +37,7 @@ import com.google.inject.Inject;
 
 public class NetworkMessageMonitor implements Plugin {
 
-	private GraphDB db = null;
+	private StorageService db = null;
 	private final Time time;
 
 	Queue<MessageDeliveryEvent> deliveryQueue = new LinkedBlockingQueue<MessageDeliveryEvent>();
@@ -50,7 +50,7 @@ public class NetworkMessageMonitor implements Plugin {
 	}
 
 	@Inject(optional = true)
-	public void setStorageService(GraphDB db) {
+	public void setStorageService(StorageService db) {
 		this.db = db;
 	}
 

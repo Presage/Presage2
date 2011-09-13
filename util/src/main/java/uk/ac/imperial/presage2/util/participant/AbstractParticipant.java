@@ -30,8 +30,8 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
@@ -212,10 +212,9 @@ public abstract class AbstractParticipant implements Participant,
 		this.time = t;
 	}
 
-	@SuppressWarnings("unused")
 	@Inject(optional = true)
-	private void persistParticipant(PersistentAgentFactory paFactory) {
-		this.persist = paFactory.create(getID(), getName());
+	public void persistParticipant(StorageService storage) {
+		this.persist = storage.createAgent(getID(), getName());
 		this.persist.setProperty("type", getClass().getSimpleName());
 	}
 
