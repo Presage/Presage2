@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.event.EventBus;
 
 import com.google.inject.AbstractModule;
@@ -112,7 +112,7 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 
 	@Override
 	@Inject(optional = true)
-	protected void setGraphDB(GraphDB db) {
+	protected void setGraphDB(StorageService db) {
 		super.setGraphDB(db);
 	}
 

@@ -18,58 +18,94 @@
  */
 package uk.ac.imperial.presage2.core.db;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.db.Table.TableBuilder;
-import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
+import java.util.UUID;
+
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
+import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
+import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
 /**
- * The StorageService is a high level interface to database access for storing
- * simulation data. Allows for {@link Table}s to be constructed which in turn
- * allow data to be inserted into the database.
+ * A service to provide storage of simulation data.
  * 
  * @author Sam Macbeth
  * 
  */
-@Deprecated
 public interface StorageService {
 
 	/**
-	 * Get the current simulation ID
+	 * Get the {@link SimulationFactory} instance.
 	 * 
 	 * @return
 	 */
-	public long getSimulationId();
-
-	public void setSimulationId(long id);
+	@Deprecated
+	public SimulationFactory getSimulationFactory();
 
 	/**
-	 * Get the current simulation time as an int.
+	 * Create a {@link PersistentSimulation} for the given parameters and set it
+	 * as the current simulation
+	 * 
+	 * @param name
+	 *            name of the simulation
+	 * @param classname
+	 *            name of the simulation's main class
+	 * @param state
+	 *            current state of the simulation
+	 * @param finishTime
+	 *            number of simulation cycles in this sim
+	 * @return A {@link PersistentSimulation} object relating to the simulation
+	 *         entry created in the database.
+	 */
+	public PersistentSimulation createSimulation(String name, String classname, String state,
+			int finishTime);
+
+	/**
+	 * Get the {@link PersistentSimulation} for the currently running
+	 * simulation.
 	 * 
 	 * @return
 	 */
-	public int getTime();
-
-	public void setTime(Time t);
+	public PersistentSimulation getSimulation();
 
 	/**
-	 * Start building a Table.
-	 * 
-	 * @param tableName
-	 * @return {@link TableBuilder}
-	 */
-	public TableBuilder buildTable(String tableName);
-
-	/**
-	 * Insert the {@link RunnableSimulation} into the database.
+	 * Set the {@link PersistentSimulation} to use.
 	 * 
 	 * @param sim
 	 */
-	public void insertSimulation(RunnableSimulation sim);
+	public void setSimulation(PersistentSimulation sim);
 
 	/**
-	 * Update the {@link RunnableSimulation} entry in the database to reflect
-	 * any changes in it's state.
+	 * Create a new {@link PersistentAgent} for this simulation.
+	 * 
+	 * @param agentID
+	 * @param name
+	 * @return
 	 */
-	public void updateSimulation();
+	public PersistentAgent createAgent(UUID agentID, String name);
+
+	/**
+	 * Get the {@link PersistentAgent} for this simulation with given UUID.
+	 * 
+	 * @param agentID
+	 * @return
+	 */
+	public PersistentAgent getAgent(UUID agentID);
+
+	/**
+	 * Get the {@link TransientAgentState} associated with agentID at a given
+	 * time.
+	 * 
+	 * @param agentID
+	 * @param time
+	 * @return
+	 */
+	public TransientAgentState getAgentState(UUID agentID, int time);
+
+	/**
+	 * Start a {@link Transaction} on the graph db.
+	 * 
+	 * @return
+	 */
+	public Transaction startTransaction();
 
 }
