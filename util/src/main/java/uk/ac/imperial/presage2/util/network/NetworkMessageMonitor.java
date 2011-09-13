@@ -18,21 +18,10 @@
  */
 package uk.ac.imperial.presage2.util.network;
 
-import java.io.FileNotFoundException;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.traversal.Evaluators;
-import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.graphdb.traversal.Traverser;
-import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.Uniqueness;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.GraphDB;
@@ -43,15 +32,12 @@ import uk.ac.imperial.presage2.core.network.MessageBlockedEvent;
 import uk.ac.imperial.presage2.core.network.MessageDeliveryEvent;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 import uk.ac.imperial.presage2.db.graph.DataExport;
-import uk.ac.imperial.presage2.db.graph.export.Edge;
-import uk.ac.imperial.presage2.db.graph.export.GEXFExport;
 
 import com.google.inject.Inject;
 
 public class NetworkMessageMonitor implements Plugin {
 
 	private GraphDB db = null;
-	private DataExport exporter = null;
 	private final Time time;
 
 	Queue<MessageDeliveryEvent> deliveryQueue = new LinkedBlockingQueue<MessageDeliveryEvent>();
@@ -70,7 +56,7 @@ public class NetworkMessageMonitor implements Plugin {
 
 	@Inject(optional = true)
 	public void setDataExporter(DataExport exp) {
-		this.exporter = exp;
+
 	}
 
 	@EventListener
@@ -94,14 +80,10 @@ public class NetworkMessageMonitor implements Plugin {
 					Map<String, Object> parameters = new Hashtable<String, Object>();
 					parameters.put("time", time.intValue());
 					parameters.put("type", e.getMessage().getType());
-					parameters.put("performative", e.getMessage()
-							.getPerformative().name());
-					parameters.put("class", e.getMessage().getClass()
-							.getSimpleName());
-					db.getAgent(e.getMessage().getFrom().getId())
-							.createRelationshipTo(
-									db.getAgent(e.getRecipient().getId()),
-									"SENT_MESSAGE", parameters);
+					parameters.put("performative", e.getMessage().getPerformative().name());
+					parameters.put("class", e.getMessage().getClass().getSimpleName());
+					db.getAgent(e.getMessage().getFrom().getId()).createRelationshipTo(
+							db.getAgent(e.getRecipient().getId()), "SENT_MESSAGE", parameters);
 				}
 				tx.success();
 			} finally {
@@ -121,38 +103,7 @@ public class NetworkMessageMonitor implements Plugin {
 
 	@Override
 	public void onSimulationComplete() {
-		if (exporter != null) {
-			Node n = exporter.getSimulationNode();
-			TraversalDescription agentMessaging = Traversal
-					.description()
-					.breadthFirst()
-					.uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
-					.relationships(exporter.getParticipantInRelationship(),
-							Direction.INCOMING)
-					.relationships(
-							DynamicRelationshipType.withName("SENT_MESSAGE"))
-					.evaluator(Evaluators.excludeStartPosition());
-			Traverser t = agentMessaging.traverse(n);
-			GEXFExport gexf = GEXFExport.createStaticGraph();
-			for (Node node : t.nodes()) {
-				gexf.addNode(new uk.ac.imperial.presage2.db.graph.export.Node(
-						Long.toString(node.getId()), node.getProperty("label",
-								0).toString()));
-			}
-			for (Relationship r : t.relationships()) {
-				// exclude PARTICIPANT_IN relationships
-				if (!r.getEndNode().equals(n))
-					gexf.addEdge(new Edge(Long.toString(r.getId()), Long
-							.toString(r.getStartNode().getId()), Long
-							.toString(r.getEndNode().getId()), r
-							.getProperty("label", 0).toString()));
-			}
-			try {
-				gexf.writeTo("messaging.gexf");
-			} catch (FileNotFoundException e) {
 
-			}
-		}
 	}
 
 }

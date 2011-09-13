@@ -18,13 +18,9 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
-import java.io.FileNotFoundException;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.GraphDB;
@@ -33,10 +29,7 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
-import uk.ac.imperial.presage2.db.graph.AgentNode.AgentRelationships;
 import uk.ac.imperial.presage2.db.graph.DataExport;
-import uk.ac.imperial.presage2.db.graph.export.DynamicNode;
-import uk.ac.imperial.presage2.db.graph.export.GEXFExport;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
 
 import com.google.inject.Inject;
@@ -46,7 +39,6 @@ public class LocationStoragePlugin implements Plugin {
 	private final Logger logger = Logger.getLogger(LocationStoragePlugin.class);
 
 	private GraphDB storage;
-	private DataExport exporter = null;
 
 	private final EnvironmentMembersService membersService;
 	private final LocationService locService;
@@ -63,13 +55,12 @@ public class LocationStoragePlugin implements Plugin {
 	}
 
 	@Inject
-	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider,
-			Time t) throws UnavailableServiceException {
+	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider, Time t)
+			throws UnavailableServiceException {
 		this.storage = null;
 		this.membersService = serviceProvider
 				.getEnvironmentService(EnvironmentMembersService.class);
-		this.locService = serviceProvider
-				.getEnvironmentService(LocationService.class);
+		this.locService = serviceProvider.getEnvironmentService(LocationService.class);
 		this.time = t;
 	}
 
@@ -80,7 +71,7 @@ public class LocationStoragePlugin implements Plugin {
 
 	@Inject(optional = true)
 	public void setDataExporter(DataExport exp) {
-		this.exporter = exp;
+
 	}
 
 	@Override
@@ -96,8 +87,7 @@ public class LocationStoragePlugin implements Plugin {
 						logger.debug("Exception getting agent location.", e);
 						continue;
 					}
-					TransientAgentState state = this.storage.getAgentState(pid,
-							time.intValue());
+					TransientAgentState state = this.storage.getAgentState(pid, time.intValue());
 					state.setProperty("x", l.getX());
 					state.setProperty("y", l.getY());
 					state.setProperty("z", l.getZ());
@@ -120,36 +110,6 @@ public class LocationStoragePlugin implements Plugin {
 
 	@Override
 	public void onSimulationComplete() {
-		if (exporter != null) {
-			Node n = exporter.getSimulationNode();
-			GEXFExport gexf = GEXFExport.createDynamicGraph();
-			gexf.addAttribute("x", "x", "float");
-			gexf.addAttribute("y", "y", "float");
-			gexf.addAttribute("z", "z", "float");
-			for (Relationship agentRel : n
-					.getRelationships(exporter.getParticipantInRelationship(),
-							Direction.INCOMING)) {
-				Node agent = agentRel.getStartNode();
-				DynamicNode exNode = new DynamicNode(Long.toString(agent
-						.getId()), agent.getProperty("label", "").toString(),
-						agentRel.getProperty("registeredAt", "0").toString());
-				for (Relationship r : agent.getRelationships(
-						AgentRelationships.TRANSIENT_STATE, Direction.OUTGOING)) {
-					Node state = r.getEndNode();
-					String time = r.getProperty("time").toString();
-					exNode.addAttributeValue("x", state.getProperty("x")
-							.toString(), time);
-					exNode.addAttributeValue("y", state.getProperty("y")
-							.toString(), time);
-					exNode.addAttributeValue("z", state.getProperty("z")
-							.toString(), time);
-				}
-				gexf.addNode(exNode);
-			}
-			try {
-				gexf.writeTo("locations.gexf");
-			} catch (FileNotFoundException e) {
-			}
-		}
+
 	}
 }
