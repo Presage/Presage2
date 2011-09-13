@@ -23,7 +23,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.db.GraphDB;
+import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.Transaction;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
@@ -38,7 +38,7 @@ public class LocationStoragePlugin implements Plugin {
 
 	private final Logger logger = Logger.getLogger(LocationStoragePlugin.class);
 
-	private GraphDB storage;
+	private StorageService storage;
 
 	private final EnvironmentMembersService membersService;
 	private final LocationService locService;
@@ -65,7 +65,7 @@ public class LocationStoragePlugin implements Plugin {
 	}
 
 	@Inject(optional = true)
-	public void setStorage(GraphDB storage) {
+	public void setStorage(StorageService storage) {
 		this.storage = storage;
 	}
 
