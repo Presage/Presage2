@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>uk.ac.imperial.presage2</groupId>
 		<artifactId>presage2</artifactId>
-		<version>0.2.4</version>
+		<version>0.2.5-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
 	<artifactId>presage2-util</artifactId>
@@ -17,14 +17,14 @@
 		<dependency>
 			<groupId>uk.ac.imperial.presage2</groupId>
 			<artifactId>presage2-core</artifactId>
-			<version>0.2.4</version>
+			<version>0.2.5-SNAPSHOT</version>
 			<scope>compile</scope>
 			<optional>false</optional>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.imperial.presage2</groupId>
 			<artifactId>presage2-db</artifactId>
-			<version>0.2.4</version>
+			<version>0.2.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
