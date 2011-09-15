@@ -18,11 +18,9 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import com.google.inject.Inject;
-
 import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.event.EventBus;
-import uk.ac.imperial.presage2.core.event.EventListener;
+
+import com.google.inject.Inject;
 
 /**
  * Provides static access to the current simulation time.
