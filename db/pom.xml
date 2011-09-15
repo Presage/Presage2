@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>uk.ac.imperial.presage2</groupId>
 		<artifactId>presage2</artifactId>
-		<version>0.2.3</version>
+		<version>0.2.4</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -24,19 +24,33 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.15</version>
 			<scope>runtime</scope>
-			<optional>false</optional>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.imperial.presage2</groupId>
 			<artifactId>presage2-core</artifactId>
-			<version>0.2.3</version>
+			<version>0.2.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
 			<version>3.7.2</version>
 			<scope>runtime</scope>
+			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.0.0</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+
 	</dependencies>
 
 </project>

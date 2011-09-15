@@ -3,7 +3,7 @@
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.2.3</version>
+	<version>0.2.4</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
@@ -69,6 +69,17 @@
 
 	</dependencies>
 
+	<repositories>
+		<repository>
+			<id>presage</id>
+			<name>Presage Repository</name>
+			<url>http://ee-sm1106.ee.ic.ac.uk:8080/nexus/content/groups/public/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 	<build>
 		<plugins>
 
@@ -110,14 +121,23 @@
 					<!-- | bootclasspath required by Sun's JVM -->
 					<bootclasspath>${sun.boot.class.path}</bootclasspath>
 					<additionalparam>
-						-federate JDK http://download.oracle.com/javase/6/docs/api/index.html?
+						-federate JDK
+						http://download.oracle.com/javase/6/docs/api/index.html?
 						-federationxml JDK
 						http://doclava.googlecode.com/svn/static/api/openjdk-6.xml
 						-federate "Google Guice"
 						http://google-guice.googlecode.com/svn/trunk/javadoc
-						-apiversion ${project.version}
-						-since http://presage.github.com/docs/javadoc/tags/0.2.1/reference/current.xml 0.2.1
-						-since http://presage.github.com/docs/javadoc/branches/master/reference/current.xml 0.2.2
+						-apiversion
+						${project.version}
+						-since
+						http://presage.github.com/docs/api/0.2.1.xml
+						0.2.1
+						-since
+						http://presage.github.com/docs/api/0.2.2.xml
+						0.2.2
+						-since
+						http://presage.github.com/docs/api/0.2.3.xml
+						0.2.3
 						-d ${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
@@ -163,5 +183,16 @@
 		<connection>scm:git:git://github.com/Presage/Presage2.git</connection>
 		<developerConnection>scm:git:https://sammacbeth@github.com/Presage/Presage2.git</developerConnection>
 	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>presage-releases</id>
+			<url>http://ee-sm1106.ee.ic.ac.uk:8080/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>presage-snapshots</id>
+			<url>http://ee-sm1106.ee.ic.ac.uk:8080/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
 

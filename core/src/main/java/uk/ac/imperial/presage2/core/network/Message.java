@@ -19,6 +19,8 @@
 
 package uk.ac.imperial.presage2.core.network;
 
+import java.util.UUID;
+
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.messaging.Performative;
@@ -43,7 +45,7 @@ public abstract class Message<T> implements Input {
 	 */
 	protected final Performative performative;
 
-	protected final String type;
+	protected String type;
 
 	/**
 	 * Timestamp of when this message was sent.
@@ -51,9 +53,19 @@ public abstract class Message<T> implements Input {
 	protected Time timestamp;
 
 	/**
-	 * Send of this message
+	 * Sender of this message
 	 */
 	protected NetworkAddress from;
+
+	/**
+	 * Optional conversation key.
+	 */
+	protected UUID conversationKey;
+
+	/**
+	 * Optional protocol name.
+	 */
+	protected String protocol;
 
 	protected T data;
 
@@ -62,8 +74,7 @@ public abstract class Message<T> implements Input {
 	 * @param from
 	 * @param timestamp
 	 */
-	public Message(Performative performative, NetworkAddress from,
-			Time timestamp) {
+	public Message(Performative performative, NetworkAddress from, Time timestamp) {
 		super();
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
@@ -72,8 +83,7 @@ public abstract class Message<T> implements Input {
 		this.type = "";
 	}
 
-	public Message(Performative performative, NetworkAddress from,
-			Time timestamp, T data) {
+	public Message(Performative performative, NetworkAddress from, Time timestamp, T data) {
 		super();
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
@@ -82,14 +92,22 @@ public abstract class Message<T> implements Input {
 		this.type = "";
 	}
 
-	public Message(Performative performative, String type, Time timestamp,
-			NetworkAddress from, T data) {
+	public Message(Performative performative, String type, Time timestamp, NetworkAddress from,
+			T data) {
 		super();
 		this.performative = performative;
 		this.type = type;
 		this.timestamp = timestamp;
 		this.from = from;
 		this.data = data;
+	}
+
+	public Message(Performative performative, String type, Time timestamp, NetworkAddress from) {
+		super();
+		this.performative = performative;
+		this.type = type;
+		this.timestamp = timestamp;
+		this.from = from;
 	}
 
 	/**
@@ -131,9 +149,9 @@ public abstract class Message<T> implements Input {
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ": (Time: "
-				+ this.timestamp.toString() + ", from: " + this.from.toString()
-				+ ", perf: " + this.performative.toString() + ")";
+		return this.getClass().getSimpleName() + ": (Time: " + this.timestamp.toString()
+				+ ", from: " + this.from.toString() + ", perf: " + this.performative.toString()
+				+ ")";
 	}
 
 	/**
@@ -148,6 +166,26 @@ public abstract class Message<T> implements Input {
 	@Override
 	public String getType() {
 		return this.type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public UUID getConversationKey() {
+		return conversationKey;
+	}
+
+	public void setConversationKey(UUID conversationKey) {
+		this.conversationKey = conversationKey;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
 	}
 
 }

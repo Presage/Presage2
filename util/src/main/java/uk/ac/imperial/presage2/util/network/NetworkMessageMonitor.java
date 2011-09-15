@@ -18,33 +18,29 @@
  */
 package uk.ac.imperial.presage2.util.network;
 
-import org.apache.log4j.Logger;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.StorageService;
-import uk.ac.imperial.presage2.core.db.Table;
+import uk.ac.imperial.presage2.core.db.Transaction;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.network.BroadcastMessage;
 import uk.ac.imperial.presage2.core.network.MessageBlockedEvent;
 import uk.ac.imperial.presage2.core.network.MessageDeliveryEvent;
-import uk.ac.imperial.presage2.core.network.MulticastMessage;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
-import uk.ac.imperial.presage2.core.simulator.EndOfTimeCycle;
+import uk.ac.imperial.presage2.db.graph.DataExport;
 
 import com.google.inject.Inject;
 
 public class NetworkMessageMonitor implements Plugin {
 
-	private final Logger logger = Logger.getLogger(NetworkMessageMonitor.class);
-
 	private StorageService db = null;
 	private final Time time;
-	private Table t = null;
 
-	private int broadcasts = 0;
-	private int multicasts = 0;
-	private int unicasts = 0;
+	Queue<MessageDeliveryEvent> deliveryQueue = new LinkedBlockingQueue<MessageDeliveryEvent>();
 
 	@Inject
 	public NetworkMessageMonitor(EventBus eb, Time t) {
@@ -58,15 +54,15 @@ public class NetworkMessageMonitor implements Plugin {
 		this.db = db;
 	}
 
+	@Inject(optional = true)
+	public void setDataExporter(DataExport exp) {
+
+	}
+
 	@EventListener
-	public synchronized void onMessageDelivery(MessageDeliveryEvent e) {
-		if (e.getMessage() instanceof BroadcastMessage) {
-			broadcasts++;
-		} else if (e.getMessage() instanceof MulticastMessage) {
-			multicasts++;
-		} else {
-			unicasts++;
-		}
+	public void onMessageDelivery(MessageDeliveryEvent e) {
+		deliveryQueue.offer(e);
+
 	}
 
 	@EventListener
@@ -74,42 +70,31 @@ public class NetworkMessageMonitor implements Plugin {
 
 	}
 
-	@EventListener
-	public synchronized void onEndOfTimeCycle(EndOfTimeCycle e) {
-		if (t != null) {
-			try {
-				t.insert().atTimeStep(time.intValue())
-						.set("Broadcasts", broadcasts)
-						.set("Multicasts", multicasts)
-						.set("Unicasts", unicasts).commit();
-			} catch (Exception e1) {
-				logger.warn("Error inserting to db", e1);
-			}
-			time.increment();
-			broadcasts = 0;
-			multicasts = 0;
-			unicasts = 0;
-		}
-	}
-
 	@Override
 	public void incrementTime() {
+		if (db != null) {
+			Transaction tx = db.startTransaction();
+			try {
+				while (deliveryQueue.peek() != null) {
+					MessageDeliveryEvent e = deliveryQueue.poll();
+					Map<String, Object> parameters = new Hashtable<String, Object>();
+					parameters.put("time", time.intValue());
+					parameters.put("type", e.getMessage().getType());
+					parameters.put("performative", e.getMessage().getPerformative().name());
+					parameters.put("class", e.getMessage().getClass().getSimpleName());
+					db.getAgent(e.getMessage().getFrom().getId()).createRelationshipTo(
+							db.getAgent(e.getRecipient().getId()), "SENT_MESSAGE", parameters);
+				}
+				tx.success();
+			} finally {
+				tx.finish();
+			}
+		}
+		time.increment();
 	}
 
 	@Override
 	public void initialise() {
-		// create db table
-		if (this.db != null) {
-			try {
-				t = db.buildTable("message_counts").forClass(getClass())
-						.withFields("Broadcasts", "Multicasts", "Unicasts")
-						.withTypes(Long.class, Long.class, Long.class)
-						.withOneRowPerTimeCycle().create();
-			} catch (Exception e) {
-				logger.warn("Could not create table.", e);
-			}
-		} else
-			logger.warn("No storage service, will not be monitoring messages.");
 	}
 
 	@Override

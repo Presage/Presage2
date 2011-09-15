@@ -22,14 +22,17 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import com.google.inject.Inject;
-
+import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.StorageService;
-import uk.ac.imperial.presage2.core.db.Table;
+import uk.ac.imperial.presage2.core.db.Transaction;
+import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
+import uk.ac.imperial.presage2.db.graph.DataExport;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
+
+import com.google.inject.Inject;
 
 public class LocationStoragePlugin implements Plugin {
 
@@ -37,27 +40,28 @@ public class LocationStoragePlugin implements Plugin {
 
 	private StorageService storage;
 
-	private Table locationsTable;
-
 	private final EnvironmentMembersService membersService;
 	private final LocationService locService;
+
+	private final Time time;
 
 	public LocationStoragePlugin() {
 		super();
 		storage = null;
 		locService = null;
 		membersService = null;
+		time = null;
 		logger.info("I wasn't given a storage service, I won't do anything!");
 	}
 
 	@Inject
-	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider)
+	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider, Time t)
 			throws UnavailableServiceException {
 		this.storage = null;
 		this.membersService = serviceProvider
 				.getEnvironmentService(EnvironmentMembersService.class);
-		this.locService = serviceProvider
-				.getEnvironmentService(LocationService.class);
+		this.locService = serviceProvider.getEnvironmentService(LocationService.class);
+		this.time = t;
 	}
 
 	@Inject(optional = true)
@@ -65,45 +69,39 @@ public class LocationStoragePlugin implements Plugin {
 		this.storage = storage;
 	}
 
+	@Inject(optional = true)
+	public void setDataExporter(DataExport exp) {
+
+	}
+
 	@Override
 	public void incrementTime() {
 		if (this.storage != null) {
-			for (UUID pid : this.membersService.getParticipants()) {
-				Location l;
-				try {
-					l = this.locService.getAgentLocation(pid);
-				} catch (Exception e) {
-					logger.debug("Exception getting agent location.", e);
-					continue;
+			Transaction tx = this.storage.startTransaction();
+			try {
+				for (UUID pid : this.membersService.getParticipants()) {
+					Location l;
+					try {
+						l = this.locService.getAgentLocation(pid);
+					} catch (Exception e) {
+						logger.debug("Exception getting agent location.", e);
+						continue;
+					}
+					TransientAgentState state = this.storage.getAgentState(pid, time.intValue());
+					state.setProperty("x", l.getX());
+					state.setProperty("y", l.getY());
+					state.setProperty("z", l.getZ());
 				}
-				try {
-					this.locationsTable.insert().atCurrentTimeStep()
-							.forParticipant(pid).set("x", l.getX())
-							.set("y", l.getY()).set("z", l.getZ()).commit();
-				} catch (Exception e) {
-					logger.warn("Error inserting participant location", e);
-				}
+				tx.success();
+			} finally {
+				tx.finish();
 			}
 		}
+		time.increment();
 	}
 
 	@Override
 	public void initialise() {
-		// get table
-		if (this.storage != null) {
-			try {
-				this.locationsTable = this.storage.buildTable("locations")
-						.forClass(getClass()).withOneRowPerTimeCycle()
-						.withParticipantField().withFields("x", "y", "z")
-						.withTypes(Double.class, Double.class, Double.class)
-						.create();
-			} catch (Exception e) {
-				logger.warn("Unable to create table for location storage.", e);
-				this.storage = null;
-			}
-		} else {
-			logger.info("I wasn't given a storage service, I won't do anything!");
-		}
 	}
 
 	@Override
@@ -112,6 +110,6 @@ public class LocationStoragePlugin implements Plugin {
 
 	@Override
 	public void onSimulationComplete() {
-	}
 
+	}
 }
