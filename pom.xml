@@ -138,6 +138,9 @@
 						-since
 						http://presage.github.com/docs/api/0.2.3.xml
 						0.2.3
+						-since
+						http://presage.github.com/docs/api/0.2.4.xml
+						0.2.4
 						-d ${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
