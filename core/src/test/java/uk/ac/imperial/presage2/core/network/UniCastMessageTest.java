@@ -24,13 +24,8 @@ package uk.ac.imperial.presage2.core.network;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.network.UnicastMessage;
 
 /**
  * @author Sam Macbeth
