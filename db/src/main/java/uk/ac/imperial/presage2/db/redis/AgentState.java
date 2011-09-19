@@ -29,14 +29,12 @@ public class AgentState extends JedisPoolUser implements TransientAgentState {
 
 	final UUID agentID;
 	final int time;
-	final StorageService db;
 	final Keys.AgentState key;
 
 	AgentState(UUID agentID, int time, StorageService db, JedisPool pool) {
-		super(pool);
+		super(db, pool);
 		this.agentID = agentID;
 		this.time = time;
-		this.db = db;
 		this.key = new Keys.AgentState(db.getSimulation().getID(), this.agentID, this.time);
 	}
 

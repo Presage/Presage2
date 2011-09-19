@@ -20,13 +20,16 @@ package uk.ac.imperial.presage2.db.redis;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import uk.ac.imperial.presage2.core.db.StorageService;
 
 class JedisPoolUser {
 
+	protected final StorageService db;
 	protected final JedisPool pool;
 
-	protected JedisPoolUser(JedisPool pool) {
+	protected JedisPoolUser(StorageService db, JedisPool pool) {
 		super();
+		this.db = db;
 		this.pool = pool;
 	}
 
