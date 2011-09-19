@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.core.db;
 
+import java.util.List;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
@@ -66,6 +67,21 @@ public interface StorageService {
 	 * @return
 	 */
 	public PersistentSimulation getSimulation();
+
+	/**
+	 * Get a {@link PersistentSimulation} which corresponds to the given
+	 * simulation ID.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public PersistentSimulation getSimulationById(long id);
+
+	/**
+	 * 
+	 * @return A List of the IDs of simulations kept in this storage medium.
+	 */
+	public List<Long> getSimulations();
 
 	/**
 	 * Set the {@link PersistentSimulation} to use.
