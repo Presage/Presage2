@@ -34,6 +34,7 @@ import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
+import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 
 import com.google.inject.Inject;
@@ -86,13 +87,12 @@ public class AgentNode extends NodeDelegate implements PersistentAgent {
 				agentIndex.add(n, KEY_ID, id.toString());
 
 				// relationship to agent subref node
-				Neo4jDatabase.getSubRefNode(db, SubRefs.AGENTS)
-						.createRelationshipTo(n, AgentRelationships.AGENT);
+				Neo4jDatabase.getSubRefNode(db, SubRefs.AGENTS).createRelationshipTo(n,
+						AgentRelationships.AGENT);
 
 				// relationship to simulation
 				a = new AgentNode(n);
-				a.addToSimulation((SimulationNode) this.graph.getSimulation(),
-						id);
+				a.addToSimulation((SimulationNode) this.graph.getSimulation(), id);
 				tx.success();
 			} finally {
 				tx.finish();
@@ -107,20 +107,16 @@ public class AgentNode extends NodeDelegate implements PersistentAgent {
 						.index()
 						.forRelationships(INDEX_SIMS)
 						.get(KEY_ID, id.toString(), null,
-								((SimulationNode) sim).getUnderlyingNode())
-						.getSingle();
+								((SimulationNode) sim).getUnderlyingNode()).getSingle();
 				if (agentToSim == null)
 					return null;
 				else
 					return new AgentNode(agentToSim.getStartNode());
 			} catch (UnsupportedOperationException e) {
 				// fallback for REST
-				for (Relationship agentToSim : ((SimulationNode) sim)
-						.getUnderlyingNode().getRelationships(
-								AgentRelationships.PARTICIPANT_IN,
-								Direction.INCOMING)) {
-					if (agentToSim.getStartNode().getProperty(KEY_ID)
-							.equals(id.toString())) {
+				for (Relationship agentToSim : ((SimulationNode) sim).getUnderlyingNode()
+						.getRelationships(AgentRelationships.PARTICIPANT_IN, Direction.INCOMING)) {
+					if (agentToSim.getStartNode().getProperty(KEY_ID).equals(id.toString())) {
 						return new AgentNode(agentToSim.getStartNode());
 					}
 				}
@@ -131,16 +127,15 @@ public class AgentNode extends NodeDelegate implements PersistentAgent {
 	}
 
 	private static long[] rawUUID(UUID id) {
-		long[] rawID = { id.getMostSignificantBits(),
-				id.getLeastSignificantBits() };
+		long[] rawID = { id.getMostSignificantBits(), id.getLeastSignificantBits() };
 		return rawID;
 	}
 
 	public void addToSimulation(SimulationNode sim, UUID id) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
-			Relationship agentToSim = this.createRelationshipTo(
-					sim.getUnderlyingNode(), AgentRelationships.PARTICIPANT_IN);
+			Relationship agentToSim = this.createRelationshipTo(sim.getUnderlyingNode(),
+					AgentRelationships.PARTICIPANT_IN);
 			this.getGraphDatabase().index().forRelationships(INDEX_SIMS)
 					.add(agentToSim, KEY_ID, id.toString());
 			tx.success();
@@ -174,13 +169,12 @@ public class AgentNode extends NodeDelegate implements PersistentAgent {
 	private void setPropertyOnParticipantInRelationship(String key, Object value) {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
-			this.getSingleRelationship(AgentRelationships.PARTICIPANT_IN,
-					Direction.OUTGOING).setProperty(key, value);
+			this.getSingleRelationship(AgentRelationships.PARTICIPANT_IN, Direction.OUTGOING)
+					.setProperty(key, value);
 			tx.success();
 		} catch (NullPointerException e) {
 			tx.failure();
-			throw new RuntimeException(
-					"Agent does not have a simulation relationship", e);
+			throw new RuntimeException("Agent does not have a simulation relationship", e);
 		} finally {
 			tx.finish();
 		}
@@ -198,14 +192,12 @@ public class AgentNode extends NodeDelegate implements PersistentAgent {
 	}
 
 	@Override
-	public void createRelationshipTo(PersistentAgent p, String type,
-			Map<String, Object> parameters) {
+	public void createRelationshipTo(PersistentAgent p, String type, Map<String, Object> parameters) {
 		if (p instanceof AgentNode) {
 			AgentNode n = (AgentNode) p;
 			Transaction tx = this.getGraphDatabase().beginTx();
 			try {
-				Relationship rel = this.createRelationshipTo(
-						n.getUnderlyingNode(),
+				Relationship rel = this.createRelationshipTo(n.getUnderlyingNode(),
 						DynamicRelationshipType.withName(type));
 				for (Map.Entry<String, Object> entry : parameters.entrySet()) {
 					rel.setProperty(entry.getKey(), entry.getValue());
@@ -218,6 +210,11 @@ public class AgentNode extends NodeDelegate implements PersistentAgent {
 			throw new UnsupportedOperationException(
 					"Cannot create relationship to non-AgentNode PersistentAgent.");
 		}
+	}
+
+	@Override
+	public TransientAgentState getState(int time) {
+		return TransientAgentStateNode.get(this, time);
 	}
 
 }
