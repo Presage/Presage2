@@ -258,6 +258,7 @@ public final class Presage2CLI {
 				cmd.getOptionValue("classname"), "NOT STARTED",
 				Integer.parseInt(cmd.getOptionValue("finish")));
 
+		sim.addParameter("finishTime", Integer.parseInt(cmd.getOptionValue("finish")));
 		Properties params = cmd.getOptionProperties("P");
 		for (Object param : params.keySet()) {
 			sim.addParameter(param.toString(), params.get(param));
