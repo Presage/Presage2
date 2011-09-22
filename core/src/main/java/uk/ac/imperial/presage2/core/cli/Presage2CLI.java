@@ -98,8 +98,6 @@ public final class Presage2CLI {
 			System.exit(1);
 		}
 
-		Logger.getRootLogger().setLevel(Level.OFF);
-
 		// attempt to invoke command
 		try {
 			commands.get(args[0]).invoke(null, (Object) args);
@@ -147,6 +145,7 @@ public final class Presage2CLI {
 	 */
 	@Command(name = "list", description = "Lists all simulations")
 	static void list(String[] args) {
+		Logger.getRootLogger().setLevel(Level.OFF);
 
 		Options options = new Options();
 		options.addOption("h", "help", false, "Show help");
@@ -212,6 +211,8 @@ public final class Presage2CLI {
 	@SuppressWarnings("static-access")
 	@Command(description = "Add a new simulation.", name = "add")
 	static void add(String[] args) {
+		Logger.getRootLogger().setLevel(Level.OFF);
+
 		Options options = new Options();
 
 		options.addOption(OptionBuilder.withArgName("name").hasArg()
