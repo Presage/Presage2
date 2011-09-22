@@ -28,12 +28,14 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -44,6 +46,7 @@ import uk.ac.imperial.presage2.core.cli.FormattedSimulation.Column;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -206,4 +209,61 @@ public final class Presage2CLI {
 		stopDatabase();
 	}
 
+	@SuppressWarnings("static-access")
+	@Command(description = "Add a new simulation.", name = "add")
+	static void add(String[] args) {
+		Options options = new Options();
+
+		options.addOption(OptionBuilder.withArgName("name").hasArg()
+				.withDescription("Name of the simulation to add.").isRequired().create("name"));
+		options.addOption(OptionBuilder
+				.withArgName("classname")
+				.hasArg()
+				.withDescription(
+						"Name of the RunnableSimulation class to execute for this simulation.")
+				.isRequired().create("classname"));
+		options.addOption(OptionBuilder.withArgName("finishTime").hasArg()
+				.withDescription("Simulation cycle to stop execution at.").isRequired()
+				.create("finish"));
+		options.addOption(OptionBuilder.withArgName("parameter=value").hasArgs()
+				.withValueSeparator().withDescription("Parameters to supply to the simulation.")
+				.create("P"));
+		options.addOption("h", "help", false, "Show help");
+
+		CommandLineParser parser = new GnuParser();
+		CommandLine cmd;
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			new HelpFormatter().printHelp("presage2cli add", options, true);
+			return;
+		}
+		if (cmd.hasOption("h")) {
+			new HelpFormatter().printHelp("presage2cli add", options, true);
+			return;
+		}
+
+		try {
+			Integer.parseInt(cmd.getOptionValue("finish"));
+		} catch (NumberFormatException e) {
+			System.err.println("finishTime must be an integer.");
+			return;
+		}
+
+		StorageService storage = getDatabase();
+
+		PersistentSimulation sim = storage.createSimulation(cmd.getOptionValue("name"),
+				cmd.getOptionValue("classname"), "NOT STARTED",
+				Integer.parseInt(cmd.getOptionValue("finish")));
+
+		Properties params = cmd.getOptionProperties("P");
+		for (Object param : params.keySet()) {
+			sim.addParameter(param.toString(), params.get(param));
+		}
+
+		System.out.println("Added simulation ID: " + sim.getID());
+
+		stopDatabase();
+	}
 }
