@@ -73,6 +73,9 @@ public abstract class RunnableSimulation implements Runnable {
 
 	private Map<String, Method> methodParameters = new HashMap<String, Method>();
 
+	@Parameter(name = "finishTime")
+	public int finishTime;
+
 	public enum SimulationState {
 		LOADING, READY, INITIALISING, RUNNING, PAUSED, STOPPED, FINISHING, COMPLETE
 	}
