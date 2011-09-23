@@ -67,7 +67,7 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 				simID = jedis.incr(Keys.Simulation.ID_COUNTER);
 				psim = new Simulation(simID, this.db, this.pool);
 
-				jedis.lpush(Keys.Simulation.ID_SET, simID.toString());
+				jedis.sadd(Keys.Simulation.ID_SET, simID.toString());
 
 				// readonly fields manually set
 				jedis.set(Keys.Simulation.name(simID), name);
@@ -103,8 +103,7 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 			final Jedis jedis = pool.getResource();
 			List<Long> ids = new LinkedList<Long>();
 			try {
-				for (String s : jedis.lrange(Keys.Simulation.ID_SET, 0,
-						jedis.llen(Keys.Simulation.ID_SET))) {
+				for (String s : jedis.smembers(Keys.Simulation.ID_SET)) {
 					ids.add(Long.parseLong(s));
 				}
 			} finally {
@@ -208,12 +207,12 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 
 	@Override
 	public void setFinishedAt(long time) {
-		setLong(Keys.Simulation.finishTime(simulationID), time);
+		setLong(Keys.Simulation.finishedAt(simulationID), time);
 	}
 
 	@Override
 	public long getFinishedAt() {
-		return getLong(Keys.Simulation.finishTime(simulationID));
+		return getLong(Keys.Simulation.finishedAt(simulationID));
 	}
 
 	@Override
