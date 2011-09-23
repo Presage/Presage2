@@ -152,10 +152,13 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void initDatabase() {
 		if (this.graphDb != null) {
-			simPersist = graphDb.createSimulation(getClass().getSimpleName(), getClass()
-					.getCanonicalName(), getState().name(), getSimulationFinishTime().intValue());
-			for (String s : getParameters().keySet()) {
-				simPersist.addParameter(s, getParameter(s));
+			if (simPersist == null) {
+				simPersist = graphDb.createSimulation(getClass().getSimpleName(), getClass()
+						.getCanonicalName(), getState().name(), getSimulationFinishTime()
+						.intValue());
+				for (String s : getParameters().keySet()) {
+					simPersist.addParameter(s, getParameter(s));
+				}
 			}
 			simPersist.setStartedAt(new Date().getTime());
 		}
@@ -277,12 +280,6 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void setDatabase(DatabaseService database) {
 		this.database = database;
-		try {
-			this.database.start();
-		} catch (Exception e) {
-			logger.warn("Failed to start database.", e);
-			this.database = null;
-		}
 	}
 
 	protected void setGraphDB(StorageService db) {
@@ -467,7 +464,7 @@ public abstract class RunnableSimulation implements Runnable {
 		// set parameters
 		for (Map.Entry<String, Class<?>> entry : parameters.entrySet()) {
 			if (!providedParams.containsKey(entry.getKey())) {
-				System.err.println("No value provied for " + entry.getKey() + " parameter.");
+				System.err.println("No value provided for " + entry.getKey() + " parameter.");
 				return;
 			}
 			sim.setParameter(entry.getKey(), providedParams.get(entry.getKey()));
@@ -477,6 +474,62 @@ public abstract class RunnableSimulation implements Runnable {
 		sim.load();
 		sim.run();
 
+	}
+
+	final public static void runSimulationID(final DatabaseService db, final StorageService sto,
+			long simID, int threads) throws ClassNotFoundException, NoSuchMethodException,
+			InvocationTargetException, InstantiationException, IllegalAccessException {
+		// Additional modules we want for this simulation run
+		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
+		additionalModules.add(SimulatorModule.multiThreadedSimulator(threads));
+		additionalModules.add(new EventBusModule());
+		// wrap db bindings into a new module as they were already created from
+		// elsewhere.
+		additionalModules.add(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DatabaseService.class).toInstance(db);
+				bind(StorageService.class).toInstance(sto);
+			}
+		});
+
+		// get PersistentSimulation
+		PersistentSimulation sim = sto.getSimulationById(simID);
+		if (sim == null) {
+			System.err.println("Simulation with ID " + simID + " not found in storage. Aborting.");
+			db.stop();
+			return;
+		}
+		if (!sim.getState().equalsIgnoreCase("NOT STARTED")) {
+			System.err.println("Simulation " + simID + " has already been started. Aborting.");
+			db.stop();
+			return;
+		}
+		sim.setState(SimulationState.LOADING.name());
+		sto.setSimulation(sim);
+
+		RunnableSimulation run = newFromClassName(sim.getClassName(), additionalModules);
+
+		run.setDatabase(db);
+		run.setGraphDB(sto);
+
+		Map<String, Object> providedParams = sim.getParameters();
+		for (Map.Entry<String, Class<?>> entry : run.getParameters().entrySet()) {
+			if (!providedParams.containsKey(entry.getKey())) {
+				System.err.println("No value provided for " + entry.getKey()
+						+ " parameter. Aborting.");
+				sim.setState("FAILED");
+				db.stop();
+				return;
+			}
+			run.setParameter(entry.getKey(), providedParams.get(entry.getKey()).toString());
+		}
+
+		run.simPersist = sim;
+
+		// now run
+		run.load();
+		run.run();
 	}
 
 	private static class ObjectFactory {

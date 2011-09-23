@@ -47,6 +47,7 @@ import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
+import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -145,10 +146,10 @@ public final class Presage2CLI {
 	 */
 	@Command(name = "list", description = "Lists all simulations")
 	static void list(String[] args) {
-		Logger.getRootLogger().setLevel(Level.OFF);
 
 		Options options = new Options();
 		options.addOption("h", "help", false, "Show help");
+		options.addOption("enablelog", false, "Enable logging.");
 		// options.addOption("p", "showparams", false,
 		// "Show simulation parameters.");
 
@@ -163,6 +164,9 @@ public final class Presage2CLI {
 		if (cmd.hasOption("h")) {
 			new HelpFormatter().printHelp("presage2cli list", options, true);
 			return;
+		}
+		if (!cmd.hasOption("enablelog")) {
+			Logger.getRootLogger().setLevel(Level.OFF);
 		}
 
 		// get database
@@ -211,7 +215,6 @@ public final class Presage2CLI {
 	@SuppressWarnings("static-access")
 	@Command(description = "Add a new simulation.", name = "add")
 	static void add(String[] args) {
-		Logger.getRootLogger().setLevel(Level.OFF);
 
 		Options options = new Options();
 
@@ -230,6 +233,7 @@ public final class Presage2CLI {
 				.withValueSeparator().withDescription("Parameters to supply to the simulation.")
 				.create("P"));
 		options.addOption("h", "help", false, "Show help");
+		options.addOption("enablelog", false, "Enable logging.");
 
 		CommandLineParser parser = new GnuParser();
 		CommandLine cmd;
@@ -243,6 +247,9 @@ public final class Presage2CLI {
 		if (cmd.hasOption("h")) {
 			new HelpFormatter().printHelp("presage2cli add", options, true);
 			return;
+		}
+		if (!cmd.hasOption("enablelog")) {
+			Logger.getRootLogger().setLevel(Level.OFF);
 		}
 
 		try {
@@ -265,6 +272,54 @@ public final class Presage2CLI {
 		}
 
 		System.out.println("Added simulation ID: " + sim.getID());
+
+		stopDatabase();
+	}
+
+	@Command(description = "Run a simulation.", name = "run")
+	static void run(String[] args) throws ClassNotFoundException, NoSuchMethodException,
+			InvocationTargetException, InstantiationException, IllegalAccessException {
+		int threads = 4;
+
+		Options options = new Options();
+		options.addOption("t", "threads", true, "Number of threads for the simulatior (default "
+				+ threads + ").");
+		options.addOption("h", "help", false, "Show help");
+
+		CommandLineParser parser = new GnuParser();
+		CommandLine cmd;
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			new HelpFormatter().printHelp("presage2cli run <ID>", options, true);
+			return;
+		}
+		if (cmd.hasOption("h") || args.length < 2) {
+			new HelpFormatter().printHelp("presage2cli run <ID>", options, true);
+			return;
+		}
+		if (cmd.hasOption("t")) {
+			try {
+				threads = Integer.parseInt(cmd.getOptionValue("t"));
+			} catch (NumberFormatException e) {
+				System.err.println("Thread no. should be in integer.");
+				return;
+			}
+		}
+
+		long simulationID;
+		try {
+			simulationID = Long.parseLong(args[1]);
+		} catch (NumberFormatException e) {
+			System.err.println("Simulation ID should be an integer.");
+			return;
+		}
+
+		StorageService storage = getDatabase();
+		DatabaseService db = database;
+
+		RunnableSimulation.runSimulationID(db, storage, simulationID, threads);
 
 		stopDatabase();
 	}
