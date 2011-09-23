@@ -151,6 +151,15 @@ public abstract class RunnableSimulation implements Runnable {
 	}
 
 	protected void initDatabase() {
+		if (this.database != null && !this.database.isStarted()) {
+			try {
+				this.database.start();
+			} catch (Exception e) {
+				logger.warn("Failed to start DB", e);
+				this.database = null;
+				this.graphDb = null;
+			}
+		}
 		if (this.graphDb != null) {
 			if (simPersist == null) {
 				simPersist = graphDb.createSimulation(getClass().getSimpleName(), getClass()
