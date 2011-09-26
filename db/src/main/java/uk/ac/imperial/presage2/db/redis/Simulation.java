@@ -20,11 +20,17 @@ package uk.ac.imperial.presage2.db.redis;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import uk.ac.imperial.presage2.core.db.StorageService;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 
@@ -38,10 +44,12 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 	@Singleton
 	static class Factory implements SimulationFactory {
 
+		private final StorageService db;
 		private final JedisPool pool;
 
 		@Inject
-		Factory(JedisPool jedis) {
+		Factory(StorageService db, JedisPool jedis) {
+			this.db = db;
 			this.pool = jedis;
 		}
 
@@ -57,9 +65,9 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 				}
 				// get unique key
 				simID = jedis.incr(Keys.Simulation.ID_COUNTER);
-				psim = new Simulation(simID, this.pool);
+				psim = new Simulation(simID, this.db, this.pool);
 
-				jedis.lpush(Keys.Simulation.ID_SET, simID.toString());
+				jedis.sadd(Keys.Simulation.ID_SET, simID.toString());
 
 				// readonly fields manually set
 				jedis.set(Keys.Simulation.name(simID), name);
@@ -84,17 +92,30 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 			PersistentSimulation sim = null;
 			try {
 				if (jedis.sismember(Keys.Simulation.ID_SET, Long.valueOf(simulationID).toString()))
-					sim = new Simulation(simulationID, this.pool);
+					sim = new Simulation(simulationID, this.db, this.pool);
 			} finally {
 				pool.returnResource(jedis);
 			}
 			return sim;
 		}
 
+		public List<Long> getIds() {
+			final Jedis jedis = pool.getResource();
+			List<Long> ids = new LinkedList<Long>();
+			try {
+				for (String s : jedis.smembers(Keys.Simulation.ID_SET)) {
+					ids.add(Long.parseLong(s));
+				}
+			} finally {
+				pool.returnResource(jedis);
+			}
+			return ids;
+		}
+
 	}
 
-	Simulation(long simulationID, JedisPool pool) {
-		super(pool);
+	Simulation(long simulationID, StorageService db, JedisPool pool) {
+		super(db, pool);
 		this.simulationID = simulationID;
 	}
 
@@ -186,12 +207,12 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 
 	@Override
 	public void setFinishedAt(long time) {
-		setLong(Keys.Simulation.finishTime(simulationID), time);
+		setLong(Keys.Simulation.finishedAt(simulationID), time);
 	}
 
 	@Override
 	public long getFinishedAt() {
-		return getLong(Keys.Simulation.finishTime(simulationID));
+		return getLong(Keys.Simulation.finishedAt(simulationID));
 	}
 
 	@Override
@@ -222,6 +243,20 @@ public class Simulation extends JedisPoolUser implements PersistentSimulation {
 	@Override
 	public long getID() {
 		return this.simulationID;
+	}
+
+	@Override
+	public Set<PersistentAgent> getAgents() {
+		final Jedis r = pool.getResource();
+		Set<PersistentAgent> agents = new HashSet<PersistentAgent>();
+		try {
+			for (String aid : r.smembers(Keys.Simulation.agentsSet(getID()))) {
+				agents.add(new Agent(getID(), UUID.fromString(aid), this.db, this.pool));
+			}
+		} finally {
+			pool.returnResource(r);
+		}
+		return agents;
 	}
 
 }

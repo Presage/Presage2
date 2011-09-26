@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.core.simulator;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.event.EventBus;
@@ -73,6 +74,7 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 	 * @param module
 	 */
 	final protected void addModules(Set<AbstractModule> modules) {
+		this.modules.add(Time.Bind.integerTime(finishTime));
 		this.modules.addAll(modules);
 	}
 

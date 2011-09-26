@@ -31,6 +31,7 @@ import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgentFactory;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
+import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
 public class Agent extends JedisPoolUser implements PersistentAgent {
 
@@ -55,7 +56,7 @@ public class Agent extends JedisPoolUser implements PersistentAgent {
 			final long simID = db.getSimulation().getID();
 			try {
 				Keys.Agent keyGen = new Keys.Agent(simID, id);
-				PersistentAgent agent = new Agent(simID, id, this.pool);
+				PersistentAgent agent = new Agent(simID, id, this.db, this.pool);
 
 				r.sadd(Keys.Simulation.agentsSet(simID), id.toString());
 				r.set(keyGen.name(), name);
@@ -70,7 +71,7 @@ public class Agent extends JedisPoolUser implements PersistentAgent {
 			final Jedis r = pool.getResource();
 			try {
 				if (r.sismember(Keys.Simulation.agentsSet(sim.getID()), id.toString()))
-					return new Agent(sim.getID(), id, this.pool);
+					return new Agent(sim.getID(), id, this.db, this.pool);
 				else
 					return null;
 			} finally {
@@ -84,8 +85,8 @@ public class Agent extends JedisPoolUser implements PersistentAgent {
 	private final UUID agentID;
 	private final Keys.Agent key;
 
-	Agent(final long simulationID, final UUID agentID, final JedisPool pool) {
-		super(pool);
+	Agent(final long simulationID, final UUID agentID, StorageService db, final JedisPool pool) {
+		super(db, pool);
 		this.simulationID = simulationID;
 		this.agentID = agentID;
 		this.key = new Keys.Agent(this.simulationID, this.agentID);
@@ -125,6 +126,11 @@ public class Agent extends JedisPoolUser implements PersistentAgent {
 	public void createRelationshipTo(PersistentAgent p, String type, Map<String, Object> parameters) {
 		throw new UnsupportedOperationException(
 				"createRelationshipTo not implemented for redis yet.");
+	}
+
+	@Override
+	public TransientAgentState getState(int time) {
+		return new AgentState(getID(), time, this.db, this.pool);
 	}
 
 }

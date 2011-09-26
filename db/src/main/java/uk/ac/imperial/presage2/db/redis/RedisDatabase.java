@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.db.redis;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
@@ -47,7 +48,7 @@ public class RedisDatabase implements DatabaseService, StorageService, Provider<
 
 	private JedisPool pool = null;
 
-	SimulationFactory simFactory;
+	Simulation.Factory simFactory;
 	PersistentAgentFactory agentFactory;
 
 	PersistentSimulation simulation;
@@ -107,7 +108,7 @@ public class RedisDatabase implements DatabaseService, StorageService, Provider<
 		if (!isStarted()) {
 			this.pool = new JedisPool(this.config, this.host);
 
-			this.simFactory = new Simulation.Factory(this.pool);
+			this.simFactory = new Simulation.Factory(this, this.pool);
 			this.agentFactory = new Agent.Factory(this, this.pool);
 		}
 	}
@@ -144,6 +145,16 @@ public class RedisDatabase implements DatabaseService, StorageService, Provider<
 		@Override
 		public void success() {
 		}
+	}
+
+	@Override
+	public PersistentSimulation getSimulationById(long id) {
+		return simFactory.get(id);
+	}
+
+	@Override
+	public List<Long> getSimulations() {
+		return simFactory.getIds();
 	}
 
 }

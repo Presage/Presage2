@@ -19,8 +19,12 @@
 package uk.ac.imperial.presage2.db.graph;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -30,8 +34,10 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 
+import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
+import uk.ac.imperial.presage2.db.graph.AgentNode.AgentRelationships;
 import uk.ac.imperial.presage2.db.graph.Neo4jDatabase.SubRefs;
 
 import com.google.inject.Inject;
@@ -65,8 +71,8 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		}
 
 		@Override
-		public PersistentSimulation create(String name, String classname,
-				String state, int finishTime) {
+		public PersistentSimulation create(String name, String classname, String state,
+				int finishTime) {
 			Transaction tx = db.beginTx();
 			PersistentSimulation s = null;
 			try {
@@ -79,16 +85,12 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 				n.setProperty(KEY_CLASSNAME, classname);
 				n.setProperty(KEY_CREATED_AT, new Date().getTime());
 				// relationships to subref, state, times
-				getSubRefNode().createRelationshipTo(n,
-						SimulationRelationships.SIMULATION);
-				n.createRelationshipTo(SimulationStateNode.get(db, state)
-						.getUnderlyingNode(),
+				getSubRefNode().createRelationshipTo(n, SimulationRelationships.SIMULATION);
+				n.createRelationshipTo(SimulationStateNode.get(db, state).getUnderlyingNode(),
 						SimulationRelationships.CURRENT_STATE);
-				n.createRelationshipTo(SimulationTimeNode.get(db, 0)
-						.getUnderlyingNode(),
+				n.createRelationshipTo(SimulationTimeNode.get(db, 0).getUnderlyingNode(),
 						SimulationRelationships.CURRENT_TIME);
-				n.createRelationshipTo(SimulationTimeNode.get(db, finishTime)
-						.getUnderlyingNode(),
+				n.createRelationshipTo(SimulationTimeNode.get(db, finishTime).getUnderlyingNode(),
 						SimulationRelationships.FINISH_TIME);
 				// index on id
 				Index<Node> simIndex = db.index().forNodes(SIMULATION_INDEX);
@@ -107,11 +109,9 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 			Node result = simIndex.get(KEY_ID, simulationID).getSingle();
 			if (result == null) {
 				// try non-index lookup
-				for (Relationship r : Neo4jDatabase.getSubRefNode(db,
-						SubRefs.SIMULATIONS).getRelationships(
-						SimulationRelationships.SIMULATION, Direction.OUTGOING)) {
-					if (((Long) r.getEndNode().getProperty(KEY_ID, -1))
-							.longValue() == simulationID) {
+				for (Relationship r : Neo4jDatabase.getSubRefNode(db, SubRefs.SIMULATIONS)
+						.getRelationships(SimulationRelationships.SIMULATION, Direction.OUTGOING)) {
+					if (((Long) r.getEndNode().getProperty(KEY_ID, -1)).longValue() == simulationID) {
 						return new SimulationNode(r.getEndNode());
 					}
 				}
@@ -120,17 +120,25 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 				return new SimulationNode(result);
 		}
 
+		public List<Long> getIds() {
+			List<Long> ids = new LinkedList<Long>();
+			for (Relationship r : Neo4jDatabase.getSubRefNode(db, SubRefs.SIMULATIONS)
+					.getRelationships(SimulationRelationships.SIMULATION, Direction.OUTGOING)) {
+				ids.add((Long) r.getEndNode().getProperty(KEY_ID, -1));
+			}
+			return ids;
+		}
+
 		private Node getSubRefNode() {
-			Relationship r = db.getReferenceNode().getSingleRelationship(
-					SubRefs.SIMULATIONS, Direction.OUTGOING);
+			Relationship r = db.getReferenceNode().getSingleRelationship(SubRefs.SIMULATIONS,
+					Direction.OUTGOING);
 			if (r == null) {
 				Transaction tx = db.beginTx();
 				try {
 					Node subRef = db.createNode();
 					subRef.setProperty(Neo4jDatabase.LABEL, "Sim Subref");
 					subRef.setProperty(KEY_COUNTER, 0L);
-					r = db.getReferenceNode().createRelationshipTo(subRef,
-							SubRefs.SIMULATIONS);
+					r = db.getReferenceNode().createRelationshipTo(subRef, SubRefs.SIMULATIONS);
 					tx.success();
 				} finally {
 					tx.finish();
@@ -140,8 +148,7 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		}
 
 		private synchronized long getNextId() {
-			Long counter = Long.parseLong(getSubRefNode().getProperty(
-					KEY_COUNTER, 0L).toString());
+			Long counter = Long.parseLong(getSubRefNode().getProperty(KEY_COUNTER, 0L).toString());
 			getSubRefNode().setProperty(KEY_COUNTER, new Long(counter + 1));
 			return counter;
 		}
@@ -200,8 +207,8 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 
 	@Override
 	public PersistentSimulation getParentSimulation() {
-		Relationship parentRel = this.getSingleRelationship(
-				SimulationRelationships.CONSISTS_OF, Direction.INCOMING);
+		Relationship parentRel = this.getSingleRelationship(SimulationRelationships.CONSISTS_OF,
+				Direction.INCOMING);
 		if (parentRel == null)
 			return null;
 		else
@@ -234,8 +241,7 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		}
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
-			this.createRelationshipTo((SimulationNode) child,
-					SimulationRelationships.CONSISTS_OF);
+			this.createRelationshipTo((SimulationNode) child, SimulationRelationships.CONSISTS_OF);
 			tx.success();
 		} finally {
 			tx.finish();
@@ -245,9 +251,8 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 	@Override
 	public String getState() {
 		return (String) this
-				.getSingleRelationship(SimulationRelationships.CURRENT_STATE,
-						Direction.OUTGOING).getEndNode()
-				.getProperty(SimulationStateNode.KEY_NAME);
+				.getSingleRelationship(SimulationRelationships.CURRENT_STATE, Direction.OUTGOING)
+				.getEndNode().getProperty(SimulationStateNode.KEY_NAME);
 	}
 
 	@Override
@@ -256,13 +261,11 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		try {
 			Relationship oldStateRel = null;
 			try {
-				oldStateRel = this.getSingleRelationship(
-						SimulationRelationships.CURRENT_STATE,
+				oldStateRel = this.getSingleRelationship(SimulationRelationships.CURRENT_STATE,
 						Direction.OUTGOING);
 			} catch (RuntimeException e) {
 				// > 1 current_state relationship
-				for (Relationship r : this.getRelationships(
-						SimulationRelationships.CURRENT_STATE,
+				for (Relationship r : this.getRelationships(SimulationRelationships.CURRENT_STATE,
 						Direction.OUTGOING)) {
 					if (oldStateRel == null)
 						oldStateRel = r;
@@ -270,15 +273,12 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 						r.delete();
 				}
 			}
-			Relationship prevState = this.createRelationshipTo(
-					oldStateRel.getEndNode(),
+			Relationship prevState = this.createRelationshipTo(oldStateRel.getEndNode(),
 					SimulationRelationships.PREVIOUS_STATE);
 			prevState.setProperty(KEY_PREV_STATE_TIME, new Date().getTime());
 			oldStateRel.delete();
-			this.createRelationshipTo(
-					SimulationStateNode.get(this.getGraphDatabase(), newState)
-							.getUnderlyingNode(),
-					SimulationRelationships.CURRENT_STATE);
+			this.createRelationshipTo(SimulationStateNode.get(this.getGraphDatabase(), newState)
+					.getUnderlyingNode(), SimulationRelationships.CURRENT_STATE);
 			tx.success();
 		} finally {
 			tx.finish();
@@ -288,9 +288,8 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 	@Override
 	public int getCurrentTime() {
 		return (Integer) this
-				.getSingleRelationship(SimulationRelationships.CURRENT_TIME,
-						Direction.OUTGOING).getEndNode()
-				.getProperty(SimulationTimeNode.KEY_VALUE);
+				.getSingleRelationship(SimulationRelationships.CURRENT_TIME, Direction.OUTGOING)
+				.getEndNode().getProperty(SimulationTimeNode.KEY_VALUE);
 	}
 
 	@Override
@@ -300,10 +299,8 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 			Relationship previousTime = this.getSingleRelationship(
 					SimulationRelationships.CURRENT_TIME, Direction.OUTGOING);
 			previousTime.delete();
-			this.createRelationshipTo(
-					SimulationTimeNode.get(getGraphDatabase(), time)
-							.getUnderlyingNode(),
-					SimulationRelationships.CURRENT_TIME);
+			this.createRelationshipTo(SimulationTimeNode.get(getGraphDatabase(), time)
+					.getUnderlyingNode(), SimulationRelationships.CURRENT_TIME);
 			tx.success();
 		} finally {
 			tx.finish();
@@ -313,19 +310,15 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 	@Override
 	public int getFinishTime() {
 		return (Integer) this
-				.getSingleRelationship(SimulationRelationships.FINISH_TIME,
-						Direction.OUTGOING).getEndNode()
-				.getProperty(SimulationTimeNode.KEY_VALUE);
+				.getSingleRelationship(SimulationRelationships.FINISH_TIME, Direction.OUTGOING)
+				.getEndNode().getProperty(SimulationTimeNode.KEY_VALUE);
 	}
 
 	@Override
 	public Map<String, Object> getParameters() {
 		final Map<String, Object> params = new Hashtable<String, Object>();
-		for (Relationship r : this
-				.getRelationships(SimulationRelationships.PARAMETER)) {
-			params.put(
-					(String) r.getEndNode().getProperty(
-							SimulationParameterNode.KEY_NAME),
+		for (Relationship r : this.getRelationships(SimulationRelationships.PARAMETER)) {
+			params.put((String) r.getEndNode().getProperty(SimulationParameterNode.KEY_NAME),
 					r.getProperty(KEY_PARAMETER_VALUE));
 		}
 		return params;
@@ -336,8 +329,7 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 		Transaction tx = this.getGraphDatabase().beginTx();
 		try {
 			Relationship paramRel = this.createRelationshipTo(
-					SimulationParameterNode.get(getGraphDatabase(), name)
-							.getUnderlyingNode(),
+					SimulationParameterNode.get(getGraphDatabase(), name).getUnderlyingNode(),
 					SimulationRelationships.PARAMETER);
 			paramRel.setProperty(KEY_PARAMETER_VALUE, value);
 			tx.success();
@@ -349,6 +341,16 @@ class SimulationNode extends NodeDelegate implements PersistentSimulation {
 	@Override
 	public long getID() {
 		return (Long) this.getProperty(KEY_ID, Long.valueOf(0));
+	}
+
+	@Override
+	public Set<PersistentAgent> getAgents() {
+		Set<PersistentAgent> agents = new HashSet<PersistentAgent>();
+		for (Relationship agentToSim : this.getUnderlyingNode().getRelationships(
+				AgentRelationships.PARTICIPANT_IN, Direction.INCOMING)) {
+			agents.add(new AgentNode(agentToSim.getStartNode()));
+		}
+		return agents;
 	}
 
 }

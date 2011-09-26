@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.db.graph;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
@@ -52,7 +53,7 @@ class Neo4jDatabase implements DatabaseService, StorageService, Provider<GraphDa
 	final GraphDatabaseFactory dbFactory;
 	GraphDatabaseService graphDB = null;
 
-	SimulationFactory simFactory;
+	SimulationNode.Factory simFactory;
 
 	PersistentAgentFactory agentFactory;
 
@@ -189,6 +190,16 @@ class Neo4jDatabase implements DatabaseService, StorageService, Provider<GraphDa
 	@Override
 	public PersistentAgent getAgent(UUID agentID) {
 		return agentFactory.get(getSimulation(), agentID);
+	}
+
+	@Override
+	public PersistentSimulation getSimulationById(long id) {
+		return simFactory.get(id);
+	}
+
+	@Override
+	public List<Long> getSimulations() {
+		return simFactory.getIds();
 	}
 
 }

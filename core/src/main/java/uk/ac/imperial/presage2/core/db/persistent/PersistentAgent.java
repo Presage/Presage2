@@ -23,8 +23,9 @@ import java.util.UUID;
 
 /**
  * Persistent store for an agent.
+ * 
  * @author Sam Macbeth
- *
+ * 
  */
 public interface PersistentAgent {
 
@@ -38,6 +39,7 @@ public interface PersistentAgent {
 
 	/**
 	 * Get a property associated with this agent.
+	 * 
 	 * @param key
 	 * @return
 	 */
@@ -45,6 +47,7 @@ public interface PersistentAgent {
 
 	/**
 	 * Set a property associated with this agent.
+	 * 
 	 * @param key
 	 * @param value
 	 */
@@ -52,11 +55,19 @@ public interface PersistentAgent {
 
 	/**
 	 * Create a relationship to another agent.
+	 * 
 	 * @param p
 	 * @param type
 	 * @param parameters
 	 */
-	void createRelationshipTo(PersistentAgent p, String type,
-			Map<String, Object> parameters);
+	void createRelationshipTo(PersistentAgent p, String type, Map<String, Object> parameters);
+
+	/**
+	 * Get state for this agents at <code>time</code>.
+	 * 
+	 * @param time
+	 * @return
+	 */
+	TransientAgentState getState(int time);
 
 }
