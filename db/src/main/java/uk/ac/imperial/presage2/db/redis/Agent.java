@@ -130,7 +130,7 @@ public class Agent extends JedisPoolUser implements PersistentAgent {
 
 	@Override
 	public TransientAgentState getState(int time) {
-		return new AgentState(getID(), time, this.db, this.pool);
+		return new AgentState(simulationID, getID(), time, this.db, this.pool);
 	}
 
 }
