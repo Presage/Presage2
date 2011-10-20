@@ -37,7 +37,7 @@ class JedisPoolUser {
 		final Jedis r = pool.getResource();
 		try {
 			String value = r.get(key);
-			if (value != "nil")
+			if (value != null && value != "nil")
 				return Integer.parseInt(value);
 		} finally {
 			pool.returnResource(r);
@@ -58,7 +58,7 @@ class JedisPoolUser {
 		final Jedis r = pool.getResource();
 		try {
 			String value = r.get(key);
-			if (value != "nil")
+			if (value != null && value != "nil")
 				return Long.parseLong(value);
 		} finally {
 			pool.returnResource(r);
