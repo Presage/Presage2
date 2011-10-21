@@ -31,7 +31,6 @@ import uk.ac.imperial.presage2.core.event.EventListener;
 import uk.ac.imperial.presage2.core.network.MessageBlockedEvent;
 import uk.ac.imperial.presage2.core.network.MessageDeliveryEvent;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
-import uk.ac.imperial.presage2.db.graph.DataExport;
 
 import com.google.inject.Inject;
 
@@ -52,11 +51,6 @@ public class NetworkMessageMonitor implements Plugin {
 	@Inject(optional = true)
 	public void setStorageService(StorageService db) {
 		this.db = db;
-	}
-
-	@Inject(optional = true)
-	public void setDataExporter(DataExport exp) {
-
 	}
 
 	@EventListener
