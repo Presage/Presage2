@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>uk.ac.imperial.presage2</groupId>
@@ -140,7 +141,8 @@
 						-since
 						http://presage.github.com/docs/api/0.2.4.xml
 						0.2.4
-						-d ${project.build.directory}/site/apidocs
+						-d
+						${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
 					<useStandardDocletOptions>false</useStandardDocletOptions>
@@ -178,6 +180,23 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.2</version>
+			</plugin>
+
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.2</version>
+				<configuration>
+					<message>Building site for ${project.version}</message>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<phase>site</phase>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -10,7 +10,6 @@
 	<packaging>jar</packaging>
 
 	<name>presage2-util</name>
-	<url>http://github.com/sammacbeth/Presage</url>
 
 	<dependencies>
 
