@@ -160,7 +160,8 @@
 			<plugin>
 				<groupId>com.github.github</groupId>
 				<artifactId>site-maven-plugin</artifactId>
-				<version>0.2</version>
+				<version>0.3</version>
+				<inherited>false</inherited>
 				<configuration>
 					<message>Building site for ${project.version}</message>
 				</configuration>
