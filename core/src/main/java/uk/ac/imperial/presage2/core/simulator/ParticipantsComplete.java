@@ -30,7 +30,6 @@ public class ParticipantsComplete implements Event {
 		this.cycle = cycle;
 	}
 
-	@Override
 	public Time getTime() {
 		return cycle;
 	}

@@ -18,8 +18,6 @@
  */
 package uk.ac.imperial.presage2.core.event;
 
-import uk.ac.imperial.presage2.core.Time;
-
 /**
  * <p>
  * An event is simply an object which is publish to other objects who are
@@ -31,7 +29,4 @@ import uk.ac.imperial.presage2.core.Time;
  * 
  */
 public interface Event {
-
-	public Time getTime();
-
 }

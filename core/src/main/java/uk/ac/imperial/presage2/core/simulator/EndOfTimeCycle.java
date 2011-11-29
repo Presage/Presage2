@@ -35,7 +35,6 @@ public class EndOfTimeCycle implements Event {
 		this.endedCycle = endedCycle;
 	}
 
-	@Override
 	public Time getTime() {
 		return endedCycle;
 	}

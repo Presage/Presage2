@@ -29,7 +29,6 @@ import uk.ac.imperial.presage2.core.Time;
 public class EventBusImplTest {
 
 	static class MockEvent implements Event {
-		@Override
 		public Time getTime() {
 			return null;
 		}

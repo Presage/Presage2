@@ -37,7 +37,6 @@ public class FinalizeEvent implements Event {
 		this.t = t;
 	}
 
-	@Override
 	public Time getTime() {
 		return t;
 	}

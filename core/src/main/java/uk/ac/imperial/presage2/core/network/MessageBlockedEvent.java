@@ -34,7 +34,6 @@ public class MessageBlockedEvent implements Event {
 		this.recipient = recipient;
 	}
 
-	@Override
 	public Time getTime() {
 		return time;
 	}
