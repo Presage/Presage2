@@ -100,6 +100,16 @@ public interface EnvironmentSharedStateAccess {
 	public void createGlobal(String name, Serializable value);
 
 	/**
+	 * <p>
+	 * Delete a value in the global shared state.
+	 * </p>
+	 * 
+	 * @param name
+	 *            String key name of the value to create.
+	 */
+	public void deleteGlobal(String name);
+
+	/**
 	 * Get a shared state value for an individual agent.
 	 * 
 	 * @param name
@@ -178,5 +188,17 @@ public interface EnvironmentSharedStateAccess {
 	 *             if state with the same key already exists.
 	 */
 	public void create(String name, UUID participantID, Serializable value);
+
+	/**
+	 * <p>
+	 * Delete a shared state value for a given agent.
+	 * </p>
+	 * 
+	 * @param name
+	 *            String key of the value to change
+	 * @param participantID
+	 *            {@link UUID} of the agent
+	 */
+	public void delete(String name, UUID participantID);
 
 }
