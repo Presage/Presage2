@@ -19,6 +19,7 @@
 package uk.ac.imperial.presage2.core.db.persistent;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface PersistentSimulation {
 
@@ -57,5 +58,7 @@ public interface PersistentSimulation {
 	public String getClassName();
 
 	public String getName();
+
+	public Set<PersistentAgent> getAgents();
 
 }

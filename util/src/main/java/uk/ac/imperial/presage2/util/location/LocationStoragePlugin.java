@@ -29,7 +29,6 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
-import uk.ac.imperial.presage2.db.graph.DataExport;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
 
 import com.google.inject.Inject;
@@ -67,11 +66,6 @@ public class LocationStoragePlugin implements Plugin {
 	@Inject(optional = true)
 	public void setStorage(StorageService storage) {
 		this.storage = storage;
-	}
-
-	@Inject(optional = true)
-	public void setDataExporter(DataExport exp) {
-
 	}
 
 	@Override

@@ -16,39 +16,31 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.db.graph.export;
+package uk.ac.imperial.presage2.core.cli;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Node {
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 
-	final String id;
-	final String label;
+class FormattedSimulation {
 
-	/**
-	 * @param id
-	 * @param label
-	 */
-	public Node(String id, String label) {
-		super();
-		this.id = id;
-		this.label = label;
+	enum Column {
+		ID, Name, ClassName, State, SimCycle
+	};
+
+	Map<Column, String> fields = new HashMap<Column, String>();
+
+	FormattedSimulation(PersistentSimulation sim) {
+		fields.put(Column.ID, String.valueOf(sim.getID()));
+		fields.put(Column.Name, sim.getName());
+		fields.put(Column.ClassName, sim.getClassName());
+		fields.put(Column.State, sim.getState());
+		fields.put(Column.SimCycle, sim.getCurrentTime() + "/" + sim.getFinishTime());
 	}
 
-	public String getId() {
-		return id;
-	}
-
-	public String getLabel() {
-		return label;
-	}
-	
-	public Element getElement(Document dom) {
-		Element n = dom.createElement("node");
-		n.setAttribute("label", getLabel());
-		n.setAttribute("id", getId());
-		return n;
+	String getField(Column name) {
+		return fields.get(name);
 	}
 
 }

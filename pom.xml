@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.2.4</version>
+	<version>0.2.5</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
@@ -14,7 +15,6 @@
 
 	<modules>
 		<module>core</module>
-		<module>db</module>
 		<module>util</module>
 	</modules>
 
@@ -43,31 +43,6 @@
 			<url>http://www.gnu.org/licenses/lgpl-3.0-standalone.html</url>
 		</license>
 	</licenses>
-
-	<dependencies>
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jmock</groupId>
-			<artifactId>jmock</artifactId>
-			<version>2.5.1</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jmock</groupId>
-			<artifactId>jmock-junit4</artifactId>
-			<version>2.5.1</version>
-			<scope>test</scope>
-		</dependency>
-
-	</dependencies>
 
 	<repositories>
 		<repository>
@@ -138,7 +113,11 @@
 						-since
 						http://presage.github.com/docs/api/0.2.3.xml
 						0.2.3
-						-d ${project.build.directory}/site/apidocs
+						-since
+						http://presage.github.com/docs/api/0.2.4.xml
+						0.2.4
+						-d
+						${project.build.directory}/site/apidocs
 						-title Presage2
 					</additionalparam>
 					<useStandardDocletOptions>false</useStandardDocletOptions>
@@ -176,6 +155,24 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.2</version>
+			</plugin>
+
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.3</version>
+				<inherited>false</inherited>
+				<configuration>
+					<message>Building site for ${project.version}</message>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<phase>site</phase>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
