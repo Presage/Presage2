@@ -19,16 +19,17 @@
 
 package uk.ac.imperial.presage2.core.environment;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
  *
  */
-public class ParticipantSharedState<T> extends SharedState<T> {
+public class ParticipantSharedState extends SharedState {
 
-	protected UUID participantID;
+	final protected UUID participantID;
 
-	public ParticipantSharedState(String type, T value, UUID participantID) {
+	public ParticipantSharedState(String type, Serializable value, UUID participantID) {
 		super(type, value);
 		this.participantID = participantID;
 	}
@@ -36,9 +37,8 @@ public class ParticipantSharedState<T> extends SharedState<T> {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ParticipantSharedState) {
-			ParticipantSharedState<?> state = (ParticipantSharedState<?>) obj;
-			return this.participantID == state.participantID
-					&& this.type.equals(state.type);
+			ParticipantSharedState state = (ParticipantSharedState) obj;
+			return this.participantID == state.participantID && this.name.equals(state.name);
 		}
 		return super.equals(obj);
 	}
@@ -49,10 +49,14 @@ public class ParticipantSharedState<T> extends SharedState<T> {
 	public int hashCode() {
 		int hc = cachedHashCode;
 		if (hc == 0) {
-			hc = (this.type + this.participantID).hashCode();
+			hc = (this.name + this.participantID).hashCode();
 			cachedHashCode = hc;
 		}
 		return hc;
+	}
+
+	public UUID getParticipantID() {
+		return participantID;
 	}
 
 }

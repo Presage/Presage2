@@ -42,7 +42,7 @@ public class EnvironmentRegistrationRequest {
 	/**
 	 * Set of sharedstate which we share with the environment.
 	 */
-	protected Set<ParticipantSharedState<?>> sharedState;
+	protected Set<ParticipantSharedState> sharedState;
 
 	/**
 	 * Construct an EnvironmentRegistrationRequest without sharedstate.
@@ -62,7 +62,7 @@ public class EnvironmentRegistrationRequest {
 	 * @param sharedState
 	 */
 	public EnvironmentRegistrationRequest(UUID participantID,
-			Participant participant, Set<ParticipantSharedState<?>> sharedState) {
+			Participant participant, Set<ParticipantSharedState> sharedState) {
 		super();
 		this.participantID = participantID;
 		this.participant = participant;
@@ -72,14 +72,14 @@ public class EnvironmentRegistrationRequest {
 	/**
 	 * @return the sharedState
 	 */
-	public Set<ParticipantSharedState<?>> getSharedState() {
+	public Set<ParticipantSharedState> getSharedState() {
 		return sharedState;
 	}
 
 	/**
 	 * @param sharedState the sharedState to set
 	 */
-	public void setSharedState(Set<ParticipantSharedState<?>> sharedState) {
+	public void setSharedState(Set<ParticipantSharedState> sharedState) {
 		this.sharedState = sharedState;
 	}
 
