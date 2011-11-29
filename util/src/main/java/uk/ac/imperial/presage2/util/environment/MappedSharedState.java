@@ -26,14 +26,23 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+
+import com.google.inject.Inject;
+
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.core.environment.SharedState;
 import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.environment.StateTransformer;
+import uk.ac.imperial.presage2.core.event.EventBus;
+import uk.ac.imperial.presage2.core.event.EventListener;
+import uk.ac.imperial.presage2.core.simulator.Events;
 
 public class MappedSharedState implements SharedStateStorage {
+
+	private final Logger logger = Logger.getLogger(MappedSharedState.class);
 
 	Map<String, Serializable> globalState;
 
@@ -98,6 +107,11 @@ public class MappedSharedState implements SharedStateStorage {
 		globalState = initGlobalStateMap();
 		agentState = initAgentStateMap();
 		stateChange = new LinkedList<MappedSharedState.StateChange>();
+	}
+
+	@Inject(optional = true)
+	public void setEventBus(EventBus e) {
+		e.subscribe(this);
 	}
 
 	protected Map<String, Serializable> initGlobalStateMap() {
@@ -198,6 +212,16 @@ public class MappedSharedState implements SharedStateStorage {
 
 	@Override
 	public void incrementTime() {
+		updateState();
+	}
+
+	@EventListener
+	public void initialise(Events.Initialised e) {
+		updateState();
+	}
+
+	protected void updateState() {
+		logger.info("Updating state.");
 		while (this.stateChange.peek() != null) {
 			StateChange c = stateChange.poll();
 			if (c.getParticipantId() == null)
