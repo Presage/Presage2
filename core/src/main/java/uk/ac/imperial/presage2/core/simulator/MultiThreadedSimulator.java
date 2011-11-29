@@ -129,6 +129,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 		}
 		// wait for threads to complete
 		waitFor(WaitCondition.END_OF_INITIALISE);
+		eventBus.publish(Events.INITIALISED);
 	}
 
 	/**
