@@ -78,8 +78,10 @@ public class AreaService extends EnvironmentService {
 
 		try {
 			@SuppressWarnings("unchecked")
-			Set<UUID> cell = Collections.unmodifiableSet((HashSet<UUID>) sharedState
-					.getGlobal(cellKey(x, y, z)));
+			Set<UUID> cell = (HashSet<UUID>) sharedState.getGlobal(cellKey(x, y, z));
+			if (cell == null)
+				cell = new HashSet<UUID>();
+			cell = Collections.unmodifiableSet(cell);
 
 			return cell;
 		} catch (NullPointerException e) {
@@ -95,6 +97,8 @@ public class AreaService extends EnvironmentService {
 				@Override
 				public Serializable transform(Serializable state) {
 					HashSet<UUID> cell = (HashSet<UUID>) state;
+					if (cell == null)
+						cell = new HashSet<UUID>();
 					cell.add(aid);
 					return cell;
 				}
@@ -111,6 +115,8 @@ public class AreaService extends EnvironmentService {
 				@Override
 				public Serializable transform(Serializable state) {
 					HashSet<UUID> cell = (HashSet<UUID>) state;
+					if (cell == null)
+						cell = new HashSet<UUID>();
 					cell.remove(aid);
 					return cell;
 				}
@@ -152,13 +158,6 @@ public class AreaService extends EnvironmentService {
 
 	private void cellAction() {
 		if (!isCellArea()) {
-			for (int x = 0; x < Math.max(getSizeX(), 1); x++) {
-				for (int y = 0; y < Math.max(getSizeY(), 1); y++) {
-					for (int z = 0; z < getSizeZ(); z++) {
-						this.sharedState.createGlobal(cellKey(x, y, z), new HashSet<UUID>());
-					}
-				}
-			}
 			this.cellArea = true;
 		}
 	}
