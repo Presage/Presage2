@@ -26,35 +26,43 @@ import java.util.UUID;
 import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
+import uk.ac.imperial.presage2.core.environment.EnvironmentConnectorTest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
+import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
 public class AbstractEnvironmentConnectorTest extends EnvironmentConnectorTest {
-	
-	@Override
-	public EnvironmentConnector getEnvironmentConnector() {
-		return new AbstractEnvironment() {
 
-			@Override
-			protected Set<ActionHandler> initialiseActionHandlers() {
-				Set<ActionHandler> handlers = new HashSet<ActionHandler>();
-				handlers.add(aHandler);
-				return handlers;
-			}
+	SharedStateStorage mockStorage;
 
-			@Override
-			protected Set<EnvironmentService> generateServices(
-					EnvironmentRegistrationRequest request) {
-				return new HashSet<EnvironmentService>();
-			}
-			
-		};
+	class TestAbstractEnvironment extends AbstractEnvironment {
+
+		public TestAbstractEnvironment(SharedStateStorage sharedState) {
+			super(sharedState);
+		}
+
+		@Override
+		protected Set<ActionHandler> initialiseActionHandlers() {
+			Set<ActionHandler> handlers = new HashSet<ActionHandler>();
+			handlers.add(aHandler);
+			return handlers;
+		}
+
+		@Override
+		protected Set<EnvironmentService> generateServices(EnvironmentRegistrationRequest request) {
+			return new HashSet<EnvironmentService>();
+		}
 	}
 
 	@Override
-	public EnvironmentRegistrationRequest getRegistrationRequest(UUID id,
-			Participant p) {
+	public EnvironmentConnector getEnvironmentConnector() {
+		mockStorage = new MappedSharedState();
+		return new TestAbstractEnvironment(mockStorage);
+	}
+
+	@Override
+	public EnvironmentRegistrationRequest getRegistrationRequest(UUID id, Participant p) {
 		return new EnvironmentRegistrationRequest(id, p);
 	}
 

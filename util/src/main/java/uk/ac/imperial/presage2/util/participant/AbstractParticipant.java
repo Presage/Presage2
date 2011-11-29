@@ -59,8 +59,7 @@ import com.google.inject.assistedinject.Assisted;
  * @author Sam Macbeth
  * 
  */
-public abstract class AbstractParticipant implements Participant,
-		EnvironmentServiceProvider {
+public abstract class AbstractParticipant implements Participant, EnvironmentServiceProvider {
 
 	/**
 	 * {@link Logger} for this agent.
@@ -130,11 +129,9 @@ public abstract class AbstractParticipant implements Participant,
 		this.environment = environment;
 		this.network = network;
 		this.time = time;
-		this.logger = Logger.getLogger(this.getName() + "(" + this.getID()
-				+ ")");
+		this.logger = Logger.getLogger(this.getName() + "(" + this.getID() + ")");
 		if (logger.isDebugEnabled()) {
-			logger.debug("Created Participant " + this.getName() + ", UUID: "
-					+ this.getID());
+			logger.debug("Created Participant " + this.getName() + ", UUID: " + this.getID());
 		}
 	}
 
@@ -166,8 +163,7 @@ public abstract class AbstractParticipant implements Participant,
 		this.name = name;
 		this.logger = Logger.getLogger(this.getName());
 		if (logger.isDebugEnabled()) {
-			logger.debug("Created Participant " + this.getName() + ", UUID: "
-					+ this.getID());
+			logger.debug("Created Participant " + this.getName() + ", UUID: " + this.getID());
 		}
 	}
 
@@ -252,13 +248,11 @@ public abstract class AbstractParticipant implements Participant,
 	 */
 	private void registerWithEnvironment() {
 		// Create base registration request
-		EnvironmentRegistrationRequest request = new EnvironmentRegistrationRequest(
-				getID(), this);
+		EnvironmentRegistrationRequest request = new EnvironmentRegistrationRequest(getID(), this);
 		// Add any shared state we have
 		request.setSharedState(this.getSharedState());
 		// Register
-		EnvironmentRegistrationResponse response = environment
-				.register(request);
+		EnvironmentRegistrationResponse response = environment.register(request);
 		// Save the returned authkey
 		this.authkey = response.getAuthKey();
 		// process the returned environment services
@@ -292,8 +286,8 @@ public abstract class AbstractParticipant implements Participant,
 	 * 
 	 * @return
 	 */
-	protected Set<ParticipantSharedState<?>> getSharedState() {
-		return new HashSet<ParticipantSharedState<?>>();
+	protected Set<ParticipantSharedState> getSharedState() {
+		return new HashSet<ParticipantSharedState>();
 	}
 
 	/**

@@ -18,19 +18,20 @@
  */
 package uk.ac.imperial.presage2.util.location.area;
 
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.Inject;
-
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
-import uk.ac.imperial.presage2.core.environment.SharedState;
+import uk.ac.imperial.presage2.core.environment.StateTransformer;
 import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
 import uk.ac.imperial.presage2.util.location.Cell;
 import uk.ac.imperial.presage2.util.location.Location;
+
+import com.google.inject.Inject;
 
 /**
  * <p>
@@ -62,26 +63,6 @@ public class AreaService extends EnvironmentService {
 	}
 
 	/**
-	 * Get the simulation {@link Area}
-	 * 
-	 * @return simulation {@link Area}
-	 */
-	public Area getSimulationArea() {
-		return ((HasArea) sharedState.getGlobal("area").getValue()).getArea();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void initialise(Map<String, SharedState<?>> globalSharedState) {
-		globalSharedState.put("area", new SharedState<HasArea>("area", this.area));
-		globalSharedState.put(
-				"area.cells",
-				new SharedState<Set<UUID>[][][]>("area.cells", new Set[Math.max(
-						this.area.getArea().x, 1)][Math.max(this.area.getArea().y, 1)][Math.max(
-						this.area.getArea().z, 1)]));
-	}
-
-	/**
 	 * Get the cell corresponding to the coordinates <code>x,y,z</code>. This
 	 * cell contains the set of agents currently in this cell.
 	 * 
@@ -91,19 +72,51 @@ public class AreaService extends EnvironmentService {
 	 * @return
 	 */
 	public Set<UUID> getCell(int x, int y, int z) {
-		cellArea = true;
-		@SuppressWarnings("unchecked")
-		Set<UUID>[][][] cellMap = (Set<UUID>[][][]) sharedState.getGlobal("area.cells").getValue();
+		if (!validCell(x, y, z))
+			throw new RuntimeException("Cell out of bounds");
+		cellAction();
 
 		try {
-			Set<UUID> cell = cellMap[x][y][z];
-			if (cell == null)
-				cell = cellMap[x][y][z] = new HashSet<UUID>();
+			@SuppressWarnings("unchecked")
+			Set<UUID> cell = Collections.unmodifiableSet((HashSet<UUID>) sharedState
+					.getGlobal(cellKey(x, y, z)));
 
 			return cell;
-		} catch (ArrayIndexOutOfBoundsException e) {
+		} catch (NullPointerException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void addToCell(int x, int y, int z, final UUID aid) {
+		cellAction();
+		if (validCell(x, y, z)) {
+			sharedState.changeGlobal(cellKey(x, y, z), new StateTransformer() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public Serializable transform(Serializable state) {
+					HashSet<UUID> cell = (HashSet<UUID>) state;
+					cell.add(aid);
+					return cell;
+				}
+			});
+		} else
+			throw new RuntimeException("Cell out of bounds");
+	}
+
+	public void removeFromCell(int x, int y, int z, final UUID aid) {
+		cellAction();
+		if (validCell(x, y, z)) {
+			sharedState.changeGlobal(cellKey(x, y, z), new StateTransformer() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public Serializable transform(Serializable state) {
+					HashSet<UUID> cell = (HashSet<UUID>) state;
+					cell.remove(aid);
+					return cell;
+				}
+			});
+		} else
+			throw new RuntimeException("Cell out of bounds");
 	}
 
 	public int getSizeX() {
@@ -126,6 +139,28 @@ public class AreaService extends EnvironmentService {
 	 */
 	public boolean isCellArea() {
 		return cellArea;
+	}
+
+	private String cellKey(int x, int y, int z) {
+		return "area.cell." + x + "." + y + "." + z;
+	}
+
+	private boolean validCell(int x, int y, int z) {
+		return x >= 0 && x < Math.max(getSizeX(), 1) && y >= 0 && y < Math.max(getSizeY(), 1)
+				&& z >= 0 && z < getSizeZ();
+	}
+
+	private void cellAction() {
+		if (!isCellArea()) {
+			for (int x = 0; x < Math.max(getSizeX(), 1); x++) {
+				for (int y = 0; y < Math.max(getSizeY(), 1); y++) {
+					for (int z = 0; z < getSizeZ(); z++) {
+						this.sharedState.createGlobal(cellKey(x, y, z), new HashSet<UUID>());
+					}
+				}
+			}
+			this.cellArea = true;
+		}
 	}
 
 }

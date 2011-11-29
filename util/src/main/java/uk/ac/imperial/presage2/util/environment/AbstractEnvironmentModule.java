@@ -27,6 +27,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
+import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -72,16 +73,16 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		final Set<Class<? extends EnvironmentService>> dependencies = new HashSet<Class<? extends EnvironmentService>>();
 		for (Class<? extends EnvironmentService> service : environmentServices) {
 			if (service.isAnnotationPresent(ServiceDependencies.class)) {
-				for (Class<? extends EnvironmentService> dep : service
-						.getAnnotation(ServiceDependencies.class).value()) {
+				for (Class<? extends EnvironmentService> dep : service.getAnnotation(
+						ServiceDependencies.class).value()) {
 					dependencies.add(dep);
 				}
 			}
 		}
 		for (Class<? extends ActionHandler> handler : actionHandlers) {
 			if (handler.isAnnotationPresent(ServiceDependencies.class)) {
-				for (Class<? extends EnvironmentService> dep : handler
-						.getAnnotation(ServiceDependencies.class).value()) {
+				for (Class<? extends EnvironmentService> dep : handler.getAnnotation(
+						ServiceDependencies.class).value()) {
 					dependencies.add(dep);
 				}
 			}
@@ -94,23 +95,24 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		// bind AbstractEnvironment interfaces
 		bind(EnvironmentConnector.class).to(AbstractEnvironment.class);
 		bind(EnvironmentServiceProvider.class).to(AbstractEnvironment.class);
-		bind(EnvironmentSharedStateAccess.class).to(AbstractEnvironment.class);
+		bind(SharedStateStorage.class).to(MappedSharedState.class);
+		bind(EnvironmentSharedStateAccess.class).to(MappedSharedState.class);
+		bind(MappedSharedState.class).in(Singleton.class);
 
 		// bind Singleton implementation to AbstractEnvironment
-		bind(AbstractEnvironment.class).to(environmentImplementation).in(
-				Singleton.class);
+		bind(AbstractEnvironment.class).to(environmentImplementation).in(Singleton.class);
 
 		// global environment services
-		Multibinder<EnvironmentService> serviceBinder = Multibinder
-				.newSetBinder(binder(), EnvironmentService.class);
+		Multibinder<EnvironmentService> serviceBinder = Multibinder.newSetBinder(binder(),
+				EnvironmentService.class);
 		for (Class<? extends EnvironmentService> service : environmentServices) {
 
 			serviceBinder.addBinding().to(service);
 		}
 
 		// action handlers
-		Multibinder<ActionHandler> actionBinder = Multibinder.newSetBinder(
-				binder(), ActionHandler.class);
+		Multibinder<ActionHandler> actionBinder = Multibinder.newSetBinder(binder(),
+				ActionHandler.class);
 		for (Class<? extends ActionHandler> handler : actionHandlers) {
 			actionBinder.addBinding().to(handler);
 		}

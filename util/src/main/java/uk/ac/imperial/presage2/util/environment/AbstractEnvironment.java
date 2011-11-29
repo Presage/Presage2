@@ -41,13 +41,9 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
-import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.InvalidAuthkeyException;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
-import uk.ac.imperial.presage2.core.environment.ParticipantStateTransformer;
-import uk.ac.imperial.presage2.core.environment.SharedState;
-import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
-import uk.ac.imperial.presage2.core.environment.StateTransformer;
+import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
 import uk.ac.imperial.presage2.core.messaging.Input;
@@ -64,7 +60,7 @@ import com.google.inject.Inject;
  * 
  */
 public abstract class AbstractEnvironment implements EnvironmentConnector,
-		EnvironmentSharedStateAccess, EnvironmentServiceProvider, TimeDriven {
+		EnvironmentServiceProvider, TimeDriven {
 
 	private final Logger logger = Logger.getLogger(AbstractEnvironment.class);
 
@@ -78,10 +74,6 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 */
 	protected Map<UUID, UUID> authkeys;
 
-	protected Map<String, SharedState<?>> globalSharedState;
-
-	protected Map<UUID, Map<String, ParticipantSharedState<?>>> participantState;
-
 	protected Set<ActionHandler> actionHandlers;
 
 	protected Set<EnvironmentService> globalEnvironmentServices = new HashSet<EnvironmentService>();
@@ -90,9 +82,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	protected Queue<DeferedAction> deferedActions;
 
-	protected Queue<SharedStateChanger> globalStateChange;
-
-	protected Queue<ParticipantSharedStateChanger> participantStateChange;
+	protected SharedStateStorage sharedState;
 
 	class DeferedAction {
 
@@ -124,53 +114,6 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	}
 
-	private static class SharedStateChanger {
-
-		private final String name;
-		private final StateTransformer transformer;
-
-		SharedStateChanger(String name, StateTransformer transformer) {
-			super();
-			this.name = name;
-			this.transformer = transformer;
-		}
-
-		final String getName() {
-			return name;
-		}
-
-		final StateTransformer getTransformer() {
-			return transformer;
-		}
-	}
-
-	private static class ParticipantSharedStateChanger {
-
-		private final UUID participantID;
-		private final String name;
-		private final ParticipantStateTransformer transformer;
-
-		ParticipantSharedStateChanger(UUID participantID, String name,
-				ParticipantStateTransformer transformer) {
-			super();
-			this.participantID = participantID;
-			this.name = name;
-			this.transformer = transformer;
-		}
-
-		final UUID getParticipant() {
-			return participantID;
-		}
-
-		final String getName() {
-			return name;
-		}
-
-		final ParticipantStateTransformer getTransformer() {
-			return transformer;
-		}
-	}
-
 	/**
 	 * <p>
 	 * Creates the Environment, initialising it ready for participants to
@@ -188,14 +131,12 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * </ul>
 	 */
 	@Inject
-	public AbstractEnvironment() {
+	public AbstractEnvironment(SharedStateStorage sharedState) {
 		super();
+		this.sharedState = sharedState;
 		// these data structures must be synchronised as synchronous access is
 		// probable.
 		registeredParticipants = Collections.synchronizedMap(new HashMap<UUID, Participant>());
-		globalSharedState = Collections.synchronizedMap(new HashMap<String, SharedState<?>>());
-		participantState = Collections
-				.synchronizedMap(new HashMap<UUID, Map<String, ParticipantSharedState<?>>>());
 		// for authkeys we don't synchronize, but we must remember to do so
 		// manually for insert/delete operations
 		authkeys = new HashMap<UUID, UUID>();
@@ -203,16 +144,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		// Initialise global services and add EnvironmentMembersService
 		globalEnvironmentServices.addAll(this.initialiseGlobalEnvironmentServices());
 
-		for (EnvironmentService es : globalEnvironmentServices) {
-			es.initialise(globalSharedState);
-		}
-
 		actionHandlers = initialiseActionHandlers();
 
 		this.deferActions = false;
 		this.deferedActions = new LinkedList<DeferedAction>();
-		this.globalStateChange = new LinkedList<SharedStateChanger>();
-		this.participantStateChange = new LinkedList<ParticipantSharedStateChanger>();
 	}
 
 	@Inject(optional = true)
@@ -246,16 +181,13 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 */
 	protected Set<EnvironmentService> initialiseGlobalEnvironmentServices() {
 		final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
-		services.add(new EnvironmentMembersService(this));
+		services.add(new EnvironmentMembersService(sharedState));
 		return services;
 	}
 
 	@Inject(optional = true)
 	protected void addGlobalEnvironmentServices(Set<EnvironmentService> services) {
 		this.globalEnvironmentServices.addAll(services);
-		for (EnvironmentService s : services) {
-			s.initialise(globalSharedState);
-		}
 	}
 
 	@Inject(optional = true)
@@ -314,17 +246,12 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			authkeys.put(participantUUID, Random.randomUUID());
 		}
 		// process shared state:
-		// We create a new Map to put shared state type -> object pairs
-		// We transfer shared state from the provided Set to this Map
-		// We then add our Map to the participantState Map referenced by the
-		// registerer's UUID.
-		HashMap<String, ParticipantSharedState<?>> stateMap = new HashMap<String, ParticipantSharedState<?>>();
-		Set<ParticipantSharedState<?>> pStates = request.getSharedState();
+		// Create all provided shared state.
+		Set<ParticipantSharedState> pStates = request.getSharedState();
 		if (pStates != null) {
-			for (ParticipantSharedState<?> state : pStates) {
-				stateMap.put(state.getType(), state);
+			for (ParticipantSharedState state : pStates) {
+				this.sharedState.create(state);
 			}
-			participantState.put(participantUUID, stateMap);
 		} else {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Null shared state list in request.");
@@ -335,7 +262,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		Set<EnvironmentService> services = generateServices(request);
 		// notify global environment services of the registration.
 		for (EnvironmentService ges : globalEnvironmentServices) {
-			ges.registerParticipant(request, globalSharedState);
+			ges.registerParticipant(request);
 		}
 
 		// Create response
@@ -475,77 +402,6 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 	}
 
-	/**
-	 * <p>
-	 * Return a global state value referenced by name.
-	 * </p>
-	 * 
-	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess#getGlobal(java.lang.String)
-	 */
-	@Override
-	public SharedState<?> getGlobal(String name) {
-		SharedState<?> global = globalSharedState.get(name);
-		if (global == null) {
-			SharedStateAccessException e = new SharedStateAccessException(
-					"Invalid global shared state access. State '" + name + "' does not exist!");
-			this.logger.warn(e);
-			throw e;
-		} else {
-			if (this.logger.isTraceEnabled()) {
-				this.logger.trace("Returning global environment state '" + name + "'");
-			}
-			return global;
-		}
-	}
-
-	/**
-	 * <p>
-	 * Return a shared state value from an individual agent
-	 * </p>
-	 * 
-	 * @see uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess#get(java.lang.String,
-	 *      java.util.UUID)
-	 */
-	@Override
-	public ParticipantSharedState<?> get(String name, UUID participantID) {
-		ParticipantSharedState<?> state;
-		try {
-			state = participantState.get(participantID).get(name);
-		} catch (NullPointerException e) {
-			SharedStateAccessException sse = new SharedStateAccessException(
-					"Invalid shared state access: '" + participantID + "." + name
-							+ "'. Participant does not exist", e);
-			this.logger.warn(sse);
-			throw sse;
-		}
-		if (state == null) {
-			SharedStateAccessException e = new SharedStateAccessException(
-					"Invalid shared state access: '" + participantID + "." + name
-							+ "'. Participant does not have a state with this name");
-			this.logger.warn(e);
-			throw e;
-		}
-		if (this.logger.isTraceEnabled()) {
-			this.logger.trace("Returning participant state '" + participantID + "." + name + "'");
-		}
-		return state;
-	}
-
-	@Override
-	public void changeGlobal(String name, StateTransformer change) {
-		synchronized (this.globalStateChange) {
-			this.globalStateChange.add(new SharedStateChanger(name, change));
-		}
-	}
-
-	@Override
-	public void change(String name, UUID participantID, ParticipantStateTransformer change) {
-		synchronized (this.participantStateChange) {
-			this.participantStateChange.add(new ParticipantSharedStateChanger(participantID, name,
-					change));
-		}
-	}
-
 	@Override
 	public void incrementTime() {
 		if (deferActions) {
@@ -557,17 +413,7 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 				a.handle();
 			}
 		}
-		// update shared state
-		while (this.globalStateChange.peek() != null) {
-			SharedStateChanger t = this.globalStateChange.poll();
-			SharedState<?> s = this.getGlobal(t.getName());
-			t.getTransformer().transform(s);
-		}
-		while (this.participantStateChange.peek() != null) {
-			ParticipantSharedStateChanger t = this.participantStateChange.poll();
-			ParticipantSharedState<?> s = this.get(t.getName(), t.getParticipant());
-			t.getTransformer().transform(s);
-		}
+		sharedState.incrementTime();
 	}
 
 }
