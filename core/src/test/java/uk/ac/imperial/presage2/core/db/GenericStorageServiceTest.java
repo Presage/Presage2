@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentEnvironment;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.util.random.Random;
@@ -167,6 +168,35 @@ public abstract class GenericStorageServiceTest {
 		assertTrue(params.size() == 2);
 		assertTrue(params.containsKey(paramName2));
 		assertEquals(paramValue2, params.get(paramName2).toString());
+	}
+
+	@Test
+	public void testEnvironment() {
+		final String simName = RandomStringUtils.randomAlphanumeric(Random.randomInt(20));
+		final String simClass = RandomStringUtils.randomAlphanumeric(Random.randomInt(100));
+		final String simState = RandomStringUtils.randomAlphanumeric(Random.randomInt(80));
+		final int simFinish = Random.randomInt(100);
+
+		final PersistentSimulation sim = sto.createSimulation(simName, simClass, simState,
+				simFinish);
+		final long simID = sim.getID();
+
+		PersistentEnvironment env = sim.getEnvironment();
+		assertNotNull(env);
+
+		final String paramName1 = RandomStringUtils.randomAlphanumeric(Random.randomInt(20));
+		final String paramValue1 = RandomStringUtils.randomAlphanumeric(Random.randomInt(200));
+
+		assertNull(env.getProperty(paramName1));
+		env.setProperty(paramName1, paramValue1);
+		assertEquals(paramValue1, env.getProperty(paramName1));
+
+		final int timestep = Random.randomInt(1000);
+		final String paramValue2 = RandomStringUtils.randomAlphanumeric(Random.randomInt(200));
+		assertNull(env.getProperty(paramName1, timestep));
+		env.setProperty(paramName1, timestep, paramValue2);
+		assertEquals(paramValue2, env.getProperty(paramName1, timestep));
+		assertNull(env.getProperty(paramName1, timestep + 1));
 	}
 
 	@Test
