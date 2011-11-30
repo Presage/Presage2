@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.core.db.persistent;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,11 +40,13 @@ public interface PersistentSimulation {
 
 	public String getState();
 
-	public void addChild(PersistentSimulation child);
+	public PersistentEnvironment getEnvironment();
 
 	public void setParentSimulation(PersistentSimulation parent);
 
 	public PersistentSimulation getParentSimulation();
+
+	public List<Long> getChildren();
 
 	public void setFinishedAt(long time);
 

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentEnvironment;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
@@ -121,6 +122,7 @@ public interface StorageService {
 	 * Start a {@link Transaction} on the graph db.
 	 * 
 	 * @return
+	 * @deprecated
 	 */
 	public Transaction startTransaction();
 
