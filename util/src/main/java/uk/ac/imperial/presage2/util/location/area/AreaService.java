@@ -56,10 +56,17 @@ public class AreaService extends EnvironmentService {
 
 	private boolean cellArea = false;
 
+	private final int xSize;
+	private final int ySize;
+	private final int zSize;
+
 	@Inject
 	public AreaService(EnvironmentSharedStateAccess sharedState, HasArea area) {
 		super(sharedState);
 		this.area = area;
+		this.xSize = Math.max(this.area.getArea().x, 1);
+		this.ySize = Math.max(this.area.getArea().y, 1);
+		this.zSize = Math.max(this.area.getArea().z, 1);
 	}
 
 	/**
@@ -126,15 +133,15 @@ public class AreaService extends EnvironmentService {
 	}
 
 	public int getSizeX() {
-		return this.area.getArea().x;
+		return this.xSize;
 	}
 
 	public int getSizeY() {
-		return this.area.getArea().y;
+		return this.ySize;
 	}
 
 	public int getSizeZ() {
-		return Math.max(this.area.getArea().z, 1);
+		return this.zSize;
 	}
 
 	/**
@@ -152,8 +159,7 @@ public class AreaService extends EnvironmentService {
 	}
 
 	private boolean validCell(int x, int y, int z) {
-		return x >= 0 && x < Math.max(getSizeX(), 1) && y >= 0 && y < Math.max(getSizeY(), 1)
-				&& z >= 0 && z < getSizeZ();
+		return x >= 0 && x < xSize && y >= 0 && y < ySize && z >= 0 && z < zSize;
 	}
 
 	private void cellAction() {

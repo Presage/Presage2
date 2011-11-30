@@ -31,6 +31,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.util.random.Random;
+import uk.ac.imperial.presage2.util.location.area.Area;
 import uk.ac.imperial.presage2.util.location.area.AreaService;
 import uk.ac.imperial.presage2.util.location.area.HasArea;
 
@@ -44,6 +45,15 @@ public class TestLocationService {
 		final EnvironmentServiceProvider mockServiceProvider = context
 				.mock(EnvironmentServiceProvider.class);
 		final HasArea area = context.mock(HasArea.class);
+		final Area a = new Area(1, 1, 1);
+
+		context.checking(new Expectations() {
+			{
+				allowing(area).getArea();
+				will(returnValue(a));
+			}
+		});
+
 		final AreaService areaService = new AreaService(mockEnv, area);
 
 		final UUID validID = Random.randomUUID();
