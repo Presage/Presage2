@@ -26,23 +26,30 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jmock.Mockery;
 import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 
 /**
  * @author Sam Macbeth
- *
+ * 
  */
 public class AbstractEnvironmentTest {
 
-	//Mockery context = new Mockery();
-	
+	Mockery context = new Mockery();
+	final SharedStateStorage mockStorage = new MappedSharedState();
+
 	class TestAbstractEnvironment extends AbstractEnvironment {
+
+		public TestAbstractEnvironment(SharedStateStorage sharedState) {
+			super(sharedState);
+		}
 
 		@Override
 		protected Set<ActionHandler> initialiseActionHandlers() {
@@ -50,48 +57,48 @@ public class AbstractEnvironmentTest {
 		}
 
 		@Override
-		protected Set<EnvironmentService> generateServices(
-				EnvironmentRegistrationRequest request) {
+		protected Set<EnvironmentService> generateServices(EnvironmentRegistrationRequest request) {
 			final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
-			services.add(new MockEnvironmentService(this));
+			services.add(new MockEnvironmentService(this.sharedState));
 			return services;
 		}
-		
+
 	}
-	
+
 	class MockEnvironmentService extends EnvironmentService {
-		MockEnvironmentService(
-				EnvironmentSharedStateAccess sharedState) {
+		MockEnvironmentService(EnvironmentSharedStateAccess sharedState) {
 			super(sharedState);
 		}
 	}
-	
+
 	@Test
 	public void testHasEnvironmentMembersService() throws UnavailableServiceException {
-		final TestAbstractEnvironment envUnderTest = new TestAbstractEnvironment();
-		final EnvironmentService envService = envUnderTest.getEnvironmentService(EnvironmentMembersService.class);
+		final TestAbstractEnvironment envUnderTest = new TestAbstractEnvironment(mockStorage);
+		final EnvironmentService envService = envUnderTest
+				.getEnvironmentService(EnvironmentMembersService.class);
 		assertNotNull(envService);
 		assertTrue(envService instanceof EnvironmentMembersService);
 	}
-	
+
 	@Test
 	public void testGetEnvironmentServiceFailure() {
-		final TestAbstractEnvironment envUnderTest = new TestAbstractEnvironment();
+		final TestAbstractEnvironment envUnderTest = new TestAbstractEnvironment(mockStorage);
 		try {
 			@SuppressWarnings("unused")
 			final EnvironmentService envService = envUnderTest.getEnvironmentService(null);
 			fail("No exception thrown by AbstractEnvironment.getEnvironmentService(null), NullPointerException expected.");
-		} catch(NullPointerException e) {
-			
+		} catch (NullPointerException e) {
+
 		} catch (UnavailableServiceException e) {
 			fail("UnavailableServiceException exception thrown by AbstractEnvironment.getEnvironmentService(null), NullPointerException expected.");
 		}
 		try {
 			@SuppressWarnings("unused")
-			final EnvironmentService envService = envUnderTest.getEnvironmentService(MockEnvironmentService.class);
+			final EnvironmentService envService = envUnderTest
+					.getEnvironmentService(MockEnvironmentService.class);
 			fail("No exception thrown by AbstractEnvironment.getEnvironmentService(MockEnvironmentService.class), UnavailableServiceException expected.");
-		} catch (UnavailableServiceException e) {}
+		} catch (UnavailableServiceException e) {
+		}
 	}
-	
-	
+
 }

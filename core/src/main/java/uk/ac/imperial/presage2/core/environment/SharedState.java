@@ -19,52 +19,39 @@
 
 package uk.ac.imperial.presage2.core.environment;
 
+import java.io.Serializable;
 
 /**
- *  General shared state in the environment.
+ * General shared state in the environment.
  */
-public class SharedState<T> {
+public class SharedState {
 
-    protected String type;
+	final protected String name;
 
-    protected T value;
+	final protected Serializable value;
 
-    public SharedState(String type, T value) {
-        this.type = type;
-        this.value = value;
-    }
+	public SharedState(String name, Serializable value) {
+		this.name = name;
+		this.value = value;
+	}
 
-    /**
+	/**
 	 * Get the name of the type of this shared state. This is a string
 	 * identifier such that the environment can be queried for this state.
+	 * 
 	 * @return {@link String} identifier of this type of shared state.
 	 */
-    public String getType() {
-        return type;
-    }
+	public String getName() {
+		return name;
+	}
 
-    /**
-     * Get the value of this shared state.
-     * @return	Object representing this state. Type dicated by templated type.
-     */
-    public T getValue() {
-        return value;
-    }
-
-    /**
-     * Set the value of this shared state to value.
-     * @param value
-     */
-    public void setValue(T value) {
-        this.value = value;
-    }
-
-    /**
-     * Get the {@link Class} of this shared state.
-     * @return {@link Class} of the state's value.
-     */
-    public Class<? extends Object> getValueType() {
-        return value.getClass();
-    }
+	/**
+	 * Get the value of this shared state.
+	 * 
+	 * @return Object representing this state. Type dicated by templated type.
+	 */
+	public Serializable getValue() {
+		return value;
+	}
 
 }

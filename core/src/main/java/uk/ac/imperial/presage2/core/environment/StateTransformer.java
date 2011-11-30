@@ -18,6 +18,8 @@
  */
 package uk.ac.imperial.presage2.core.environment;
 
+import java.io.Serializable;
+
 /**
  * A state transformer changes a {@link SharedState}'s value to a new one.
  * 
@@ -26,6 +28,14 @@ package uk.ac.imperial.presage2.core.environment;
  */
 public interface StateTransformer {
 
-	public void transform(SharedState<?> state);
+	/**
+	 * Transform the current value of <code>state</code> to a new one and return
+	 * it.
+	 * 
+	 * @param state
+	 *            Current value of the state we wish to change.
+	 * @return The new or modified state to be written.
+	 */
+	public Serializable transform(Serializable state);
 
 }

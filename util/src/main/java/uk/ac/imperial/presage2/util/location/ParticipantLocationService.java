@@ -34,7 +34,6 @@ import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
-import uk.ac.imperial.presage2.util.location.area.AreaService;
 import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
 
 /**
@@ -81,16 +80,9 @@ public class ParticipantLocationService extends LocationService {
 
 	private final Logger logger = Logger.getLogger(ParticipantLocationService.class);
 
-	/**
-	 * {@link ParticipantSharedState} for this agent's Location.
-	 */
-	protected final ParticipantSharedState<HasLocation> state;
-
-	protected final HasLocation locationProvider;
-
 	protected final HasPerceptionRange rangeProvider;
 
-	protected final Participant me;
+	protected final UUID myID;
 
 	protected final EnvironmentMembersService membersService;
 
@@ -118,31 +110,18 @@ public class ParticipantLocationService extends LocationService {
 	 * @param serviceProvider
 	 *            {@link EnvironmentServiceProvider} for fetching dependencies
 	 */
-	public ParticipantLocationService(Participant p, HasLocation hasLoc,
-			HasPerceptionRange hasRange, EnvironmentSharedStateAccess sharedState,
-			EnvironmentServiceProvider serviceProvider) {
+	public ParticipantLocationService(UUID id, Location loc, HasPerceptionRange hasRange,
+			EnvironmentSharedStateAccess sharedState, EnvironmentServiceProvider serviceProvider) {
 		super(sharedState, serviceProvider);
-		this.me = p;
-		this.locationProvider = hasLoc;
+		this.myID = id;
 		this.rangeProvider = hasRange;
-		this.state = new ParticipantSharedState<HasLocation>("util.location",
-				this.locationProvider, p.getID());
 		this.membersService = getMembersService(serviceProvider);
-		try {
-			this.areaService = serviceProvider.getEnvironmentService(AreaService.class);
-		} catch (UnavailableServiceException e) {
-			logger.warn("Area service not available", e);
-		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public ParticipantLocationService(Participant p, EnvironmentSharedStateAccess sharedState,
 			EnvironmentServiceProvider serviceProvider) {
 		super(sharedState, serviceProvider);
-		this.me = p;
-		this.state = (ParticipantSharedState<HasLocation>) sharedState.get("util.location",
-				p.getID());
-		this.locationProvider = this.state.getValue();
+		this.myID = p.getID();
 		if (p instanceof HasPerceptionRange) {
 			this.rangeProvider = (HasPerceptionRange) p;
 		} else {
@@ -153,11 +132,6 @@ public class ParticipantLocationService extends LocationService {
 			}
 		}
 		this.membersService = getMembersService(serviceProvider);
-		try {
-			this.areaService = serviceProvider.getEnvironmentService(AreaService.class);
-		} catch (UnavailableServiceException e) {
-			logger.warn("Area service not available", e);
-		}
 	}
 
 	/**
@@ -173,22 +147,18 @@ public class ParticipantLocationService extends LocationService {
 		}
 	}
 
-	public ParticipantSharedState<HasLocation> getLocationState() {
-		return this.state;
-	}
-
 	@Override
 	public Location getAgentLocation(UUID participantID) {
 		if (this.rangeProvider == null) {
 			return super.getAgentLocation(participantID);
 		} else {
 			final Location theirLoc = super.getAgentLocation(participantID);
-			final Location myLoc = this.locationProvider.getLocation();
+			final Location myLoc = super.getAgentLocation(myID);
 
 			if (myLoc.distanceTo(theirLoc) <= this.rangeProvider.getPerceptionRange()) {
 				return theirLoc;
 			} else {
-				throw new CannotSeeAgent(this.me.getID(), participantID);
+				throw new CannotSeeAgent(this.myID, participantID);
 			}
 		}
 	}
@@ -214,33 +184,31 @@ public class ParticipantLocationService extends LocationService {
 	public Map<UUID, Location> getNearbyAgents() {
 		if (this.membersService == null) {
 			throw new UnsupportedOperationException();
-		} else if (this.areaService != null && this.areaService.isCellArea()) {
+		} else if (this.getAreaService() != null && this.getAreaService().isCellArea()) {
 			final Map<UUID, Location> agents = new HashMap<UUID, Location>();
-			Cell myLoc = (Cell) this.locationProvider.getLocation();
+			Cell myLoc = (Cell) super.getAgentLocation(myID);
 			double range = this.rangeProvider.getPerceptionRange();
 
-			for (int x = Math.max(0, (int) (myLoc.getX() - range)); x < Math.min(
-					areaService.getSizeX(), (int) (myLoc.getX() + range)); x++) {
+			for (int x = Math.max(0, (int) (myLoc.getX() - range)); x < Math.min(getAreaService()
+					.getSizeX(), (int) (myLoc.getX() + range)); x++) {
 				for (int y = Math.max(0, (int) (myLoc.getY() - range)); y < Math.min(
-						areaService.getSizeY(), (int) (myLoc.getY() + range)); y++) {
+						getAreaService().getSizeY(), (int) (myLoc.getY() + range)); y++) {
 					for (int z = Math.max(0, (int) (myLoc.getZ() - range)); z < Math.min(
-							areaService.getSizeZ(), (int) (myLoc.getZ() + range)); z++) {
+							getAreaService().getSizeZ(), (int) (myLoc.getZ() + range)); z++) {
 						Cell c = new Cell(x, y, z);
-						if (myLoc.distanceTo(c) <= range) {
-							for (UUID a : areaService.getCell(x, y, z)) {
-								agents.put(a, c);
-							}
+						for (UUID a : getAreaService().getCell(x, y, z)) {
+							agents.put(a, c);
 						}
 					}
 				}
 			}
-			agents.remove(this.me.getID());
+			agents.remove(this.myID);
 			return agents;
 		} else {
 			final Map<UUID, Location> agents = new HashMap<UUID, Location>();
 			for (UUID pid : this.membersService.getParticipants()) {
 				// skip myself
-				if (pid == this.me.getID())
+				if (pid == this.myID)
 					continue;
 				// get location if I can see them, continue otherwise.
 				Location l;
@@ -268,8 +236,8 @@ public class ParticipantLocationService extends LocationService {
 	 * @return {@link ParticipantSharedState} on the type that this service
 	 *         uses.
 	 */
-	public static ParticipantSharedState<HasLocation> createSharedState(UUID pid, HasLocation loc) {
-		return new ParticipantSharedState<HasLocation>("util.location", loc, pid);
+	public static ParticipantSharedState createSharedState(UUID pid, Location loc) {
+		return new ParticipantSharedState("util.location", loc, pid);
 	}
 
 }

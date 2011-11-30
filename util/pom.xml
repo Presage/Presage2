@@ -45,6 +45,13 @@
 			<version>2.5.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>uk.ac.imperial.presage2</groupId>
+			<artifactId>presage2-core</artifactId>
+			<version>0.2.5-SNAPSHOT</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>

@@ -20,7 +20,7 @@
 /**
  * 
  */
-package uk.ac.imperial.presage2.util.environment;
+package uk.ac.imperial.presage2.core.environment;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

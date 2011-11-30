@@ -18,7 +18,6 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
-import java.util.Map;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
@@ -26,9 +25,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
-import uk.ac.imperial.presage2.core.environment.ParticipantStateTransformer;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
-import uk.ac.imperial.presage2.core.environment.SharedState;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.util.location.area.AreaService;
 
@@ -51,7 +48,7 @@ import com.google.inject.Inject;
 public class LocationService extends EnvironmentService {
 
 	EnvironmentServiceProvider serviceProvider;
-	AreaService areaService;
+	private AreaService areaService;
 
 	@Inject
 	public LocationService(EnvironmentSharedStateAccess sharedState,
@@ -60,14 +57,15 @@ public class LocationService extends EnvironmentService {
 		this.serviceProvider = serviceProvider;
 	}
 
-	@Override
-	public void initialise(Map<String, SharedState<?>> globalSharedState) {
-		super.initialise(globalSharedState);
-		try {
-			areaService = serviceProvider.getEnvironmentService(AreaService.class);
-		} catch (UnavailableServiceException e) {
-			throw new RuntimeException(e);
+	protected AreaService getAreaService() {
+		if (areaService == null) {
+			try {
+				areaService = serviceProvider.getEnvironmentService(AreaService.class);
+			} catch (UnavailableServiceException e) {
+				throw new RuntimeException(e);
+			}
 		}
+		return areaService;
 	}
 
 	/**
@@ -75,15 +73,11 @@ public class LocationService extends EnvironmentService {
 	 * the global shared state via {@link AreaService}.
 	 */
 	@Override
-	public void registerParticipant(EnvironmentRegistrationRequest req,
-			Map<String, SharedState<?>> globalSharedState) {
-		super.registerParticipant(req, globalSharedState);
-		// add any cell locations to the cell map.
-		for (ParticipantSharedState<?> s : req.getSharedState()) {
-			if (s.getType().equals("util.location")
-					&& ((HasLocation) s.getValue()).getLocation() instanceof Cell) {
-				Cell c = (Cell) ((HasLocation) s.getValue()).getLocation();
-				areaService.getCell((int) c.getX(), (int) c.getY(), (int) c.getZ()).add(
+	public void registerParticipant(EnvironmentRegistrationRequest req) {
+		for (ParticipantSharedState s : req.getSharedState()) {
+			if (s.getName().equals("util.location") && s.getValue() instanceof Cell) {
+				Cell c = (Cell) s.getValue();
+				getAreaService().addToCell((int) c.getX(), (int) c.getY(), (int) c.getZ(),
 						req.getParticipantID());
 			}
 		}
@@ -97,8 +91,7 @@ public class LocationService extends EnvironmentService {
 	 * @return {@link Location} of participants
 	 */
 	public Location getAgentLocation(UUID participantID) {
-		return ((HasLocation) this.sharedState.get("util.location", participantID).getValue())
-				.getLocation();
+		return (Location) this.sharedState.get("util.location", participantID);
 	}
 
 	/**
@@ -111,25 +104,13 @@ public class LocationService extends EnvironmentService {
 	 * @param l
 	 */
 	public void setAgentLocation(final UUID participantID, final Location l) {
-		this.sharedState.change("util.location", participantID, new ParticipantStateTransformer() {
-			@Override
-			public void transform(ParticipantSharedState<?> state) {
-				if (state.getValue() instanceof HasLocation) {
-					HasLocation loc = (HasLocation) state.getValue();
-					loc.setLocation(l);
-				}
-			}
-		});
+		this.sharedState.change("util.location", participantID, l);
 		if (l instanceof Cell) {
-			synchronized (areaService) {
-				// remove old location from map
-				Location oldLoc = getAgentLocation(participantID);
-				areaService.getCell((int) oldLoc.getX(), (int) oldLoc.getY(), (int) oldLoc.getZ())
-						.remove(participantID);
-				// add new loc to cell map
-				areaService.getCell((int) l.getX(), (int) l.getY(), (int) l.getZ()).add(
-						participantID);
-			}
+			Location oldLoc = getAgentLocation(participantID);
+			getAreaService().removeFromCell((int) oldLoc.getX(), (int) oldLoc.getY(),
+					(int) oldLoc.getZ(), participantID);
+			getAreaService().addToCell((int) l.getX(), (int) l.getY(), (int) l.getZ(),
+					participantID);
 		}
 	}
 

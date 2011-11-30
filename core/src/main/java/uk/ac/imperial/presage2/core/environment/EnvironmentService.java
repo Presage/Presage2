@@ -24,11 +24,17 @@ import java.util.Map;
 import com.google.inject.Inject;
 
 /**
- * <p>An EnvironmentService provides a high level service to a Participant and/or
- * the NetworkController by accessing the raw data in the environment shared state.</p>
+ * <p>
+ * An EnvironmentService provides a high level service to a Participant and/or
+ * the NetworkController by accessing the raw data in the environment shared
+ * state.
+ * </p>
  * 
- * <p>This provides an abstraction layer to the shared state as well as protection of shared
- * state data (performing object copys when necessary) and access limitations as required</p>
+ * <p>
+ * This provides an abstraction layer to the shared state as well as protection
+ * of shared state data (performing object copys when necessary) and access
+ * limitations as required
+ * </p>
  */
 abstract public class EnvironmentService {
 
@@ -44,19 +50,38 @@ abstract public class EnvironmentService {
 	}
 
 	/**
-	 * Initialise global shared state required by this environmentservice (optional).
+	 * Initialise global shared state required by this environmentservice
+	 * (optional).
+	 * 
 	 * @param globalSharedState
+	 * @deprecated Initialise in ctor using {@link EnvironmentSharedStateAccess}
+	 *             to create state.
 	 */
-	public void initialise(Map<String, SharedState<?>> globalSharedState) {
+	public void initialise(Map<String, SharedState> globalSharedState) {
 
 	}
 
 	/**
 	 * Called when a participant is registered (optional).
+	 * 
 	 * @param req
 	 * @param globalSharedState
+	 * @deprecated Use
+	 *             {@link #registerParticipant(EnvironmentRegistrationRequest)}
+	 *             and create global shared state with
+	 *             {@link EnvironmentSharedStateAccess}.
 	 */
-	public void registerParticipant(EnvironmentRegistrationRequest req, Map<String, SharedState<?>> globalSharedState) {
+	public void registerParticipant(EnvironmentRegistrationRequest req,
+			Map<String, SharedState> globalSharedState) {
+
+	}
+
+	/**
+	 * Called when a participant is registered (optional).
+	 * 
+	 * @param req
+	 */
+	public void registerParticipant(EnvironmentRegistrationRequest req) {
 
 	}
 
