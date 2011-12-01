@@ -19,7 +19,6 @@
 package uk.ac.imperial.presage2.util.environment;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -27,8 +26,6 @@ import java.util.Queue;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
-
-import com.google.inject.Inject;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
@@ -39,6 +36,8 @@ import uk.ac.imperial.presage2.core.environment.StateTransformer;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
 import uk.ac.imperial.presage2.core.simulator.Events;
+
+import com.google.inject.Inject;
 
 public class MappedSharedState implements SharedStateStorage {
 
@@ -115,24 +114,24 @@ public class MappedSharedState implements SharedStateStorage {
 	}
 
 	protected Map<String, Serializable> initGlobalStateMap() {
-		return Collections.synchronizedMap(new HashMap<String, Serializable>());
+		return new HashMap<String, Serializable>();
 	}
 
 	@SuppressWarnings("serial")
 	protected Map<UUID, Map<String, Serializable>> initAgentStateMap() {
 		// extended HashMap which adds an element if we request a UUID we don't
 		// have an element for yet.
-		return Collections.synchronizedMap(new HashMap<UUID, Map<String, Serializable>>() {
+		return new HashMap<UUID, Map<String, Serializable>>() {
 			@Override
 			public Map<String, Serializable> get(Object key) {
 				Map<String, Serializable> agent = super.get(key);
 				if (agent == null && key instanceof UUID) {
-					agent = Collections.synchronizedMap(new HashMap<String, Serializable>());
+					agent = new HashMap<String, Serializable>();
 					this.put((UUID) key, agent);
 				}
 				return agent;
 			}
-		});
+		};
 	}
 
 	@Override
@@ -156,7 +155,7 @@ public class MappedSharedState implements SharedStateStorage {
 	}
 
 	@Override
-	public void createGlobal(String name, Serializable value) {
+	public synchronized void createGlobal(String name, Serializable value) {
 		if (!globalState.containsKey(name)) {
 			globalState.put(name, value);
 		} else
@@ -165,7 +164,7 @@ public class MappedSharedState implements SharedStateStorage {
 	}
 
 	@Override
-	public void deleteGlobal(String name) {
+	public synchronized void deleteGlobal(String name) {
 		globalState.remove(name);
 	}
 
@@ -195,7 +194,7 @@ public class MappedSharedState implements SharedStateStorage {
 	}
 
 	@Override
-	public void create(String name, UUID participantID, Serializable value) {
+	public synchronized void create(String name, UUID participantID, Serializable value) {
 		Map<String, Serializable> agent = agentState.get(participantID);
 		if (!agent.containsKey(name)) {
 			agent.put(name, value);
