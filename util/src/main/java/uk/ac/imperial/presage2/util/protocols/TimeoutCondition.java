@@ -18,7 +18,6 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.imperial.presage2.util.fsm.State;
 import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
 
@@ -29,12 +28,20 @@ import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
  * @author Sam Macbeth
  * 
  */
-public class TimeoutGuard implements TransitionCondition {
+public class TimeoutCondition implements TransitionCondition {
+
+	final int timeout;
+
+	public TimeoutCondition(int timeout) {
+		super();
+		this.timeout = timeout;
+	}
 
 	@Override
 	public boolean allow(Object event, Object entity, State state) {
 		if (event instanceof Timeout) {
-			throw new NotImplementedException();
+			Timeout t = (Timeout) event;
+			return ((FSMConversation) entity).getLastTransition() + timeout < t.getTime();
 		}
 		return false;
 	}
