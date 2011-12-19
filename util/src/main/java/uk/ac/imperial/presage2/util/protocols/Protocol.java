@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.messaging.InputHandler;
 import uk.ac.imperial.presage2.core.network.Message;
@@ -53,7 +54,7 @@ import uk.ac.imperial.presage2.core.network.NetworkAddress;
  * @author Sam Macbeth
  * 
  */
-public abstract class Protocol implements InputHandler {
+public abstract class Protocol implements InputHandler, TimeDriven {
 
 	protected final String name;
 

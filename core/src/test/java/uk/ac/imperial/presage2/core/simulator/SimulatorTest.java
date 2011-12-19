@@ -115,6 +115,7 @@ abstract public class SimulatorTest {
 				}
 				oneOf(plug1).initialise();
 				oneOf(plug2).initialise();
+				oneOf(eventBus).publish(with(any(Events.Initialised.class)));
 			}
 		});
 

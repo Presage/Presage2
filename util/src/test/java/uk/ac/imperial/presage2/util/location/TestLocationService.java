@@ -18,7 +18,8 @@
  */
 package uk.ac.imperial.presage2.util.location;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 import java.util.UUID;
 
@@ -28,37 +29,56 @@ import org.junit.Test;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
-import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
-import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
+import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.util.random.Random;
+import uk.ac.imperial.presage2.util.location.area.Area;
+import uk.ac.imperial.presage2.util.location.area.AreaService;
+import uk.ac.imperial.presage2.util.location.area.HasArea;
 
 public class TestLocationService {
 
 	@Test
-	public void testGetAgentLocation() throws CannotSeeAgent {
+	public void testGetAgentLocation() throws CannotSeeAgent, UnavailableServiceException {
 		final Mockery context = new Mockery();
-		final EnvironmentSharedStateAccess mockEnv = context.mock(EnvironmentSharedStateAccess.class);
-		final EnvironmentServiceProvider mockServiceProvider = context.mock(EnvironmentServiceProvider.class);
-		
+		final EnvironmentSharedStateAccess mockEnv = context
+				.mock(EnvironmentSharedStateAccess.class);
+		final EnvironmentServiceProvider mockServiceProvider = context
+				.mock(EnvironmentServiceProvider.class);
+		final HasArea area = context.mock(HasArea.class);
+		final Area a = new Area(1, 1, 1);
+
+		context.checking(new Expectations() {
+			{
+				allowing(area).getArea();
+				will(returnValue(a));
+			}
+		});
+
+		final AreaService areaService = new AreaService(mockEnv, area);
+
 		final UUID validID = Random.randomUUID();
 		final Location loc = new Location(0, 0);
 		final UUID invalidID = Random.randomUUID();
+
+		context.checking(new Expectations() {
+			{
+				allowing(mockEnv).get("util.location", validID);
+				will(returnValue(loc));
+				allowing(mockEnv).get("util.location", invalidID);
+				will(returnValue(null));
+				allowing(mockServiceProvider).getEnvironmentService(AreaService.class);
+				will(returnValue(areaService));
+			}
+		});
+
 		final LocationService serviceUnderTest = new LocationService(mockEnv, mockServiceProvider);
-		
-		context.checking(new Expectations() {{
-			allowing(mockEnv).get("util.location", validID); will(returnValue(new ParticipantSharedState<Location>("util.location", loc, validID)));
-			allowing(mockEnv).get("util.location", invalidID); will(throwException(new SharedStateAccessException()));
-		}});
-		
+
 		assertSame(loc, serviceUnderTest.getAgentLocation(validID));
-		
-		try {
-			serviceUnderTest.getAgentLocation(invalidID);
-			fail();
-		} catch (SharedStateAccessException e) {}
-		
+
+		assertNull(serviceUnderTest.getAgentLocation(invalidID));
+
 		context.assertIsSatisfied();
-		
+
 	}
-	
+
 }

@@ -18,37 +18,45 @@
  */
 package uk.ac.imperial.presage2.util.environment;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.Inject;
-
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
-import uk.ac.imperial.presage2.core.environment.SharedState;
+import uk.ac.imperial.presage2.core.environment.StateTransformer;
 
+import com.google.inject.Inject;
 
 /**
- * <p>This service provides access to the UUIDs of all the participants in the
- * simulation. This is a low level service to allow other services to do searches
- * on participants' shared states.</p>
+ * <p>
+ * This service provides access to the UUIDs of all the participants in the
+ * simulation. This is a low level service to allow other services to do
+ * searches on participants' shared states.
+ * </p>
  * 
- * <p>This service acts as a global environment services, and requires it's data to
- * be initialised through {@link #initialise(Map)} and {@link #registerParticipant(EnvironmentRegistrationRequest, Map)}
- * in order to work correctly</p>
+ * <p>
+ * This service acts as a global environment services, and requires it's data to
+ * be initialised through {@link #initialise(Map)} and
+ * {@link #registerParticipant(EnvironmentRegistrationRequest, Map)} in order to
+ * work correctly
+ * </p>
  * 
  * <h3>Usage</h3>
  * 
- * <p>If you're extending {@link AbstractEnvironment} this service is already initialised
- * in {@link AbstractEnvironment#initialiseGlobalEnvironmentServices()}.</p>
+ * <p>
+ * If you're extending {@link AbstractEnvironment} this service is already
+ * initialised in
+ * {@link AbstractEnvironment#initialiseGlobalEnvironmentServices()}.
+ * </p>
  * 
  * 
  * @author Sam Macbeth
- *
+ * 
  */
 public class EnvironmentMembersService extends EnvironmentService {
 
@@ -58,33 +66,36 @@ public class EnvironmentMembersService extends EnvironmentService {
 	@Inject
 	public EnvironmentMembersService(EnvironmentSharedStateAccess sharedState) {
 		super(sharedState);
+		this.sharedState.createGlobal("participants", new HashSet<UUID>());
 	}
 
 	/**
-	 * Get a {@link Set} of the {@link UUID}s of the participants in the environment.
+	 * Get a {@link Set} of the {@link UUID}s of the participants in the
+	 * environment.
+	 * 
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	public Set<UUID> getParticipants() {
 		try {
-			return Collections.unmodifiableSet((Set<UUID>) sharedState.getGlobal("participants").getValue());
-		} catch(ClassCastException e) {
+			return Collections.unmodifiableSet((HashSet<UUID>) sharedState
+					.getGlobal("participants"));
+		} catch (ClassCastException e) {
 			throw e;
 		}
 	}
 
 	@Override
-	public void initialise(Map<String, SharedState<?>> globalSharedState) {
-		// create the 'participants' attribute in global shared state.
-		globalSharedState.put("participants", new SharedState<Set<UUID>>("participants", new HashSet<UUID>()));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void registerParticipant(EnvironmentRegistrationRequest req,
-			Map<String, SharedState<?>> globalSharedState) {
-		// add entry in 'participants' global state attribute
-		((Set<UUID>) globalSharedState.get("participants").getValue()).add(req.getParticipantID());
+	public void registerParticipant(final EnvironmentRegistrationRequest req) {
+		this.sharedState.changeGlobal("participants", new StateTransformer() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public Serializable transform(Serializable state) {
+				HashSet<UUID> ids = (HashSet<UUID>) state;
+				ids.add(req.getParticipantID());
+				return ids;
+			}
+		});
 	}
 
 }

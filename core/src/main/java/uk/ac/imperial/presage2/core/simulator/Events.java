@@ -16,27 +16,16 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.util.protocols;
+package uk.ac.imperial.presage2.core.simulator;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-import uk.ac.imperial.presage2.util.fsm.State;
-import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
+import uk.ac.imperial.presage2.core.event.Event;
 
-/**
- * Guard which allows a transition when a {@link Timeout} event is passed and
- * the last action of this fsm was older than the timeout.
- * 
- * @author Sam Macbeth
- * 
- */
-public class TimeoutGuard implements TransitionCondition {
 
-	@Override
-	public boolean allow(Object event, Object entity, State state) {
-		if (event instanceof Timeout) {
-			throw new NotImplementedException();
-		}
-		return false;
+public class Events {
+
+	public static class Initialised implements Event {
 	}
-
+	
+	public static final Event INITIALISED = new Initialised();
+	
 }

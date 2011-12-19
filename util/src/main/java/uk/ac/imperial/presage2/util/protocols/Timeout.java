@@ -20,8 +20,15 @@ package uk.ac.imperial.presage2.util.protocols;
 
 class Timeout {
 
-	Timeout() {
+	final int time;
+
+	Timeout(int time) {
 		super();
+		this.time = time;
+	}
+
+	public int getTime() {
+		return time;
 	}
 
 }

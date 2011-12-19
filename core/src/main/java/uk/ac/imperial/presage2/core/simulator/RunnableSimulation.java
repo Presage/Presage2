@@ -448,8 +448,6 @@ public abstract class RunnableSimulation implements Runnable {
 
 		// Additional modules we want for this simulation run
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
-		additionalModules.add(SimulatorModule.multiThreadedSimulator(4));
-		// additionalModules.add(SimulatorModule.singleThreadedSimulator());
 		additionalModules.add(new EventBusModule());
 		// database module
 		AbstractModule dbModule = DatabaseModule.load();

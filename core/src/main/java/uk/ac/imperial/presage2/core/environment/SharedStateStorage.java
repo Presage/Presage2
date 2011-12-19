@@ -16,27 +16,18 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.simulator;
+package uk.ac.imperial.presage2.core.environment;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.event.Event;
+import uk.ac.imperial.presage2.core.TimeDriven;
 
 /**
- * {@link Event} to signify the end of a time cycle.
+ * Classes implementing this can act as a storage layer for the shared state of
+ * a simulation. It combines access and modification of
+ * {@link EnvironmentSharedStateAccess} with {@link TimeDriven} to control when
+ * state changes and committed.
  * 
  * @author Sam Macbeth
  * 
  */
-public class EndOfTimeCycle implements Event {
-
-	final Time endedCycle;
-
-	EndOfTimeCycle(Time endedCycle) {
-		this.endedCycle = endedCycle;
-	}
-
-	public Time getTime() {
-		return endedCycle;
-	}
-
+public interface SharedStateStorage extends EnvironmentSharedStateAccess, TimeDriven {
 }

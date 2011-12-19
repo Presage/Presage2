@@ -24,6 +24,7 @@ package uk.ac.imperial.presage2.core.db;
  * 
  * @author Sam Macbeth
  * 
+ * @deprecated
  */
 public interface Transaction {
 

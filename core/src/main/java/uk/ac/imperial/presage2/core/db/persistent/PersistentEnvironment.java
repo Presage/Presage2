@@ -16,27 +16,16 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.simulator;
+package uk.ac.imperial.presage2.core.db.persistent;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.event.Event;
+public interface PersistentEnvironment {
 
-/**
- * {@link Event} to signify the end of a time cycle.
- * 
- * @author Sam Macbeth
- * 
- */
-public class EndOfTimeCycle implements Event {
+	public Object getProperty(String key);
 
-	final Time endedCycle;
+	public void setProperty(String key, Object value);
 
-	EndOfTimeCycle(Time endedCycle) {
-		this.endedCycle = endedCycle;
-	}
+	public Object getProperty(String key, int timestep);
 
-	public Time getTime() {
-		return endedCycle;
-	}
+	public void setProperty(String key, int timestep, Object value);
 
 }

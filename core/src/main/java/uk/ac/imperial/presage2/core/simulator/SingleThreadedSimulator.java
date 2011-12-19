@@ -71,6 +71,7 @@ public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 						+ " on execution.", e);
 			}
 		}
+		eventBus.publish(Events.INITIALISED);
 	}
 
 	@Override

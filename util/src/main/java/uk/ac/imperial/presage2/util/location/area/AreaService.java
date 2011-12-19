@@ -18,19 +18,20 @@
  */
 package uk.ac.imperial.presage2.util.location.area;
 
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.Inject;
-
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
-import uk.ac.imperial.presage2.core.environment.SharedState;
+import uk.ac.imperial.presage2.core.environment.StateTransformer;
 import uk.ac.imperial.presage2.util.environment.AbstractEnvironment;
 import uk.ac.imperial.presage2.util.location.Cell;
 import uk.ac.imperial.presage2.util.location.Location;
+
+import com.google.inject.Inject;
 
 /**
  * <p>
@@ -55,30 +56,17 @@ public class AreaService extends EnvironmentService {
 
 	private boolean cellArea = false;
 
+	private final int xSize;
+	private final int ySize;
+	private final int zSize;
+
 	@Inject
 	public AreaService(EnvironmentSharedStateAccess sharedState, HasArea area) {
 		super(sharedState);
 		this.area = area;
-	}
-
-	/**
-	 * Get the simulation {@link Area}
-	 * 
-	 * @return simulation {@link Area}
-	 */
-	public Area getSimulationArea() {
-		return ((HasArea) sharedState.getGlobal("area").getValue()).getArea();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void initialise(Map<String, SharedState<?>> globalSharedState) {
-		globalSharedState.put("area", new SharedState<HasArea>("area", this.area));
-		globalSharedState.put(
-				"area.cells",
-				new SharedState<Set<UUID>[][][]>("area.cells", new Set[Math.max(
-						this.area.getArea().x, 1)][Math.max(this.area.getArea().y, 1)][Math.max(
-						this.area.getArea().z, 1)]));
+		this.xSize = Math.max(this.area.getArea().x, 1);
+		this.ySize = Math.max(this.area.getArea().y, 1);
+		this.zSize = Math.max(this.area.getArea().z, 1);
 	}
 
 	/**
@@ -91,31 +79,69 @@ public class AreaService extends EnvironmentService {
 	 * @return
 	 */
 	public Set<UUID> getCell(int x, int y, int z) {
-		cellArea = true;
-		@SuppressWarnings("unchecked")
-		Set<UUID>[][][] cellMap = (Set<UUID>[][][]) sharedState.getGlobal("area.cells").getValue();
+		if (!validCell(x, y, z))
+			throw new RuntimeException("Cell out of bounds");
+		cellAction();
 
 		try {
-			Set<UUID> cell = cellMap[x][y][z];
+			@SuppressWarnings("unchecked")
+			Set<UUID> cell = (HashSet<UUID>) sharedState.getGlobal(cellKey(x, y, z));
 			if (cell == null)
-				cell = cellMap[x][y][z] = new HashSet<UUID>();
+				cell = new HashSet<UUID>();
+			cell = Collections.unmodifiableSet(cell);
 
 			return cell;
-		} catch (ArrayIndexOutOfBoundsException e) {
+		} catch (NullPointerException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
+	public void addToCell(int x, int y, int z, final UUID aid) {
+		cellAction();
+		if (validCell(x, y, z)) {
+			sharedState.changeGlobal(cellKey(x, y, z), new StateTransformer() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public Serializable transform(Serializable state) {
+					HashSet<UUID> cell = (HashSet<UUID>) state;
+					if (cell == null)
+						cell = new HashSet<UUID>();
+					cell.add(aid);
+					return cell;
+				}
+			});
+		} else
+			throw new RuntimeException("Cell out of bounds");
+	}
+
+	public void removeFromCell(int x, int y, int z, final UUID aid) {
+		cellAction();
+		if (validCell(x, y, z)) {
+			sharedState.changeGlobal(cellKey(x, y, z), new StateTransformer() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public Serializable transform(Serializable state) {
+					HashSet<UUID> cell = (HashSet<UUID>) state;
+					if (cell == null)
+						cell = new HashSet<UUID>();
+					cell.remove(aid);
+					return cell;
+				}
+			});
+		} else
+			throw new RuntimeException("Cell out of bounds");
+	}
+
 	public int getSizeX() {
-		return this.area.getArea().x;
+		return this.xSize;
 	}
 
 	public int getSizeY() {
-		return this.area.getArea().y;
+		return this.ySize;
 	}
 
 	public int getSizeZ() {
-		return Math.max(this.area.getArea().z, 1);
+		return this.zSize;
 	}
 
 	/**
@@ -126,6 +152,20 @@ public class AreaService extends EnvironmentService {
 	 */
 	public boolean isCellArea() {
 		return cellArea;
+	}
+
+	private String cellKey(int x, int y, int z) {
+		return "area.cell." + x + "." + y + "." + z;
+	}
+
+	private boolean validCell(int x, int y, int z) {
+		return x >= 0 && x < xSize && y >= 0 && y < ySize && z >= 0 && z < zSize;
+	}
+
+	private void cellAction() {
+		if (!isCellArea()) {
+			this.cellArea = true;
+		}
 	}
 
 }

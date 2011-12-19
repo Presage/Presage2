@@ -53,7 +53,7 @@ public class CommunicationRangeService extends EnvironmentService {
 	}
 
 	public double getAgentCommunicationRange(UUID participantID) {
-		return ((HasCommunicationRange) this.sharedState.get("network.commrange", participantID).getValue()).getCommunicationRange();
+		return (Double) this.sharedState.get("network.commrange", participantID);
 	}
 
 	/**
@@ -62,8 +62,8 @@ public class CommunicationRangeService extends EnvironmentService {
 	 * @param range	{@link HasCommunicationRange} provider for this participant
 	 * @return	{@link ParticipantSharedState} on the type that this service uses.
 	 */
-	public static ParticipantSharedState<HasCommunicationRange> createSharedState(UUID pid, HasCommunicationRange range) {
-		return new ParticipantSharedState<HasCommunicationRange>("network.commrange", range, pid);
+	public static ParticipantSharedState createSharedState(UUID pid, double range) {
+		return new ParticipantSharedState("network.commrange", range, pid);
 	}
 
 }
