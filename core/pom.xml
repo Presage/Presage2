@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>uk.ac.imperial.presage2</groupId>
 		<artifactId>presage2</artifactId>
-		<version>0.3.0</version>
+		<version>0.3.1-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
 	<artifactId>presage2-core</artifactId>
