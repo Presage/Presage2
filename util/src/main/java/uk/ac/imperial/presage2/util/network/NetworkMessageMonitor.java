@@ -25,7 +25,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.StorageService;
-import uk.ac.imperial.presage2.core.db.Transaction;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
 import uk.ac.imperial.presage2.core.network.MessageBlockedEvent;
@@ -67,21 +66,19 @@ public class NetworkMessageMonitor implements Plugin {
 	@Override
 	public void incrementTime() {
 		if (db != null) {
-			Transaction tx = db.startTransaction();
-			try {
-				while (deliveryQueue.peek() != null) {
-					MessageDeliveryEvent e = deliveryQueue.poll();
-					Map<String, Object> parameters = new Hashtable<String, Object>();
-					parameters.put("time", time.intValue());
-					parameters.put("type", e.getMessage().getType());
-					parameters.put("performative", e.getMessage().getPerformative().name());
-					parameters.put("class", e.getMessage().getClass().getSimpleName());
-					db.getAgent(e.getMessage().getFrom().getId()).createRelationshipTo(
-							db.getAgent(e.getRecipient().getId()), "SENT_MESSAGE", parameters);
-				}
-				tx.success();
-			} finally {
-				tx.finish();
+			while (deliveryQueue.peek() != null) {
+				MessageDeliveryEvent e = deliveryQueue.poll();
+				Map<String, Object> parameters = new Hashtable<String, Object>();
+				parameters.put("time", time.intValue());
+				parameters.put("type", e.getMessage().getType());
+				parameters.put("performative", e.getMessage().getPerformative()
+						.name());
+				parameters.put("class", e.getMessage().getClass()
+						.getSimpleName());
+				db.getAgent(e.getMessage().getFrom().getId())
+						.createRelationshipTo(
+								db.getAgent(e.getRecipient().getId()),
+								"SENT_MESSAGE", parameters);
 			}
 		}
 		time.increment();
