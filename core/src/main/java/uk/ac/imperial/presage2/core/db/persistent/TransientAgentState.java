@@ -18,14 +18,18 @@
  */
 package uk.ac.imperial.presage2.core.db.persistent;
 
+import java.util.Map;
+
 public interface TransientAgentState {
 
 	int getTime();
 
 	PersistentAgent getAgent();
 
-	Object getProperty(String key);
+	Map<String, String> getProperties();
 
-	void setProperty(String key, Object value);
+	String getProperty(String key);
+
+	void setProperty(String key, String value);
 
 }

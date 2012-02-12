@@ -22,9 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentEnvironment;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
-import uk.ac.imperial.presage2.core.db.persistent.SimulationFactory;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
 /**
@@ -34,14 +32,6 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
  * 
  */
 public interface StorageService {
-
-	/**
-	 * Get the {@link SimulationFactory} instance.
-	 * 
-	 * @return
-	 */
-	@Deprecated
-	public SimulationFactory getSimulationFactory();
 
 	/**
 	 * Create a {@link PersistentSimulation} for the given parameters and set it
@@ -58,8 +48,8 @@ public interface StorageService {
 	 * @return A {@link PersistentSimulation} object relating to the simulation
 	 *         entry created in the database.
 	 */
-	public PersistentSimulation createSimulation(String name, String classname, String state,
-			int finishTime);
+	public PersistentSimulation createSimulation(String name, String classname,
+			String state, int finishTime);
 
 	/**
 	 * Get the {@link PersistentSimulation} for the currently running
@@ -117,13 +107,5 @@ public interface StorageService {
 	 * @return
 	 */
 	public TransientAgentState getAgentState(UUID agentID, int time);
-
-	/**
-	 * Start a {@link Transaction} on the graph db.
-	 * 
-	 * @return
-	 * @deprecated
-	 */
-	public Transaction startTransaction();
 
 }

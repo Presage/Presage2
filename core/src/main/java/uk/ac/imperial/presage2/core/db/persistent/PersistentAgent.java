@@ -37,13 +37,15 @@ public interface PersistentAgent {
 
 	void setDeRegisteredAt(int time);
 
+	Map<String, String> getProperties();
+
 	/**
 	 * Get a property associated with this agent.
 	 * 
 	 * @param key
 	 * @return
 	 */
-	Object getProperty(String key);
+	String getProperty(String key);
 
 	/**
 	 * Set a property associated with this agent.
@@ -51,16 +53,7 @@ public interface PersistentAgent {
 	 * @param key
 	 * @param value
 	 */
-	void setProperty(String key, Object value);
-
-	/**
-	 * Create a relationship to another agent.
-	 * 
-	 * @param p
-	 * @param type
-	 * @param parameters
-	 */
-	void createRelationshipTo(PersistentAgent p, String type, Map<String, Object> parameters);
+	void setProperty(String key, String value);
 
 	/**
 	 * Get state for this agents at <code>time</code>.

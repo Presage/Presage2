@@ -26,9 +26,9 @@ public interface PersistentSimulation {
 
 	public long getID();
 
-	public void addParameter(String name, Object value);
+	public void addParameter(String name, String value);
 
-	public Map<String, Object> getParameters();
+	public Map<String, String> getParameters();
 
 	public int getFinishTime();
 
