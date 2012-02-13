@@ -190,13 +190,13 @@ public abstract class RunnableSimulation implements Runnable {
 		updateDatabase();
 	}
 
-	final public Object getParameter(String name) {
+	final public String getParameter(String name) {
 		for (Field f : this.getClass().getFields()) {
 			Parameter param = f.getAnnotation(Parameter.class);
 			if (param != null) {
 				if (param.name().equalsIgnoreCase(name)) {
 					try {
-						return f.get(this);
+						return f.get(this).toString();
 					} catch (IllegalArgumentException e) {
 						logger.debug("Couldn't get value of field " + name, e);
 					} catch (IllegalAccessException e) {
@@ -520,7 +520,7 @@ public abstract class RunnableSimulation implements Runnable {
 		run.setDatabase(db);
 		run.setGraphDB(sto);
 
-		Map<String, Object> providedParams = sim.getParameters();
+		Map<String, String> providedParams = sim.getParameters();
 		for (Map.Entry<String, Class<?>> entry : run.getParameters().entrySet()) {
 			if (!providedParams.containsKey(entry.getKey())) {
 				System.err.println("No value provided for " + entry.getKey()
@@ -529,7 +529,7 @@ public abstract class RunnableSimulation implements Runnable {
 				db.stop();
 				return;
 			}
-			run.setParameter(entry.getKey(), providedParams.get(entry.getKey()).toString());
+			run.setParameter(entry.getKey(), providedParams.get(entry.getKey()));
 		}
 
 		run.simPersist = sim;

@@ -157,7 +157,7 @@ public abstract class GenericStorageServiceTest {
 		final String paramName1 = RandomStringUtils.randomAlphanumeric(Random.randomInt(20));
 		final String paramValue1 = RandomStringUtils.randomAlphanumeric(Random.randomInt(200));
 		sim.addParameter(paramName1, paramValue1);
-		Map<String, Object> params = sim.getParameters();
+		Map<String, String> params = sim.getParameters();
 		assertTrue(params.size() == 1);
 		assertTrue(params.containsKey(paramName1));
 		assertEquals(paramValue1, params.get(paramName1).toString());

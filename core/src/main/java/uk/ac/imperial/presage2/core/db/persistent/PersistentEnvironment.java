@@ -18,11 +18,17 @@
  */
 package uk.ac.imperial.presage2.core.db.persistent;
 
+import java.util.Map;
+
 public interface PersistentEnvironment {
+
+	public Map<String, String> getProperties();
 
 	public String getProperty(String key);
 
 	public void setProperty(String key, String value);
+
+	public Map<String, String> getProperties(int timestep);
 
 	public String getProperty(String key, int timestep);
 

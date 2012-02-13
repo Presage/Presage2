@@ -81,9 +81,9 @@ public class LocationStoragePlugin implements Plugin {
 				}
 				TransientAgentState state = this.storage.getAgentState(pid,
 						time.intValue());
-				state.setProperty("x", l.getX());
-				state.setProperty("y", l.getY());
-				state.setProperty("z", l.getZ());
+				state.setProperty("x", Double.toString(l.getX()));
+				state.setProperty("y", Double.toString(l.getY()));
+				state.setProperty("z", Double.toString(l.getZ()));
 			}
 		}
 		time.increment();

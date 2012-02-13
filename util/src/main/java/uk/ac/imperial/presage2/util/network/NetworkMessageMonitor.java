@@ -75,10 +75,7 @@ public class NetworkMessageMonitor implements Plugin {
 						.name());
 				parameters.put("class", e.getMessage().getClass()
 						.getSimpleName());
-				db.getAgent(e.getMessage().getFrom().getId())
-						.createRelationshipTo(
-								db.getAgent(e.getRecipient().getId()),
-								"SENT_MESSAGE", parameters);
+				// TODO reimplement this plugin
 			}
 		}
 		time.increment();
