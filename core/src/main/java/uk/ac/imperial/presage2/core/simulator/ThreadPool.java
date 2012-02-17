@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.concurrent.ExecutorService;
 
+import com.google.inject.ImplementedBy;
+
 /**
  * Wrapper for a {@link ExecutorService}. The main reason for this being that in
  * the simulation we have to enforce a certain set of tasks' completion before
@@ -30,6 +32,7 @@ import java.util.concurrent.ExecutorService;
  * @author Sam Macbeth
  * 
  */
+@ImplementedBy(Simulator.class)
 public interface ThreadPool {
 
 	public enum WaitCondition {

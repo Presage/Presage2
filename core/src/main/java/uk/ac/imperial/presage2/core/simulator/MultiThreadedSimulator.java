@@ -29,11 +29,13 @@ import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * @author Sam Macbeth
  * 
  */
+@Singleton
 public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 
 	private final Logger logger = Logger
@@ -42,6 +44,22 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 	private final int threads;
 
 	private final ExecutorServiceThreadPool threadPool;
+
+	/**
+	 * Constructor for use by Guice. Uses an injected {@link ThreadsValue}
+	 * parameter to get a {@link Threads} value to pass to
+	 * {@link #MultiThreadedSimulator(Scenario, Time, EventBus, int)}.
+	 * 
+	 * @param scenario
+	 * @param t
+	 * @param eventBus
+	 * @param threads
+	 */
+	@Inject
+	public MultiThreadedSimulator(Scenario scenario, Time t, EventBus eventBus,
+			ThreadsValue threads) {
+		this(scenario, t, eventBus, threads.value);
+	}
 
 	/**
 	 * Create a multi threaded simulator for a given {@link Scenario}.
@@ -53,12 +71,24 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 	 * @param threads
 	 *            Number of threads to use.
 	 */
-	@Inject
 	public MultiThreadedSimulator(Scenario scenario, Time t, EventBus eventBus,
-			@Threads int threads) {
+			int threads) {
 		super(scenario, t, eventBus);
 		this.threads = threads;
 		this.threadPool = new ExecutorServiceThreadPool(this.threads);
+	}
+
+	/**
+	 * Holder to allow optional injection of a {@link Threads} value, otherwise
+	 * use a default value of 4.
+	 * 
+	 * @author Sam Macbeth
+	 * 
+	 */
+	static class ThreadsValue {
+		@Inject(optional = true)
+		@Threads
+		int value = 4;
 	}
 
 	/**
@@ -190,7 +220,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 			// wait for Participants to finish
 			waitFor(WaitCondition.BEFORE_ENVIRONMENT);
 			eventBus.publish(new ParticipantsComplete(time.clone()));
-			
+
 			try {
 				submitScheduled(
 						new TimeIncrementor(this.scenario.getEnvironment()),
@@ -201,8 +231,6 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 								+ this.scenario.getEnvironment()
 								+ " on execution.", e);
 			}
-
-			
 
 			logger.info("Executing Plugins...");
 			for (Plugin pl : this.scenario.getPlugins()) {

@@ -23,12 +23,14 @@ import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.event.EventBus;
 
+import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 
 /**
  * @author Sam Macbeth
  * 
  */
+@ImplementedBy(MultiThreadedSimulator.class)
 public abstract class Simulator implements ThreadPool {
 
 	/**
