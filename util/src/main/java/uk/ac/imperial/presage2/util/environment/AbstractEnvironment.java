@@ -54,7 +54,6 @@ import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 /**
  * Abstract implementation of an environment.
@@ -222,13 +221,13 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	@Inject(optional = true)
 	protected void addParticipantEnvironmentServices(
-			@Named("participantEnvironmentServices") Set<Class<? extends EnvironmentService>> services) {
+			@ParticipantEnvironmentServices Set<Class<? extends EnvironmentService>> services) {
 		this.participantEnvironmentServices.addAll(services);
 	}
 
 	@Inject(optional = true)
 	protected void addParticipantGlobalEnvironmentServices(
-			@Named("participantGlobalEnvironmentServices") Set<Class<? extends EnvironmentService>> services) {
+			@ParticipantGlobalEnvironmentServices Set<Class<? extends EnvironmentService>> services) {
 		this.participantGlobalEnvironmentServices.addAll(services);
 	}
 

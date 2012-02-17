@@ -34,7 +34,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
-import com.google.inject.name.Names;
 
 public class AbstractEnvironmentModule extends AbstractModule {
 
@@ -265,7 +264,7 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		Multibinder<Class<? extends EnvironmentService>> participantServiceBinder = Multibinder
 				.newSetBinder(binder(),
 						new TypeLiteral<Class<? extends EnvironmentService>>() {
-						}, Names.named("participantEnvironmentServices"));
+						}, ParticipantEnvironmentServices.class);
 		for (Class<? extends EnvironmentService> service : participantEnvironmentServices) {
 			participantServiceBinder.addBinding().toInstance(service);
 		}
@@ -274,7 +273,7 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		Multibinder<Class<? extends EnvironmentService>> participantGlobalServiceBinder = Multibinder
 				.newSetBinder(binder(),
 						new TypeLiteral<Class<? extends EnvironmentService>>() {
-						}, Names.named("participantGlobalEnvironmentServices"));
+						}, ParticipantGlobalEnvironmentServices.class);
 		for (Class<? extends EnvironmentService> service : participantGlobalEnvironmentServices) {
 			participantGlobalServiceBinder.addBinding().toInstance(service);
 		}
