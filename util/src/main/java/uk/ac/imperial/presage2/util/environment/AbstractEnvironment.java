@@ -19,6 +19,7 @@
 
 package uk.ac.imperial.presage2.util.environment;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -52,6 +54,7 @@ import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 /**
  * Abstract implementation of an environment.
@@ -76,6 +79,10 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 
 	protected Set<ActionHandler> actionHandlers;
 
+	/**
+	 * Global services provided by this environment's
+	 * {@link EnvironmentServiceProvider}
+	 */
 	protected Set<EnvironmentService> globalEnvironmentServices = new HashSet<EnvironmentService>();
 
 	protected boolean deferActions;
@@ -83,6 +90,19 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	protected Queue<DeferedAction> deferedActions;
 
 	protected SharedStateStorage sharedState;
+
+	/**
+	 * {@link EnvironmentService} classes to instantiate and send to agents when
+	 * they {@link #register(EnvironmentRegistrationRequest)} with the
+	 * environment.
+	 */
+	protected Set<Class<? extends EnvironmentService>> participantEnvironmentServices = new HashSet<Class<? extends EnvironmentService>>();
+	/**
+	 * {@link EnvironmentService}s to pass to agents on registration with the
+	 * environment. Must be available via this environment's
+	 * {@link EnvironmentServiceProvider}.
+	 */
+	protected Set<Class<? extends EnvironmentService>> participantGlobalEnvironmentServices = new HashSet<Class<? extends EnvironmentService>>();
 
 	class DeferedAction {
 
@@ -100,15 +120,18 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		public void handle() {
 			try {
 				if (logger.isDebugEnabled())
-					logger.debug("Deferredly handling " + action + " from " + actor);
+					logger.debug("Deferredly handling " + action + " from "
+							+ actor);
 				Input i = handler.handle(action, actor);
 				if (i != null)
 					registeredParticipants.get(actor).enqueueInput(i);
 			} catch (ActionHandlingException e) {
-				logger.warn("Exception when handling action " + action + " for " + actor, e);
+				logger.warn("Exception when handling action " + action
+						+ " for " + actor, e);
 			} catch (RuntimeException e) {
-				logger.warn("Runtime exception thrown by handler " + handler + " with action "
-						+ action + " performed by " + actor, e);
+				logger.warn("Runtime exception thrown by handler " + handler
+						+ " with action " + action + " performed by " + actor,
+						e);
 			}
 		}
 
@@ -136,13 +159,15 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		this.sharedState = sharedState;
 		// these data structures must be synchronised as synchronous access is
 		// probable.
-		registeredParticipants = Collections.synchronizedMap(new HashMap<UUID, Participant>());
+		registeredParticipants = Collections
+				.synchronizedMap(new HashMap<UUID, Participant>());
 		// for authkeys we don't synchronize, but we must remember to do so
 		// manually for insert/delete operations
 		authkeys = new HashMap<UUID, UUID>();
 
 		// Initialise global services and add EnvironmentMembersService
-		globalEnvironmentServices.addAll(this.initialiseGlobalEnvironmentServices());
+		globalEnvironmentServices.addAll(this
+				.initialiseGlobalEnvironmentServices());
 
 		actionHandlers = initialiseActionHandlers();
 
@@ -195,6 +220,18 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		this.actionHandlers.addAll(handlers);
 	}
 
+	@Inject(optional = true)
+	protected void addParticipantEnvironmentServices(
+			@Named("participantEnvironmentServices") Set<Class<? extends EnvironmentService>> services) {
+		this.participantEnvironmentServices.addAll(services);
+	}
+
+	@Inject(optional = true)
+	protected void addParticipantGlobalEnvironmentServices(
+			@Named("participantGlobalEnvironmentServices") Set<Class<? extends EnvironmentService>> services) {
+		this.participantGlobalEnvironmentServices.addAll(services);
+	}
+
 	/**
 	 * Return a global environment service for the given class name.
 	 */
@@ -224,16 +261,20 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		try {
 			participantUUID = request.getParticipant().getID();
 		} catch (NullPointerException e) {
-			this.logger.warn("Failed to register participant, invalid request.", e);
+			this.logger.warn(
+					"Failed to register participant, invalid request.", e);
 			throw e;
 		}
 		if (participantUUID == null && request.getParticipantID() != null) {
 			participantUUID = request.getParticipantID();
 			this.logger
 					.warn("Participant.getID() returned null. Using UUID provided in request instead.");
-		} else if (participantUUID == null && request.getParticipantID() == null) {
-			NullPointerException e = new NullPointerException("Null Participant UUID");
-			this.logger.warn("Failed to register participant, invalid request.", e);
+		} else if (participantUUID == null
+				&& request.getParticipantID() == null) {
+			NullPointerException e = new NullPointerException(
+					"Null Participant UUID");
+			this.logger.warn(
+					"Failed to register participant, invalid request.", e);
 			throw e;
 		}
 		// register participant
@@ -269,8 +310,12 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		EnvironmentRegistrationResponse response = new EnvironmentRegistrationResponse(
 				authkeys.get(participantUUID), services);
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Responding to environment registration request from "
-					+ participantUUID + " with " + services.size() + " services.");
+			this.logger
+					.debug("Responding to environment registration request from "
+							+ participantUUID
+							+ " with "
+							+ services.size()
+							+ " services.");
 		}
 
 		return response;
@@ -285,8 +330,97 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 * @param request
 	 * @return
 	 */
-	abstract protected Set<EnvironmentService> generateServices(
-			EnvironmentRegistrationRequest request);
+	@SuppressWarnings("unchecked")
+	protected Set<EnvironmentService> generateServices(
+			EnvironmentRegistrationRequest request) {
+		final Set<EnvironmentService> services = new HashSet<EnvironmentService>();
+
+		// available parameters for environment service ctor
+		// Note the ordering is important as we accept the first match we
+		// find to the type. As a participant can also be a service provider
+		// we put it after our preferred service provider, the environment, so
+		// it will get precedence when matching the EnvironmentServiceProvider
+		// interface.
+		final Object[] availableParams = { this.sharedState, // EnvironmentSharedStateAccess
+				this, // EnvironmentServiceProvider
+				request.getParticipant() // Participant
+		};
+
+		// participant environment services
+		for (Class<? extends EnvironmentService> serviceClass : participantEnvironmentServices) {
+
+			// look for a valid ctor
+			Map<Constructor<? extends EnvironmentService>, Object[]> validCtors = new HashMap<Constructor<? extends EnvironmentService>, Object[]>();
+			for (Constructor<?> ctor : serviceClass.getConstructors()) {
+				Class<?>[] paramTypes = ctor.getParameterTypes();
+				if (paramTypes.length == 0) {
+					// ignore default ctor
+					continue;
+				}
+				Object[] parameters = new Object[paramTypes.length];
+				boolean validCtor = true;
+				for (int i = 0; i < paramTypes.length; i++) {
+					Class<?> clazz = paramTypes[i];
+					// attempt to locate valid parameters for this ctor
+					for (Object p : availableParams) {
+						if (clazz.isInstance(p)) {
+							parameters[i] = p;
+							break;
+						}
+					}
+					if (parameters[i] == null) {
+						// invalid ctor
+						validCtor = false;
+						break;
+					}
+				}
+				// If the ctor is valid save it along with the array of
+				// parameters to pass to it.
+				if (validCtor) {
+					validCtors.put(
+							(Constructor<? extends EnvironmentService>) ctor,
+							parameters);
+				}
+			}
+			// create an environment service from ctor
+			int ctorsCount = validCtors.size();
+			if (ctorsCount >= 1) {
+				if (ctorsCount > 1) {
+					logger.warn("Found "
+							+ ctorsCount
+							+ " ctor candidates for "
+							+ serviceClass
+							+ ". Arbitrarily choosing one, behaviour may be unpredictable!");
+				}
+				// Try ctors 'till one works
+				for (Entry<Constructor<? extends EnvironmentService>, Object[]> ctor : validCtors
+						.entrySet()) {
+					try {
+						services.add(ctor.getKey().newInstance(ctor.getValue()));
+						break;
+					} catch (Exception e) {
+						logger.warn("Unable to add service for participant: "
+								+ serviceClass.getCanonicalName()
+								+ ", exception thrown when invoking ctor", e);
+					}
+				}
+			} else {
+				logger.warn("No valid ctor candidates for " + serviceClass
+						+ ", cannot add to agent's environment services.");
+			}
+		}
+		// global environment services
+		for (Class<? extends EnvironmentService> serviceClass : participantGlobalEnvironmentServices) {
+			try {
+				services.add(this.getEnvironmentService(serviceClass));
+			} catch (UnavailableServiceException e) {
+				logger.warn("Unable to provide global environment service "
+						+ serviceClass.getCanonicalName() + " to agent.", e);
+			}
+		}
+
+		return services;
+	}
 
 	/**
 	 * <p>
@@ -297,7 +431,8 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 	 *      java.util.UUID, java.util.UUID)
 	 */
 	@Override
-	public void act(Action action, UUID actor, UUID authkey) throws ActionHandlingException {
+	public void act(Action action, UUID actor, UUID authkey)
+			throws ActionHandlingException {
 		// verify authkey
 		if (authkeys.get(actor) == null) {
 			UnregisteredParticipantException e = new UnregisteredParticipantException(
@@ -306,22 +441,24 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 			throw e;
 		}
 		if (authkeys.get(actor) != authkey) {
-			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent " + actor
-					+ " attempting to act with incorrect authkey!");
+			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "
+					+ actor + " attempting to act with incorrect authkey!");
 			this.logger.warn(e);
 			throw e;
 		}
 		if (action == null) {
-			ActionHandlingException e = new ActionHandlingException("Participant " + authkey
-					+ " attempting to perform null action");
+			ActionHandlingException e = new ActionHandlingException(
+					"Participant " + authkey
+							+ " attempting to perform null action");
 			logger.warn(e);
 			throw e;
 		}
 
 		// Action processing
 		if (actionHandlers.size() == 0) {
-			ActionHandlingException e = new ActionHandlingException(this.getClass()
-					.getCanonicalName() + " has no ActionHandlers cannot execute action request ");
+			ActionHandlingException e = new ActionHandlingException(this
+					.getClass().getCanonicalName()
+					+ " has no ActionHandlers cannot execute action request ");
 			logger.warn(e);
 			throw e;
 		}
@@ -335,10 +472,11 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 
 		if (canHandle.size() == 0) {
-			ActionHandlingException e = new ActionHandlingException(this.getClass()
-					.getCanonicalName()
+			ActionHandlingException e = new ActionHandlingException(this
+					.getClass().getCanonicalName()
 					+ " has no ActionHandlers which can handle "
-					+ action.getClass().getCanonicalName() + " - cannot execute action request");
+					+ action.getClass().getCanonicalName()
+					+ " - cannot execute action request");
 			logger.warn(e);
 			throw e;
 		}
@@ -384,11 +522,13 @@ public abstract class AbstractEnvironment implements EnvironmentConnector,
 		}
 		if (authkeys.get(participantID) == null) {
 			UnregisteredParticipantException e = new UnregisteredParticipantException(
-					"Unregistered participant " + participantID + " attempting to deregister");
+					"Unregistered participant " + participantID
+							+ " attempting to deregister");
 			this.logger.warn(e);
 			throw e;
 		} else if (authkeys.get(participantID) != authkey) {
-			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent " + participantID
+			InvalidAuthkeyException e = new InvalidAuthkeyException("Agent "
+					+ participantID
 					+ " attempting to deregister with incorrect authkey!");
 			this.logger.warn(e);
 			throw e;
