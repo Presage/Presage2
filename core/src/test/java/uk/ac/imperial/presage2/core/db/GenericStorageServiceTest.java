@@ -202,6 +202,13 @@ public abstract class GenericStorageServiceTest {
 		assertTrue(children.size() == 2);
 		assertTrue(children.contains(sim4.getID()));
 		assertTrue(children.contains(sim3.getID()));
+
+		// setting parent to null puts simulation back to root
+		sim3.setParentSimulation(null);
+		assertNull(sim3.getParentSimulation());
+		children = sim.getChildren();
+		assertTrue(children.size() == 1);
+		assertTrue(children.contains(sim4.getID()));
 	}
 
 	@Test
