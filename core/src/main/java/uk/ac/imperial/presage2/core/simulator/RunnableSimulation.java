@@ -507,7 +507,7 @@ public abstract class RunnableSimulation implements Runnable {
 			db.stop();
 			return;
 		}
-		if (!sim.getState().equalsIgnoreCase("NOT STARTED")) {
+		if (!sim.getState().equalsIgnoreCase("NOT STARTED") && !sim.getState().equalsIgnoreCase("AUTO START")) {
 			System.err.println("Simulation " + simID + " has already been started. Aborting.");
 			db.stop();
 			return;
