@@ -43,6 +43,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.cli.FormattedSimulation.Column;
+import uk.ac.imperial.presage2.core.cli.run.ExecutorManager;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
@@ -67,8 +68,8 @@ public final class Presage2CLI {
 	private static OptionGroup getCommands() {
 		OptionGroup cmdGroup = new OptionGroup();
 		for (String cmd : commands.keySet()) {
-			cmdGroup.addOption(new Option(cmd, commands.get(cmd).getAnnotation(Command.class)
-					.description()));
+			cmdGroup.addOption(new Option(cmd, commands.get(cmd)
+					.getAnnotation(Command.class).description()));
 		}
 		return cmdGroup;
 	}
@@ -173,7 +174,8 @@ public final class Presage2CLI {
 		StorageService storage = getDatabase();
 
 		// field formatting
-		Column[] fields = { Column.ID, Column.Name, Column.ClassName, Column.State, Column.SimCycle };
+		Column[] fields = { Column.ID, Column.Name, Column.ClassName,
+				Column.State, Column.SimCycle };
 
 		int[] colSizes = new int[fields.length];
 		for (int i = 0; i < fields.length; i++) {
@@ -182,10 +184,12 @@ public final class Presage2CLI {
 
 		List<FormattedSimulation> sims = new LinkedList<FormattedSimulation>();
 		for (Long id : storage.getSimulations()) {
-			FormattedSimulation sim = new FormattedSimulation(storage.getSimulationById(id));
+			FormattedSimulation sim = new FormattedSimulation(
+					storage.getSimulationById(id));
 			sims.add(sim);
 			for (int i = 0; i < fields.length; i++) {
-				colSizes[i] = Math.max(colSizes[i], sim.getField(fields[i]).length());
+				colSizes[i] = Math.max(colSizes[i], sim.getField(fields[i])
+						.length());
 			}
 		}
 
@@ -204,7 +208,8 @@ public final class Presage2CLI {
 
 		for (FormattedSimulation sim : sims) {
 			for (int i = 0; i < fields.length; i++) {
-				System.out.printf("%-" + colSizes[i] + "s	", sim.getField(fields[i]));
+				System.out.printf("%-" + colSizes[i] + "s	",
+						sim.getField(fields[i]));
 			}
 			System.out.println();
 		}
@@ -219,7 +224,8 @@ public final class Presage2CLI {
 		Options options = new Options();
 
 		options.addOption(OptionBuilder.withArgName("name").hasArg()
-				.withDescription("Name of the simulation to add.").isRequired().create("name"));
+				.withDescription("Name of the simulation to add.").isRequired()
+				.create("name"));
 		options.addOption(OptionBuilder
 				.withArgName("classname")
 				.hasArg()
@@ -227,10 +233,11 @@ public final class Presage2CLI {
 						"Name of the RunnableSimulation class to execute for this simulation.")
 				.isRequired().create("classname"));
 		options.addOption(OptionBuilder.withArgName("finishTime").hasArg()
-				.withDescription("Simulation cycle to stop execution at.").isRequired()
-				.create("finish"));
-		options.addOption(OptionBuilder.withArgName("parameter=value").hasArgs()
-				.withValueSeparator().withDescription("Parameters to supply to the simulation.")
+				.withDescription("Simulation cycle to stop execution at.")
+				.isRequired().create("finish"));
+		options.addOption(OptionBuilder.withArgName("parameter=value")
+				.hasArgs().withValueSeparator()
+				.withDescription("Parameters to supply to the simulation.")
 				.create("P"));
 		options.addOption("h", "help", false, "Show help");
 		options.addOption("enablelog", false, "Enable logging.");
@@ -261,9 +268,9 @@ public final class Presage2CLI {
 
 		StorageService storage = getDatabase();
 
-		PersistentSimulation sim = storage.createSimulation(cmd.getOptionValue("name"),
-				cmd.getOptionValue("classname"), "NOT STARTED",
-				Integer.parseInt(cmd.getOptionValue("finish")));
+		PersistentSimulation sim = storage.createSimulation(
+				cmd.getOptionValue("name"), cmd.getOptionValue("classname"),
+				"NOT STARTED", Integer.parseInt(cmd.getOptionValue("finish")));
 
 		sim.addParameter("finishTime", cmd.getOptionValue("finish"));
 		Properties params = cmd.getOptionProperties("P");
@@ -277,13 +284,15 @@ public final class Presage2CLI {
 	}
 
 	@Command(description = "Run a simulation.", name = "run")
-	static void run(String[] args) throws ClassNotFoundException, NoSuchMethodException,
-			InvocationTargetException, InstantiationException, IllegalAccessException {
+	static void run(String[] args) throws ClassNotFoundException,
+			NoSuchMethodException, InvocationTargetException,
+			InstantiationException, IllegalAccessException {
 		int threads = 4;
 
 		Options options = new Options();
-		options.addOption("t", "threads", true, "Number of threads for the simulatior (default "
-				+ threads + ").");
+		options.addOption("t", "threads", true,
+				"Number of threads for the simulatior (default " + threads
+						+ ").");
 		options.addOption("h", "help", false, "Show help");
 
 		CommandLineParser parser = new GnuParser();
@@ -292,11 +301,13 @@ public final class Presage2CLI {
 			cmd = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
-			new HelpFormatter().printHelp("presage2cli run <ID>", options, true);
+			new HelpFormatter()
+					.printHelp("presage2cli run <ID>", options, true);
 			return;
 		}
 		if (cmd.hasOption("h") || args.length < 2) {
-			new HelpFormatter().printHelp("presage2cli run <ID>", options, true);
+			new HelpFormatter()
+					.printHelp("presage2cli run <ID>", options, true);
 			return;
 		}
 		if (cmd.hasOption("t")) {
@@ -322,5 +333,51 @@ public final class Presage2CLI {
 		RunnableSimulation.runSimulationID(db, storage, simulationID, threads);
 
 		stopDatabase();
+	}
+
+	@Command(description = "Run all simulations which have not yet started", name = "runall")
+	static void runAll(String[] args) {
+		Options options = new Options();
+		options.addOption(
+				"a",
+				"all",
+				false,
+				"Run all (including NOT STARTED). By default we just run AUTO START simulations.");
+		options.addOption("h", "help", false, "Show help");
+
+		CommandLineParser parser = new GnuParser();
+		CommandLine cmd;
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			new HelpFormatter().printHelp("presage2cli run-all", options, true);
+			return;
+		}
+		if (cmd.hasOption("h") || args.length < 1) {
+			new HelpFormatter().printHelp("presage2cli run-all", options, true);
+			return;
+		}
+		boolean all = cmd.hasOption("a");
+
+		StorageService sto = getDatabase();
+
+		ExecutorManager exec = new ExecutorManager();
+		for (Long simId : sto.getSimulations()) {
+			PersistentSimulation sim = sto.getSimulationById(simId);
+			if (sim.getState().equalsIgnoreCase("AUTO START")
+					|| (all && sim.getState().equalsIgnoreCase("NOT STARTED"))) {
+				exec.addSimulation(simId);
+			}
+		}
+		stopDatabase();
+		// send 0 to stop execution.
+		exec.addSimulation(0);
+		exec.start();
+		try {
+			exec.join();
+		} catch (InterruptedException e) {
+		}
+
 	}
 }
