@@ -18,6 +18,9 @@
  */
 package uk.ac.imperial.presage2.core.cli;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -64,6 +67,7 @@ public final class Presage2CLI {
 	}
 
 	private static Map<String, Method> commands = null;
+	private static boolean shell = false;
 
 	private static OptionGroup getCommands() {
 		OptionGroup cmdGroup = new OptionGroup();
@@ -72,6 +76,16 @@ public final class Presage2CLI {
 					.getAnnotation(Command.class).description()));
 		}
 		return cmdGroup;
+	}
+
+	private static void printHelp() {
+		HelpFormatter formatter = new HelpFormatter();
+		Options cmdOpts = new Options();
+
+		cmdOpts.addOptionGroup(Presage2CLI.getCommands());
+
+		formatter.setOptPrefix("");
+		formatter.printHelp("presage2-cli <command> [OPTIONS]", cmdOpts);
 	}
 
 	/**
@@ -90,13 +104,7 @@ public final class Presage2CLI {
 
 		// first arg must be a command
 		if (args.length == 0 || !commands.containsKey(args[0])) {
-			HelpFormatter formatter = new HelpFormatter();
-			Options cmdOpts = new Options();
-
-			cmdOpts.addOptionGroup(Presage2CLI.getCommands());
-
-			formatter.setOptPrefix("");
-			formatter.printHelp("presage2-cli <command> [OPTIONS]", cmdOpts);
+			printHelp();
 			System.exit(1);
 		}
 
@@ -138,6 +146,62 @@ public final class Presage2CLI {
 
 	private static void stopDatabase() {
 		database.stop();
+		database = null;
+		storage = null;
+	}
+
+	private static void prompt() {
+		System.out.println();
+		System.out.print("> ");
+	}
+
+	@Command(name = "shell", description = "Open an interactive session")
+	static void shell(String[] args) throws IOException {
+		// prevent nested shells
+		if (shell) {
+			printHelp();
+			return;
+		}
+		shell = true;
+
+		// remember default log level.
+		Level defaultLogLevel = Logger.getRootLogger().getLevel();
+
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		String s = "";
+		prompt();
+		while ((s = in.readLine()) != null) {
+			Logger.getRootLogger().setLevel(defaultLogLevel);
+			if (s.length() == 0) {
+				prompt();
+				continue;
+			}
+			String[] command = s.split(" ");
+			if (command[0].equalsIgnoreCase("help")) {
+				printHelp();
+				prompt();
+				continue;
+			}
+			if (command[0].equalsIgnoreCase("exit")) {
+				break;
+			}
+			if (!commands.containsKey(command[0])) {
+				System.out.println("Unrecognised command: " + command[0]);
+				prompt();
+				continue;
+			}
+			// invoke command
+			try {
+				commands.get(command[0]).invoke(null, (Object) command);
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			}
+			prompt();
+		}
 	}
 
 	/**
