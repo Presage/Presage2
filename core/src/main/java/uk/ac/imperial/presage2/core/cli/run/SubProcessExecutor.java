@@ -20,6 +20,8 @@ package uk.ac.imperial.presage2.core.cli.run;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -95,6 +97,22 @@ public class SubProcessExecutor implements SimulationExecutor {
 				+ "java";
 		String classpath = System.getProperty("java.class.path");
 		String className = Presage2CLI.class.getCanonicalName();
+
+		// if the system classpath only contains classworlds.jar we must rebuild
+		// classpath from this class's classloader.
+		if (classpath.split(":").length == 1
+				&& classpath.matches(".*classworlds.jar.*")) {
+			ClassLoader sysClassLoader = this.getClass().getClassLoader();
+			URL[] urls = ((URLClassLoader) sysClassLoader).getURLs();
+			String separator = System.getProperty("path.separator", ":");
+			classpath = "";
+			for (int i = 0; i < urls.length; i++) {
+				classpath += urls[i].getFile();
+				if (i >= urls.length - 1)
+					break;
+				classpath += separator;
+			}
+		}
 
 		ProcessBuilder builder = new ProcessBuilder(javaBin, "-cp", classpath,
 				className, "run", Long.toString(simId));
