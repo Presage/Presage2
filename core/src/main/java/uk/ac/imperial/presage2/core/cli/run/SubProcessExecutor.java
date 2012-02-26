@@ -127,8 +127,7 @@ public class SubProcessExecutor implements SimulationExecutor {
 			gobbler.start();
 			running.add(process);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Error launching process", e);
 		}
 	}
 
