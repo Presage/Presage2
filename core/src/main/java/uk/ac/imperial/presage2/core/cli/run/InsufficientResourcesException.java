@@ -26,4 +26,8 @@ public class InsufficientResourcesException extends Exception {
 		super(message);
 	}
 
+	InsufficientResourcesException(Throwable arg0) {
+		super(arg0);
+	}
+
 }

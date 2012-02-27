@@ -62,7 +62,7 @@ public class ExecutorManager extends Thread {
 
 	public ExecutorManager() {
 		super();
-		executors.add(new SubProcessExecutor());
+		executors.add(new LocalSubProcessExecutor());
 		queue = new LinkedBlockingQueue<Long>();
 	}
 

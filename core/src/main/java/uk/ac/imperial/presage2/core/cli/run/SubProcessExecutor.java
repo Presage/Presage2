@@ -19,7 +19,10 @@
 package uk.ac.imperial.presage2.core.cli.run;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -31,30 +34,28 @@ import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 
-import uk.ac.imperial.presage2.core.cli.Presage2CLI;
-
-import com.google.inject.Singleton;
-
 /**
- * A {@link SimulationExecutor} which runs each simulation in separate JVM as a
- * sub process.
+ * <p>
+ * A {@link SimulationExecutor} which has a set of sub processes which each runs
+ * a simulation. This abstract class automates the management of these
+ * processes. It calls the {@link #createProcess(long)} function to get a
+ * {@link ProcessBuilder} with which to spawn the process to manage. This class
+ * can also log output from these processes to files.
+ * </p>
  * 
  * @author Sam Macbeth
  * 
  */
-@Singleton
-public class SubProcessExecutor implements SimulationExecutor {
+public abstract class SubProcessExecutor implements SimulationExecutor {
 
-	private final Logger logger = Logger.getLogger(SubProcessExecutor.class);
-	final int MAX_PROCESSES;
-	List<Process> running;
-	Timer processMonitor;
+	protected final Logger logger = Logger.getLogger(this.getClass());
+	protected final int MAX_PROCESSES;
+	protected List<Process> running;
+	protected Timer processMonitor;
+	boolean saveLogs = false;
+	String logsDir = System.getProperty("user.dir", "") + "/logs/";
 
-	public SubProcessExecutor() {
-		this(1);
-	}
-
-	SubProcessExecutor(int mAX_PROCESSES) {
+	protected SubProcessExecutor(int mAX_PROCESSES) {
 		super();
 		MAX_PROCESSES = mAX_PROCESSES;
 		this.running = Collections.synchronizedList(new ArrayList<Process>(
@@ -80,6 +81,22 @@ public class SubProcessExecutor implements SimulationExecutor {
 		}, 1000, 1000);
 	}
 
+	public boolean isSaveLogs() {
+		return saveLogs;
+	}
+
+	public void setSaveLogs(boolean saveLogs) {
+		this.saveLogs = saveLogs;
+	}
+
+	public String getLogsDir() {
+		return logsDir;
+	}
+
+	public void setLogsDir(String logsDir) {
+		this.logsDir = logsDir;
+	}
+
 	@Override
 	public synchronized void run(long simId)
 			throws InsufficientResourcesException {
@@ -89,15 +106,66 @@ public class SubProcessExecutor implements SimulationExecutor {
 					"Max number of concurrent processes, " + maxConcurrent()
 							+ " has been reached");
 
-		// set up processbuilder
-		// see
-		// http://stackoverflow.com/questions/636367/java-executing-a-java-application-in-a-separate-process/723914#723914
-		String javaHome = System.getProperty("java.home");
-		String javaBin = javaHome + File.separator + "bin" + File.separator
-				+ "java";
-		String classpath = System.getProperty("java.class.path");
-		String className = Presage2CLI.class.getCanonicalName();
+		ProcessBuilder builder = createProcess(simId);
+		builder.redirectErrorStream(true);
 
+		// start process and gobble streams
+		try {
+			logger.info("Starting simulation ID: " + simId + "");
+			Process process = builder.start();
+
+			InputStream is = process.getInputStream();
+			OutputStream os = null;
+			// optionally pipe process output to a log.
+			if (saveLogs) {
+				String logPath = logsDir + simId + ".log";
+				logger.debug("Logging to: " + logPath);
+				try {
+					// ensure log dir exists
+					File logDir = new File(logsDir);
+					if (!logDir.exists()) {
+						logDir.mkdirs();
+					}
+
+					File logFile = new File(logPath);
+					if (!logFile.exists())
+						logFile.createNewFile();
+					os = new FileOutputStream(logFile, true);
+				} catch (IOException e) {
+					logger.warn("Unable to create log file: " + logPath, e);
+					os = null;
+				}
+			}
+			StreamGobbler gobbler = os == null ? new StreamGobbler(is)
+					: new StreamGobbler(is, os);
+			gobbler.start();
+			running.add(process);
+		} catch (IOException e) {
+			logger.warn("Error launching process", e);
+		}
+	}
+
+	/**
+	 * Create a {@link ProcessBuilder} which will spawn a {@link Process} to run the given simulation.
+	 * @param simId
+	 * @return
+	 * @throws InsufficientResourcesException
+	 */
+	protected abstract ProcessBuilder createProcess(long simId)
+			throws InsufficientResourcesException;
+
+	@Override
+	public int running() {
+		return this.running.size();
+	}
+
+	@Override
+	public int maxConcurrent() {
+		return MAX_PROCESSES;
+	}
+
+	protected String getClasspath() {
+		String classpath = System.getProperty("java.class.path");
 		// if the system classpath only contains classworlds.jar we must rebuild
 		// classpath from this class's classloader.
 		if (classpath.split(":").length == 1
@@ -113,36 +181,7 @@ public class SubProcessExecutor implements SimulationExecutor {
 				classpath += separator;
 			}
 		}
-
-		ProcessBuilder builder = new ProcessBuilder(javaBin, "-cp", classpath,
-				className, "run", Long.toString(simId));
-		builder.redirectErrorStream(true);
-
-		// start process and gobble streams
-		try {
-			logger.info("Starting simulation ID: " + simId
-					+ " in a new process.");
-			Process process = builder.start();
-			StreamGobbler gobbler = new StreamGobbler(process.getInputStream());
-			gobbler.start();
-			running.add(process);
-		} catch (IOException e) {
-			logger.warn("Error launching process", e);
-		}
+		return classpath;
 	}
 
-	@Override
-	public int running() {
-		return this.running.size();
-	}
-
-	@Override
-	public int maxConcurrent() {
-		return MAX_PROCESSES;
-	}
-
-	@Override
-	public String toString() {
-		return "SubProcessExecutor @ localhost";
-	}
 }
