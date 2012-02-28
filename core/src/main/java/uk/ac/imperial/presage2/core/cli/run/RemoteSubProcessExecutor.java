@@ -68,6 +68,24 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 				":"));
 
 		logger.debug("Initialising remote server: Transferring classpath deps.");
+		// mkdir
+		try {
+			ProcessBuilder builder = new ProcessBuilder("ssh", remoteUser + "@"
+					+ remoteHost, "mkdir -p " + remoteWorkingDir);
+			logger.debug(builder.command());
+			builder.redirectErrorStream(true);
+			Process process = builder.start();
+			StreamGobbler gobbler = new StreamGobbler(process.getInputStream(),
+					System.out);
+			gobbler.start();
+			process.waitFor();
+			if (process.exitValue() != 0) {
+				throw new IOException(
+						"Could create working directory on remote server.");
+			}
+		} catch (InterruptedException e) {
+		}
+
 		// transfer dependencies
 		// reverse iteration so that classes folders at the beginning of the
 		// classpath get precedence.
@@ -83,8 +101,6 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 			try {
 				process.waitFor();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 			if (process.exitValue() != 0) {
 				throw new IOException(
