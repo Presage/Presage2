@@ -48,7 +48,7 @@
 		<repository>
 			<id>presage</id>
 			<name>Presage Repository</name>
-			<url>http://ee-sm1106.ee.ic.ac.uk:8080/nexus/content/groups/public/</url>
+			<url>http://dev.presage2.info/nexus/content/groups/public/</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
