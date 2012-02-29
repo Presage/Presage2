@@ -49,7 +49,7 @@ import org.apache.log4j.Logger;
 public abstract class SubProcessExecutor implements SimulationExecutor {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
-	protected final int MAX_PROCESSES;
+	protected int MAX_PROCESSES;
 	protected List<Process> running;
 	protected Timer processMonitor;
 	boolean saveLogs = false;
@@ -60,7 +60,8 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 		MAX_PROCESSES = mAX_PROCESSES;
 		this.running = Collections.synchronizedList(new ArrayList<Process>(
 				MAX_PROCESSES));
-		this.processMonitor = new Timer(true);
+		this.processMonitor = new Timer(this.getClass().getSimpleName()
+				+ "-monitor", true);
 		this.processMonitor.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -71,7 +72,15 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 						int val = p.exitValue();
 						logger.info("Simulation completed, returned " + val);
 						completed.add(p);
-
+						// if we got a non 0 exit code stop accepting
+						// simulations
+						// This is a fast fail solution to prevent large numbers
+						// of simulations failing due to one faulty executor or
+						// config.
+						if (val != 0) {
+							logger.warn("Receive non-zero exit code, shutting down executor as a precaution.");
+							MAX_PROCESSES = 0;
+						}
 					} catch (IllegalThreadStateException e) {
 						// process is still running.
 					}
@@ -150,7 +159,9 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 	}
 
 	/**
-	 * Create a {@link ProcessBuilder} which will spawn a {@link Process} to run the given simulation.
+	 * Create a {@link ProcessBuilder} which will spawn a {@link Process} to run
+	 * the given simulation.
+	 * 
 	 * @param simId
 	 * @return
 	 * @throws InsufficientResourcesException
