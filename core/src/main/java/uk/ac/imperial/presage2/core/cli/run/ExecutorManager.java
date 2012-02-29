@@ -61,14 +61,14 @@ public class ExecutorManager extends Thread {
 	Set<SimulationExecutor> executors = new HashSet<SimulationExecutor>();
 
 	public ExecutorManager() {
-		super();
+		super("ExecutorManager");
 		executors.add(new LocalSubProcessExecutor());
 		queue = new LinkedBlockingQueue<Long>();
 	}
 
 	@Inject
 	ExecutorManager(Set<SimulationExecutor> executors) {
-		super();
+		super("ExecutorManager");
 		this.executors.addAll(executors);
 		queue = new LinkedBlockingQueue<Long>();
 	}
@@ -79,7 +79,8 @@ public class ExecutorManager extends Thread {
 	 * @param simId
 	 */
 	public void addSimulation(long simId) {
-		queue.offer(simId);
+		if (!queue.contains(simId))
+			queue.offer(simId);
 	}
 
 	@Override
