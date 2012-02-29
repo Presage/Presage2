@@ -39,7 +39,7 @@ public class LocalSubProcessExecutor extends SubProcessExecutor implements
 		this(1);
 	}
 
-	LocalSubProcessExecutor(int mAX_PROCESSES) {
+	public LocalSubProcessExecutor(int mAX_PROCESSES) {
 		super(mAX_PROCESSES);
 	}
 
