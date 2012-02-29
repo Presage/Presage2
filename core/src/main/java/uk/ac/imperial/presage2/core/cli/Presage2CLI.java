@@ -47,6 +47,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.cli.FormattedSimulation.Column;
 import uk.ac.imperial.presage2.core.cli.run.ExecutorManager;
+import uk.ac.imperial.presage2.core.cli.run.ExecutorModule;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
@@ -426,7 +427,9 @@ public final class Presage2CLI {
 
 		StorageService sto = getDatabase();
 
-		ExecutorManager exec = new ExecutorManager();
+		ExecutorManager exec = Guice.createInjector(ExecutorModule.load())
+				.getInstance(ExecutorManager.class);
+
 		for (Long simId : sto.getSimulations()) {
 			PersistentSimulation sim = sto.getSimulationById(simId);
 			if (sim.getState().equalsIgnoreCase("AUTO START")
