@@ -304,6 +304,11 @@ public final class Presage2CLI {
 				.hasArgs().withValueSeparator()
 				.withDescription("Parameters to supply to the simulation.")
 				.create("P"));
+		options.addOption(OptionBuilder.hasArg().withLongOpt("parent")
+				.withDescription("ID of the parent simulation")
+				.withType(Long.TYPE).create('p'));
+		options.addOption(OptionBuilder.withLongOpt("group")
+				.withDescription("Add as a group").create('g'));
 		options.addOption("h", "help", false, "Show help");
 		options.addOption("enablelog", false, "Enable logging.");
 
@@ -331,16 +336,34 @@ public final class Presage2CLI {
 			return;
 		}
 
+		String initialState = "NOT STARTED";
+		if (cmd.hasOption('g')) {
+			initialState = "GROUP";
+		}
+
+		long parentId = 0;
+		if (cmd.hasOption('p')) {
+			try {
+				parentId = Long.parseLong(cmd.getOptionValue('p'));
+			} catch (NumberFormatException e) {
+				System.err.println("Parent must be an integer.");
+				return;
+			}
+		}
+
 		StorageService storage = getDatabase();
 
 		PersistentSimulation sim = storage.createSimulation(
 				cmd.getOptionValue("name"), cmd.getOptionValue("classname"),
-				"NOT STARTED", Integer.parseInt(cmd.getOptionValue("finish")));
+				initialState, Integer.parseInt(cmd.getOptionValue("finish")));
 
 		sim.addParameter("finishTime", cmd.getOptionValue("finish"));
 		Properties params = cmd.getOptionProperties("P");
 		for (Object param : params.keySet()) {
 			sim.addParameter(param.toString(), params.get(param).toString());
+		}
+		if (parentId > 0) {
+			sim.setParentSimulation(storage.getSimulationById(parentId));
 		}
 
 		System.out.println("Added simulation ID: " + sim.getID());
