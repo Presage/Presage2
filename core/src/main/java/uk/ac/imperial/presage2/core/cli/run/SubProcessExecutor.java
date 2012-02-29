@@ -81,19 +81,23 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 		}, 1000, 1000);
 	}
 
-	public boolean isSaveLogs() {
+	@Override
+	public boolean enableLogs() {
 		return saveLogs;
 	}
 
-	public void setSaveLogs(boolean saveLogs) {
+	@Override
+	public void enableLogs(boolean saveLogs) {
 		this.saveLogs = saveLogs;
 	}
 
-	public String getLogsDir() {
+	@Override
+	public String getLogsDirectory() {
 		return logsDir;
 	}
 
-	public void setLogsDir(String logsDir) {
+	@Override
+	public void setLogsDirectory(String logsDir) {
 		this.logsDir = logsDir;
 	}
 

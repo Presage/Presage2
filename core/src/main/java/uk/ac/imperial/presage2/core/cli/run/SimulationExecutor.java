@@ -53,4 +53,32 @@ public interface SimulationExecutor {
 	 */
 	public int maxConcurrent();
 
+	/**
+	 * Enable or disable saving of execution logs to file.
+	 * 
+	 * @param saveLogs
+	 */
+	public void enableLogs(boolean saveLogs);
+
+	/**
+	 * Returns whether this executor will log output to file.
+	 * 
+	 * @return
+	 */
+	public boolean enableLogs();
+
+	/**
+	 * Set directory to which execution logs will be written.
+	 * 
+	 * @param logsDir
+	 */
+	public void setLogsDirectory(String logsDir);
+
+	/**
+	 * Get directory to which execution log will be written.
+	 * 
+	 * @return
+	 */
+	public String getLogsDirectory();
+
 }
