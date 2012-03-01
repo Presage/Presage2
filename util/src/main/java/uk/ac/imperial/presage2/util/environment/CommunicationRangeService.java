@@ -59,7 +59,7 @@ public class CommunicationRangeService extends EnvironmentService {
 	/**
 	 * Create the shared state required for this service.
 	 * @param pid	{@link UUID} of the participant to create shared state for.
-	 * @param range	{@link HasCommunicationRange} provider for this participant
+	 * @param range	initial communication range value for this participant
 	 * @return	{@link ParticipantSharedState} on the type that this service uses.
 	 */
 	public static ParticipantSharedState createSharedState(UUID pid, double range) {

@@ -232,7 +232,7 @@ public class ParticipantLocationService extends LocationService {
 	 *            {@link UUID} of the participant to create sharedstate object
 	 *            for.
 	 * @param loc
-	 *            {@link HasLocation} provider for this participant.
+	 *            {@link Location} initial location for this participant.
 	 * @return {@link ParticipantSharedState} on the type that this service
 	 *         uses.
 	 */
