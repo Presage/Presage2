@@ -46,7 +46,7 @@ import com.google.inject.Injector;
  * @author Sam Macbeth
  * 
  */
-public class ScenarioBuilder implements Scenario {
+class ScenarioBuilder implements Scenario {
 
 	/**
 	 * {@link Injector} for scenario elements.
@@ -101,6 +101,9 @@ public class ScenarioBuilder implements Scenario {
 	@Override
 	public void addParticipant(Participant p) {
 		this.participants.add(p);
+		if(this.injector != null) {
+			this.injector.injectMembers(p);
+		}
 	}
 
 	@Override
