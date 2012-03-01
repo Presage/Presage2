@@ -35,7 +35,7 @@ import com.google.inject.multibindings.MapBinder;
  * @author Sam Macbeth
  * 
  */
-public class Area {
+public class Area implements HasArea {
 
 	final int x;
 	final int y;
@@ -175,6 +175,7 @@ public class Area {
 			bind(Integer.class).annotatedWith(SimArea.x.class).toInstance(x);
 			bind(Integer.class).annotatedWith(SimArea.y.class).toInstance(y);
 			bind(Integer.class).annotatedWith(SimArea.z.class).toInstance(z);
+			bind(HasArea.class).to(Area.class);
 
 			MapBinder<Edge, EdgeHandler> edgeBinder = MapBinder.newMapBinder(
 					binder(), Edge.class, EdgeHandler.class);
@@ -196,6 +197,11 @@ public class Area {
 			return this;
 		}
 
+	}
+
+	@Override
+	public Area getArea() {
+		return this;
 	}
 
 }

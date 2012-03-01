@@ -85,6 +85,17 @@ public class AbstractEnvironmentModule extends AbstractModule {
 	}
 
 	/**
+	 * <p>
+	 * Module to bind components required for an {@link AbstractEnvironment}.
+	 * </p>
+	 */
+	public AbstractEnvironmentModule() {
+		this(AbstractEnvironment.class,
+				new HashSet<Class<? extends EnvironmentService>>(),
+				new HashSet<Class<? extends ActionHandler>>());
+	}
+
+	/**
 	 * Add global environment services to be bound to the environment's service
 	 * provider.
 	 * 
@@ -243,8 +254,9 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		bind(MappedSharedState.class).in(Singleton.class);
 
 		// bind Singleton implementation to AbstractEnvironment
-		bind(AbstractEnvironment.class).to(environmentImplementation).in(
-				Singleton.class);
+		bind(AbstractEnvironment.class).in(Singleton.class);
+		if (environmentImplementation != AbstractEnvironment.class)
+			bind(AbstractEnvironment.class).to(environmentImplementation);
 
 		// global environment services
 		Multibinder<EnvironmentService> serviceBinder = Multibinder

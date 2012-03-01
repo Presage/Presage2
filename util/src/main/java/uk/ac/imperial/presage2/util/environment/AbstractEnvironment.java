@@ -56,12 +56,12 @@ import uk.ac.imperial.presage2.core.util.random.Random;
 import com.google.inject.Inject;
 
 /**
- * Abstract implementation of an environment.
+ * General implementation of an environment.
  * 
  * @author Sam Macbeth
  * 
  */
-public abstract class AbstractEnvironment implements EnvironmentConnector,
+public class AbstractEnvironment implements EnvironmentConnector,
 		EnvironmentServiceProvider, TimeDriven {
 
 	private final Logger logger = Logger.getLogger(AbstractEnvironment.class);
