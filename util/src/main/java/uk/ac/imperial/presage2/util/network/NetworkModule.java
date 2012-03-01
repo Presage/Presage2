@@ -82,6 +82,11 @@ public final class NetworkModule extends AbstractModule {
 				.withConstraints(constraints);
 	}
 
+	public static NetworkModule noNetworkModule() {
+		return new NetworkModule(DisconnectedNetworkConnector.class,
+				DisconnectedNetworkController.class);
+	}
+
 	@Override
 	protected void configure() {
 		install(new FactoryModuleBuilder().implement(NetworkConnector.class,
@@ -96,15 +101,15 @@ public final class NetworkModule extends AbstractModule {
 					.newSetBinder(binder(), EnvironmentService.class);
 			for (Class<? extends NetworkConstraint> c : constraints) {
 				constraintBinder.addBinding().to(c);
-				
-				if(c.isAnnotationPresent(ServiceDependencies.class)) {
+
+				if (c.isAnnotationPresent(ServiceDependencies.class)) {
 					for (Class<? extends EnvironmentService> dep : c
 							.getAnnotation(ServiceDependencies.class).value()) {
 						serviceBinder.addBinding().to(dep);
 					}
 				}
 			}
-			
+
 		}
 	}
 
