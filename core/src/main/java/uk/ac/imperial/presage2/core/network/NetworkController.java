@@ -25,7 +25,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
@@ -34,6 +35,7 @@ import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
+import uk.ac.imperial.presage2.core.simulator.FinalizeEvent;
 import uk.ac.imperial.presage2.core.simulator.ParticipantsComplete;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.simulator.ThreadPool;
@@ -63,8 +65,17 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected Time time;
 
-	protected Queue<Message<?>> toDeliver;
-	protected Queue<Delivery> awaitingDelivery = new LinkedList<NetworkController.Delivery>();
+	/**
+	 * Queue of messages sent by agents which require processing.
+	 */
+	protected BlockingQueue<Message<?>> toDeliver;
+	protected BlockingQueue<Delivery> awaitingDelivery = new LinkedBlockingQueue<Delivery>();
+
+	/**
+	 * Whether or not to fire {@link MessageDeliveryEvent} for every message
+	 * that is delivered.
+	 */
+	protected boolean DELIVER_MESSAGE_EVENTS_ENABLED = false;
 
 	static class Delivery {
 		NetworkAddress to;
@@ -91,11 +102,33 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected ThreadPool threadPool = null;
 
-	volatile boolean deliver = false;
-
 	protected List<MessageHandler> threads = Collections
 			.synchronizedList(new LinkedList<MessageHandler>());
-	protected int MAX_THREADS = 1;
+
+	/**
+	 * Maximum number of extra threads we will spawn to process messages with.
+	 */
+	protected int MAX_THREADS = 3;
+	/**
+	 * Maximum number of {@link Delivery}s the {@link MessageDeliverer} will
+	 * take from the queue at once.
+	 */
+	protected int DELIVERER_DRAIN_LIMIT = 2000;
+	/**
+	 * Maximum number of Messages a {@link MessageHandler} will take from the
+	 * queue at once.
+	 */
+	protected int HANDLER_DRAIN_LIMIT = 200;
+	/**
+	 * Queue size required to cause a {@link MessageHandler} to try and fork a
+	 * new thread.
+	 */
+	protected int HANDLER_FORK_THRESHOLD = 500;
+	/**
+	 * Threshold at which a {@link MessageHandler} will shut itself down if
+	 * there is at least one other handler running.
+	 */
+	protected int HANDLER_SHUTDOWN_THRESHOLD = 0;
 
 	/**
 	 * @param time
@@ -107,7 +140,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		this.time = time;
 		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
-		this.toDeliver = new LinkedList<Message<?>>();
+		this.toDeliver = new LinkedBlockingQueue<Message<?>>(10000);
 		s.addTimeDriven(this);
 	}
 
@@ -120,7 +153,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	@Inject
 	public void setThreadPool(ThreadPool pool) {
 		threadPool = pool;
-		this.MAX_THREADS = threadPool.getThreadCount();
+		spawnMessageHandler();
 	}
 
 	/**
@@ -132,105 +165,136 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			this.logger.debug("Delivering messages for time "
 					+ this.time.toString());
 		}
-		this.deliver = false;
-
-		if (threadPool == null || MAX_THREADS == 1) {
-			deliver = true;
-			new MessageHandler().run();
-		} else {
+		if (threads.size() == 0) {
 			spawnMessageHandler();
 		}
-		synchronized (time) {
-			time.increment();
-			time.notify();
+		// if there is no threadpool we must join the messagedeliverer to ensure
+		// the timestep waits for us.
+		if (threadPool == null) {
+			Thread t = new Thread(new MessageDeliverer(), "MessageDeliverer");
+			t.start();
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+			}
 		}
+		time.increment();
 	}
 
 	private synchronized void spawnMessageHandler() {
 		if (this.threads.size() < MAX_THREADS) {
 			MessageHandler m = new MessageHandler();
 			this.threads.add(m);
-			threadPool.submitScheduled(m, WaitCondition.END_OF_TIME_CYCLE);
+			new Thread(m, "MessageHandler-" + this.threads.indexOf(m)).start();
+			logger.info("Spawning message handler. Total Handlers: "
+					+ threads.size());
 		}
 	}
 
+	/**
+	 * Delivers messages in the awaiting delivery queue. Exits when the queue is
+	 * empty.
+	 * 
+	 * @author Sam Macbeth
+	 * 
+	 */
+	class MessageDeliverer implements Runnable {
+
+		@Override
+		public void run() {
+			logger.info("MessageDeliverer started");
+			while (true) {
+				// retrieve a set of up to 100 deliveries.
+				List<Delivery> deliveries = new LinkedList<Delivery>();
+				awaitingDelivery.drainTo(deliveries, DELIVERER_DRAIN_LIMIT);
+				if (deliveries.size() == 0) {
+					if (toDeliver.isEmpty())
+						break;
+					else
+						continue;
+				}
+				logger.debug("MessageDeliverer processing " + deliveries.size()
+						+ " message batch");
+				// process deliveries.
+				for (Delivery d : deliveries) {
+					if (devices.containsKey(d.to))
+						devices.get(d.to).deliverMessage(d.msg);
+				}
+			}
+			logger.info("MessageDeliverer done: " + awaitingDelivery.size()
+					+ " awaiting delivery, " + toDeliver.size()
+					+ " to deliver.");
+		}
+
+	}
+
+	/**
+	 * <p>
+	 * Processes messages delivered by agents. Runs until it takes a
+	 * {@link ShutdownMessage} message off the queue. We also dynamically
+	 * allocate threads as the queue expands, up to a maximum of
+	 * <code>MAX_THREADS</code>.
+	 * </p>
+	 * 
+	 * @author Sam Macbeth
+	 * 
+	 */
 	class MessageHandler implements Runnable {
 
 		@Override
 		public void run() {
+			logger.info("Message Handler spawned");
 			while (true) {
-				// if we've been told to shutdown deliver messages too.
-				if (deliver) {
-					while (true) {
-						List<Delivery> deliveries = new LinkedList<Delivery>();
-						synchronized (awaitingDelivery) {
-							for (int i = 0; i < 20; i++) {
-								Delivery d = awaitingDelivery.poll();
-								if (d == null)
-									break;
-								deliveries.add(d);
-							}
-							if (deliveries.size() == 0) {
-								break;
-							}
-						}
-						for (Delivery d : deliveries) {
-							if (logger.isTraceEnabled()) {
-								logger.trace("Delivering " + d.msg + " to "
-										+ d.to);
-							}
-							if (devices.containsKey(d.to))
-								devices.get(d.to).deliverMessage(d.msg);
-						}
-					}
-				}
-
-				// process toDeliver queue
 				List<Message<?>> messages = new LinkedList<Message<?>>();
-				boolean spawn = false;
-				synchronized (toDeliver) {
-					for (int i = 0; i < 20; i++) {
-						Message<?> m = toDeliver.poll();
-						if (m == null)
-							break;
-						messages.add(m);
-					}
-					if (messages.size() == 0) {
-						if (deliver) {
-							break;
-						}
-						try {
-							if (logger.isTraceEnabled()) {
-								logger.trace("No messages to deliver, waiting for more.");
-							}
-							toDeliver.wait();
-						} catch (InterruptedException e) {
-						}
-						continue;
-					} else if (threads.size() < MAX_THREADS
-							&& toDeliver.size() > 20) {
-						spawn = true;
-					}
+				// Get an element from the queue, or block 'till one is there
+				Message<?> message;
+				try {
+					message = toDeliver.take();
+				} catch (InterruptedException e1) {
+					continue;
 				}
-				if (spawn)
-					spawnMessageHandler();
+				// check for shutdown signal
+				if (message instanceof ShutdownMessage)
+					break;
 
+				messages.add(message);
+				// grab a few extra for good measure.
+				toDeliver.drainTo(messages, HANDLER_DRAIN_LIMIT);
+
+				int queueSize = toDeliver.size();
+				logger.debug("MessageHandler processing " + messages.size()
+						+ " message batch, " + queueSize + " in the queue.");
+
+				// dynamic spawning
+				if (queueSize > HANDLER_FORK_THRESHOLD) {
+					spawnMessageHandler();
+				}
+
+				// process messages
 				for (Message<?> m : messages) {
 					try {
-						if (logger.isTraceEnabled()) {
-							logger.trace("Handing message " + m);
-						}
 						handleMessage(m);
 					} catch (NetworkException e) {
 						logger.warn(e.getMessage(), e);
 					}
 				}
+
+				// shutdown thread if there is no more demand.
+				if (queueSize <= HANDLER_SHUTDOWN_THRESHOLD
+						&& threads.size() >= 2) {
+					break;
+				}
 			}
-			// remove self before shutdown
-			if (logger.isDebugEnabled()) {
-				logger.debug("Thread shutting down.");
-			}
+			logger.info("Message Handler shutting down.");
 			threads.remove(this);
+		}
+
+	}
+
+	class ShutdownMessage extends Message<Object> {
+
+		public ShutdownMessage() {
+			super(null, null, time);
 		}
 
 	}
@@ -248,10 +312,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 */
 	@Override
 	public void deliverMessage(Message<?> m) {
-		synchronized (this.toDeliver) {
-			this.toDeliver.add(m);
-			this.toDeliver.notifyAll();
-		}
+		this.toDeliver.offer(m);
 	}
 
 	protected void handleMessage(Message<?> m) {
@@ -364,39 +425,31 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	 * @param m
 	 */
 	protected void deliverMessageTo(NetworkAddress to, Message<?> m) {
-		if (this.eventBus != null) {
+		if (this.eventBus != null && DELIVER_MESSAGE_EVENTS_ENABLED) {
 			this.eventBus
 					.publish(new MessageDeliveryEvent(time.clone(), m, to));
 		}
-		synchronized (this.awaitingDelivery) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("Adding message for delivery" + m + " to " + to);
-			}
-			this.awaitingDelivery.add(new Delivery(to, m));
-			this.awaitingDelivery.notifyAll();
-		}
+		this.awaitingDelivery.offer(new Delivery(to, m));
 		// this.devices.get(to).deliverMessage(m);
 	}
 
 	@EventListener
 	public void onParticipantsComplete(ParticipantsComplete e) {
-		// make sure incrementTime is executed first
-		synchronized (time) {
-			while (e.getTime().equals(time)) {
-				try {
-					time.wait();
-				} catch (InterruptedException e1) {
-				}
-			}
-		}
-
 		// tell MessageHandler threads to shutdown
 		if (logger.isDebugEnabled()) {
 			logger.debug("Received end of time cycle event, telling threads to deliver messages");
 		}
-		synchronized (this.toDeliver) {
-			deliver = true;
-			this.toDeliver.notifyAll();
+		if (threadPool != null) {
+			this.threadPool.submitScheduled(new MessageDeliverer(),
+					WaitCondition.END_OF_TIME_CYCLE);
+		}
+	}
+
+	@EventListener
+	public void onFinalize(FinalizeEvent e) {
+		// send shutdown to all MessageHandlers
+		for (int i = 0; i < threads.size(); i++) {
+			toDeliver.offer(new ShutdownMessage());
 		}
 	}
 

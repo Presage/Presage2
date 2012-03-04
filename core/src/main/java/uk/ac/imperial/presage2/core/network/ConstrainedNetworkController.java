@@ -96,7 +96,7 @@ public class ConstrainedNetworkController extends NetworkController {
 				logger.debug("Delivery of message " + m + " to " + to
 						+ " was blocked by a constraint.");
 			}
-			if (this.eventBus != null) {
+			if (this.eventBus != null && DELIVER_MESSAGE_EVENTS_ENABLED) {
 				this.eventBus.publish(new MessageBlockedEvent(time, m, to));
 			}
 		} else {
