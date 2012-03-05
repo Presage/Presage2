@@ -19,6 +19,7 @@
 
 package uk.ac.imperial.presage2.core.network;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +36,6 @@ import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.simulator.FinalizeEvent;
 import uk.ac.imperial.presage2.core.simulator.ParticipantsComplete;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.simulator.ThreadPool;
@@ -103,32 +103,30 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	protected ThreadPool threadPool = null;
 
 	protected List<MessageHandler> threads = Collections
-			.synchronizedList(new LinkedList<MessageHandler>());
+			.synchronizedList(new ArrayList<MessageHandler>());
+
+	protected transient boolean allowDelivery = false;
 
 	/**
 	 * Maximum number of extra threads we will spawn to process messages with.
+	 * Defaults to the same size as the threadpool.
 	 */
-	protected int MAX_THREADS = 3;
-	/**
-	 * Maximum number of {@link Delivery}s the {@link MessageDeliverer} will
-	 * take from the queue at once.
-	 */
-	protected int DELIVERER_DRAIN_LIMIT = 2000;
+	protected int MAX_THREADS = 4;
 	/**
 	 * Maximum number of Messages a {@link MessageHandler} will take from the
 	 * queue at once.
 	 */
-	protected int HANDLER_DRAIN_LIMIT = 200;
+	protected int HANDLER_DRAIN_LIMIT = 100;
 	/**
 	 * Queue size required to cause a {@link MessageHandler} to try and fork a
 	 * new thread.
 	 */
-	protected int HANDLER_FORK_THRESHOLD = 500;
+	protected int HANDLER_FORK_THRESHOLD = 250;
 	/**
-	 * Threshold at which a {@link MessageHandler} will shut itself down if
-	 * there is at least one other handler running.
+	 * Maximum capacity of the toDeliver queue. Using 0 gives a maximum sized
+	 * queue.
 	 */
-	protected int HANDLER_SHUTDOWN_THRESHOLD = 0;
+	protected int TODELIVER_CAPACITY = 0;
 
 	/**
 	 * @param time
@@ -140,7 +138,8 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		this.time = time;
 		this.environment = environment;
 		this.devices = new HashMap<NetworkAddress, NetworkChannel>();
-		this.toDeliver = new LinkedBlockingQueue<Message<?>>(10000);
+		this.toDeliver = TODELIVER_CAPACITY > 0 ? new LinkedBlockingQueue<Message<?>>(
+				TODELIVER_CAPACITY) : new LinkedBlockingQueue<Message<?>>();
 		s.addTimeDriven(this);
 	}
 
@@ -153,7 +152,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	@Inject
 	public void setThreadPool(ThreadPool pool) {
 		threadPool = pool;
-		spawnMessageHandler();
+		MAX_THREADS = threadPool.getThreadCount();
 	}
 
 	/**
@@ -165,75 +164,33 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			this.logger.debug("Delivering messages for time "
 					+ this.time.toString());
 		}
-		if (threads.size() == 0) {
-			spawnMessageHandler();
-		}
 		// if there is no threadpool we must join the messagedeliverer to ensure
 		// the timestep waits for us.
 		if (threadPool == null) {
-			Thread t = new Thread(new MessageDeliverer(), "MessageDeliverer");
-			t.start();
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-			}
+			allowDelivery = true;
 		}
+		spawnMessageHandler();
+
 		time.increment();
 	}
 
 	private synchronized void spawnMessageHandler() {
-		if (this.threads.size() < MAX_THREADS) {
+		if (this.threadPool == null) {
+			new MessageHandler().run();
+		} else if (this.threads.size() < MAX_THREADS) {
 			MessageHandler m = new MessageHandler();
 			this.threads.add(m);
-			new Thread(m, "MessageHandler-" + this.threads.indexOf(m)).start();
+			this.threadPool.submitScheduled(m, WaitCondition.END_OF_TIME_CYCLE);
 			logger.info("Spawning message handler. Total Handlers: "
 					+ threads.size());
 		}
 	}
 
 	/**
-	 * Delivers messages in the awaiting delivery queue. Exits when the queue is
-	 * empty.
-	 * 
-	 * @author Sam Macbeth
-	 * 
-	 */
-	class MessageDeliverer implements Runnable {
-
-		@Override
-		public void run() {
-			logger.info("MessageDeliverer started");
-			while (true) {
-				// retrieve a set of up to 100 deliveries.
-				List<Delivery> deliveries = new LinkedList<Delivery>();
-				awaitingDelivery.drainTo(deliveries, DELIVERER_DRAIN_LIMIT);
-				if (deliveries.size() == 0) {
-					if (toDeliver.isEmpty())
-						break;
-					else
-						continue;
-				}
-				logger.debug("MessageDeliverer processing " + deliveries.size()
-						+ " message batch");
-				// process deliveries.
-				for (Delivery d : deliveries) {
-					if (devices.containsKey(d.to))
-						devices.get(d.to).deliverMessage(d.msg);
-				}
-			}
-			logger.info("MessageDeliverer done: " + awaitingDelivery.size()
-					+ " awaiting delivery, " + toDeliver.size()
-					+ " to deliver.");
-		}
-
-	}
-
-	/**
 	 * <p>
-	 * Processes messages delivered by agents. Runs until it takes a
-	 * {@link ShutdownMessage} message off the queue. We also dynamically
-	 * allocate threads as the queue expands, up to a maximum of
-	 * <code>MAX_THREADS</code>.
+	 * Processes messages delivered by agents. Runs until all messages for the
+	 * time step are delivered. We also dynamically allocate threads as the
+	 * queue expands, up to a maximum of <code>MAX_THREADS</code>.
 	 * </p>
 	 * 
 	 * @author Sam Macbeth
@@ -243,32 +200,20 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 		@Override
 		public void run() {
-			logger.info("Message Handler spawned");
+			logger.debug("Message Handler started.");
 			while (true) {
+				// deliver messages if allowed
+				if (allowDelivery) {
+					Delivery d;
+					while ((d = awaitingDelivery.poll()) != null) {
+						if (devices.containsKey(d.to))
+							devices.get(d.to).deliverMessage(d.msg);
+					}
+				}
+
+				// take some messages to process
 				List<Message<?>> messages = new LinkedList<Message<?>>();
-				// Get an element from the queue, or block 'till one is there
-				Message<?> message;
-				try {
-					message = toDeliver.take();
-				} catch (InterruptedException e1) {
-					continue;
-				}
-				// check for shutdown signal
-				if (message instanceof ShutdownMessage)
-					break;
-
-				messages.add(message);
-				// grab a few extra for good measure.
 				toDeliver.drainTo(messages, HANDLER_DRAIN_LIMIT);
-
-				int queueSize = toDeliver.size();
-				logger.debug("MessageHandler processing " + messages.size()
-						+ " message batch, " + queueSize + " in the queue.");
-
-				// dynamic spawning
-				if (queueSize > HANDLER_FORK_THRESHOLD) {
-					spawnMessageHandler();
-				}
 
 				// process messages
 				for (Message<?> m : messages) {
@@ -279,24 +224,30 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 					}
 				}
 
-				// shutdown thread if there is no more demand.
-				if (queueSize <= HANDLER_SHUTDOWN_THRESHOLD
-						&& threads.size() >= 2) {
-					break;
+				int queueSize = toDeliver.size();
+
+				// fork new thread if queue is large
+				if (queueSize > HANDLER_FORK_THRESHOLD) {
+					spawnMessageHandler();
 				}
+
+				// break when everything has been done.
+				if (allowDelivery && queueSize == 0
+						&& awaitingDelivery.size() == 0)
+					break;
 			}
-			logger.info("Message Handler shutting down.");
+			logger.debug("Message Handler shutting down.");
 			threads.remove(this);
+			if (threads.size() == 0)
+				allowDelivery = false;
 		}
 
 	}
 
 	class ShutdownMessage extends Message<Object> {
-
 		public ShutdownMessage() {
 			super(null, null, time);
 		}
-
 	}
 
 	/**
@@ -440,16 +391,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 			logger.debug("Received end of time cycle event, telling threads to deliver messages");
 		}
 		if (threadPool != null) {
-			this.threadPool.submitScheduled(new MessageDeliverer(),
-					WaitCondition.END_OF_TIME_CYCLE);
-		}
-	}
-
-	@EventListener
-	public void onFinalize(FinalizeEvent e) {
-		// send shutdown to all MessageHandlers
-		for (int i = 0; i < threads.size(); i++) {
-			toDeliver.offer(new ShutdownMessage());
+			allowDelivery = true;
 		}
 	}
 
