@@ -55,9 +55,61 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 	boolean saveLogs = false;
 	String logsDir = System.getProperty("user.dir", "") + "/logs/";
 
-	protected SubProcessExecutor(int mAX_PROCESSES) {
+	protected final String xms;
+	protected final String xmx;
+	protected final int gcThreads;
+	protected final String[] customArgs;
+
+	/**
+	 * Create SubProcessExecutor which can execute at most
+	 * <code>max_processes</code> processes in parallel. The processes will use
+	 * default vm arguments.
+	 * 
+	 * @param max_processes
+	 *            max concurrent processes
+	 */
+	protected SubProcessExecutor(int max_processes) {
+		this(max_processes, "", "", 4, new String[] {});
+	}
+
+	/**
+	 * Create SubProcessExecutor with the given properties:
+	 * 
+	 * @param max_processes
+	 *            max concurrent processes
+	 * @param xms
+	 *            -Xms value for JVM
+	 * @param xmx
+	 *            -Xmx value for JVM
+	 * @param gcThreads
+	 *            Number of threads to use for parallel GC.
+	 */
+	protected SubProcessExecutor(int max_processes, String xms, String xmx,
+			int gcThreads) {
+		this(max_processes, xms, xmx, gcThreads, new String[] {});
+	}
+
+	/**
+	 * Create SubProcessExecutor with a custom array of properties passed to
+	 * java.
+	 * 
+	 * @param max_processes
+	 *            max concurrent processes
+	 * @param customArgs
+	 *            array of args to pass to java executable on the command line.
+	 */
+	protected SubProcessExecutor(int max_processes, String... customArgs) {
+		this(max_processes, "", "", 4, customArgs);
+	}
+
+	private SubProcessExecutor(int max_processes, String xms, String xmx,
+			int gcThreads, String[] customArgs) {
 		super();
-		MAX_PROCESSES = mAX_PROCESSES;
+		MAX_PROCESSES = max_processes;
+		this.xms = xms;
+		this.xmx = xmx;
+		this.gcThreads = gcThreads;
+		this.customArgs = customArgs;
 		this.running = Collections.synchronizedList(new ArrayList<Process>(
 				MAX_PROCESSES));
 		this.processMonitor = new Timer(this.getClass().getSimpleName()
@@ -197,6 +249,29 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 			}
 		}
 		return classpath;
+	}
+
+	/**
+	 * Get the list of arguments which should be passed to the java executable
+	 * for the vm. These arguments come before the program args.
+	 * 
+	 * @return
+	 */
+	protected List<String> getJvmArgs() {
+		List<String> args = new LinkedList<String>();
+		if (customArgs.length > 0) {
+			// if custom args have been specified use them instead of defaults
+			Collections.addAll(args, customArgs);
+		} else {
+			// defaults: use parallel gc & specify xms/xmx
+			if (!xms.isEmpty())
+				args.add("-Xms" + xms);
+			if (!xmx.isEmpty())
+				args.add("-Xmx" + xmx);
+			args.add("-XX:+UseParallelGC");
+			args.add("-XX:ParallelGCThreads=" + gcThreads);
+		}
+		return args;
 	}
 
 }

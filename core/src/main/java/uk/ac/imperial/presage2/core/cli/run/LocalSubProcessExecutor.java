@@ -19,6 +19,8 @@
 package uk.ac.imperial.presage2.core.cli.run;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 import uk.ac.imperial.presage2.core.cli.Presage2CLI;
 
@@ -43,6 +45,15 @@ public class LocalSubProcessExecutor extends SubProcessExecutor implements
 		super(mAX_PROCESSES);
 	}
 
+	public LocalSubProcessExecutor(int max_processes, String xms, String xmx,
+			int gcThreads) {
+		super(max_processes, xms, xmx, gcThreads);
+	}
+
+	public LocalSubProcessExecutor(int max_processes, String... customArgs) {
+		super(max_processes, customArgs);
+	}
+
 	@Override
 	protected ProcessBuilder createProcess(long simId)
 			throws InsufficientResourcesException {
@@ -55,9 +66,21 @@ public class LocalSubProcessExecutor extends SubProcessExecutor implements
 		String classpath = getClasspath();
 		String className = Presage2CLI.class.getCanonicalName();
 
-		return new ProcessBuilder(javaBin, "-cp", classpath, className, "run",
-				Long.toString(simId));
+		// build program args
+		List<String> args = new LinkedList<String>();
+		args.add(javaBin);
 
+		// jvm args
+		args.addAll(getJvmArgs());
+
+		// classpath and program args
+		args.add("-cp");
+		args.add(classpath);
+		args.add(className);
+		args.add("run");
+		args.add(Long.toString(simId));
+
+		return new ProcessBuilder(args);
 	}
 
 	@Override

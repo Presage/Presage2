@@ -19,6 +19,8 @@
 package uk.ac.imperial.presage2.core.cli.run;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import uk.ac.imperial.presage2.core.cli.Presage2CLI;
 
@@ -57,6 +59,23 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 		this.remoteUser = remoteUser;
 		this.remoteHost = remoteHost;
 		this.remoteWorkingDir = remoteWorkingDir;
+	}
+
+	public RemoteSubProcessExecutor(int max_processes, String remoteHost,
+			String remoteWorkingDir, String remoteUser, String xms, String xmx,
+			int gcThreads) {
+		super(max_processes, xms, xmx, gcThreads);
+		this.remoteHost = remoteHost;
+		this.remoteWorkingDir = remoteWorkingDir;
+		this.remoteUser = remoteUser;
+	}
+
+	public RemoteSubProcessExecutor(int max_processes, String remoteHost,
+			String remoteWorkingDir, String remoteUser, String... customArgs) {
+		super(max_processes, customArgs);
+		this.remoteHost = remoteHost;
+		this.remoteWorkingDir = remoteWorkingDir;
+		this.remoteUser = remoteUser;
 	}
 
 	protected void initialise() throws IOException {
@@ -108,7 +127,7 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 			}
 		}
 		remoteClasspath = remoteWorkingDir + "/deps/classes/:"
-				+ remoteWorkingDir + "/deps/*";
+				+ remoteWorkingDir + "/deps/*:" + remoteWorkingDir + "/deps/";
 		initialised = true;
 	}
 
@@ -135,11 +154,25 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 		}
 		// we assume java is on PATH
 		String className = Presage2CLI.class.getCanonicalName();
-		String command = "java -cp \"" + remoteClasspath + "\" " + className
-				+ " run " + simId;
-		ProcessBuilder builder = new ProcessBuilder("ssh", remoteUser + "@"
-				+ remoteHost, "" + command + "");
+
+		// build program args
+		List<String> args = new LinkedList<String>();
+		args.add("ssh");
+		args.add(remoteUser + "@" + remoteHost);
+
+		args.add("java");
+		// jvm args
+		args.addAll(getJvmArgs());
+		// classpath and program args
+		args.add("-cp");
+		args.add(remoteClasspath);
+		args.add(className);
+		args.add("run");
+		args.add(Long.toString(simId));
+
+		ProcessBuilder builder = new ProcessBuilder(args);
 		logger.debug(builder.command());
+
 		return builder;
 	}
 
