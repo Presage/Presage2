@@ -177,6 +177,7 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 		// start process and gobble streams
 		try {
 			logger.info("Starting simulation ID: " + simId + "");
+			logger.debug("Process args: "+ builder.command());
 			Process process = builder.start();
 
 			InputStream is = process.getInputStream();
@@ -236,7 +237,7 @@ public abstract class SubProcessExecutor implements SimulationExecutor {
 		// if the system classpath only contains classworlds.jar we must rebuild
 		// classpath from this class's classloader.
 		if (classpath.split(":").length == 1
-				&& classpath.matches(".*classworlds.jar.*")) {
+				&& classpath.matches(".*classworlds.*")) {
 			ClassLoader sysClassLoader = this.getClass().getClassLoader();
 			URL[] urls = ((URLClassLoader) sysClassLoader).getURLs();
 			String separator = System.getProperty("path.separator", ":");
