@@ -123,7 +123,7 @@ public class Area implements HasArea {
 			m = getHandler(Edge.Y_MAX).getValidMove(loc, m);
 			target = new Location(loc.add(m));
 		}
-		if (target.getZ() > y) {
+		if (target.getZ() > z) {
 			m = getHandler(Edge.Z_MAX).getValidMove(loc, m);
 			target = new Location(loc.add(m));
 		}

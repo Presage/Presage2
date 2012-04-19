@@ -66,7 +66,7 @@ public class AreaService extends EnvironmentService {
 		this.area = area;
 		this.xSize = Math.max(this.area.getArea().x, 1);
 		this.ySize = Math.max(this.area.getArea().y, 1);
-		this.zSize = Math.max(this.area.getArea().z, 1);
+		this.zSize = Math.max(this.area.getArea().z, 0);
 	}
 
 	/**
@@ -85,7 +85,8 @@ public class AreaService extends EnvironmentService {
 
 		try {
 			@SuppressWarnings("unchecked")
-			Set<UUID> cell = (HashSet<UUID>) sharedState.getGlobal(cellKey(x, y, z));
+			Set<UUID> cell = (HashSet<UUID>) sharedState.getGlobal(cellKey(x,
+					y, z));
 			if (cell == null)
 				cell = new HashSet<UUID>();
 			cell = Collections.unmodifiableSet(cell);
@@ -159,7 +160,8 @@ public class AreaService extends EnvironmentService {
 	}
 
 	private boolean validCell(int x, int y, int z) {
-		return x >= 0 && x < xSize && y >= 0 && y < ySize && z >= 0 && z < zSize;
+		return x >= 0 && x <= xSize && y >= 0 && y <= ySize && z >= 0
+				&& z <= zSize;
 	}
 
 	private void cellAction() {
