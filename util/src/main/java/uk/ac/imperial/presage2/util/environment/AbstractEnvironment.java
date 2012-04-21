@@ -179,7 +179,7 @@ public class AbstractEnvironment implements EnvironmentConnector,
 		this.deferActions = defer;
 	}
 
-	@Inject
+	@Inject(optional = true)
 	public void registerTimeDriven(Scenario s) {
 		s.addEnvironment(this);
 	}
