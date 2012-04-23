@@ -19,6 +19,7 @@
 package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.presage2.core.Time;
@@ -29,6 +30,7 @@ import uk.ac.imperial.presage2.core.event.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.name.Names;
 
 /**
  * A {@link RunnableSimulation} for simulations which we define with a set of
@@ -51,6 +53,37 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 	public InjectedSimulation(Set<AbstractModule> modules) {
 		super();
 		this.modules.addAll(modules);
+		this.modules.add(new AbstractModule() {
+			@Override
+			protected void configure() {
+				for (Map.Entry<String, Class<?>> param : getParameters()
+						.entrySet()) {
+					Class<?> type = param.getValue();
+					String value = getParameter(param.getKey());
+					if (type == String.class) {
+						bind(String.class).annotatedWith(
+								Names.named("params." + param.getKey()))
+								.toInstance(value);
+					} else if (type == Integer.class || type == Integer.TYPE) {
+						Integer intValue = Integer.parseInt(value);
+						bind(Integer.TYPE).annotatedWith(
+								Names.named("params." + param.getKey()))
+								.toInstance(intValue);
+						bind(Integer.class).annotatedWith(
+								Names.named("params." + param.getKey()))
+								.toInstance(intValue);
+					} else if (type == Double.class || type == Double.TYPE) {
+						Double doubleValue = Double.parseDouble(value);
+						bind(Double.TYPE).annotatedWith(
+								Names.named("params." + param.getKey()))
+								.toInstance(doubleValue);
+						bind(Double.class).annotatedWith(
+								Names.named("params." + param.getKey()))
+								.toInstance(doubleValue);
+					}
+				}
+			}
+		});
 	}
 
 	public InjectedSimulation() {
