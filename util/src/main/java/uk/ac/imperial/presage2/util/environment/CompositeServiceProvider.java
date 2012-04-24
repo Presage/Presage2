@@ -38,7 +38,7 @@ public class CompositeServiceProvider implements EnvironmentServiceProvider {
 		for (EnvironmentServiceProvider provider : delegateProviders) {
 			try {
 				return provider.getEnvironmentService(type);
-			} catch (Exception e) {
+			} catch (UnavailableServiceException e) {
 				continue;
 			}
 		}
