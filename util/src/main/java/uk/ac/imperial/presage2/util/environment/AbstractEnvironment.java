@@ -341,7 +341,12 @@ public class AbstractEnvironment implements EnvironmentConnector,
 		// it will get precedence when matching the EnvironmentServiceProvider
 		// interface.
 		final Object[] availableParams = { this.sharedState, // EnvironmentSharedStateAccess
-				this, // EnvironmentServiceProvider
+				(request.getParticipant() instanceof EnvironmentServiceProvider ? new CompositeServiceProvider(
+						this,
+						(EnvironmentServiceProvider) request.getParticipant())
+						: this), // EnvironmentServiceProvider (include
+									// participant as secondary provider if it
+									// implements EnvironmentServiceProvider)
 				request.getParticipant() // Participant
 		};
 
