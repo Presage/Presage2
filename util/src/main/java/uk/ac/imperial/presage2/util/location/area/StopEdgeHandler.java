@@ -95,8 +95,8 @@ public class StopEdgeHandler implements EdgeHandler {
 
 		double lamba = (edge - point) / direction;
 
-		if (lamba <= 0)
-			throw new RuntimeException("lamba <= 0!");
+		if (lamba < 0)
+			throw new RuntimeException("lamba < 0!");
 
 		return new Move(m.scalarMultiply(lamba));
 	}

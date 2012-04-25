@@ -74,8 +74,8 @@ public class Area implements HasArea {
 	 *         {@link Area} object, false otherwise.
 	 */
 	public boolean contains(Location l) {
-		return l.getX() >= 0 && l.getX() <= x && l.getY() >= 0 && l.getY() <= y
-				&& l.getZ() >= 0 && l.getZ() <= z;
+		return l.getX() >= 0 && l.getX() < x && l.getY() >= 0 && l.getY() < y
+				&& l.getZ() >= 0 && l.getZ() < z;
 	}
 
 	/**
@@ -115,15 +115,15 @@ public class Area implements HasArea {
 			m = getHandler(Edge.Z_MIN).getValidMove(loc, m);
 			target = new Location(loc.add(m));
 		}
-		if (target.getX() > x) {
+		if (target.getX() >= x) {
 			m = getHandler(Edge.X_MAX).getValidMove(loc, m);
 			target = new Location(loc.add(m));
 		}
-		if (target.getY() > y) {
+		if (target.getY() >= y) {
 			m = getHandler(Edge.Y_MAX).getValidMove(loc, m);
 			target = new Location(loc.add(m));
 		}
-		if (target.getZ() > z) {
+		if (target.getZ() >= z) {
 			m = getHandler(Edge.Z_MAX).getValidMove(loc, m);
 			target = new Location(loc.add(m));
 		}
