@@ -66,7 +66,7 @@ public class AreaService extends EnvironmentService {
 		this.area = area;
 		this.xSize = Math.max(this.area.getArea().x, 1);
 		this.ySize = Math.max(this.area.getArea().y, 1);
-		this.zSize = Math.max(this.area.getArea().z, 0);
+		this.zSize = Math.max(this.area.getArea().z, 1);
 	}
 
 	/**

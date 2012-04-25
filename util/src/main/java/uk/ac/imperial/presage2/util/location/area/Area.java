@@ -166,7 +166,7 @@ public class Area implements HasArea {
 		 *         {@link Area2D} and it's x & y values to the provided x and y.
 		 */
 		public static Bind area2D(final int x, final int y) {
-			return new Bind(x, y, 0);
+			return new Bind(x, y, 1);
 		}
 
 		@Override
