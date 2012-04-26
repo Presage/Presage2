@@ -45,6 +45,8 @@ public class AbstractEnvironmentModule extends AbstractModule {
 
 	final Set<Class<? extends ActionHandler>> actionHandlers;
 
+	Class<? extends SharedStateStorage> storage = MappedSharedState.class;
+
 	/**
 	 * <p>
 	 * Module to bind components required for an {@link AbstractEnvironment}.
@@ -215,6 +217,12 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		return this;
 	}
 
+	public AbstractEnvironmentModule setStorage(
+			Class<? extends SharedStateStorage> storage) {
+		this.storage = storage;
+		return this;
+	}
+
 	/**
 	 * Takes the sets of {@link EnvironmentService}s and {@link ActionHandler}s,
 	 * examines their {@link ServiceDependencies} and adds them to the set of
@@ -249,8 +257,8 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		// bind AbstractEnvironment interfaces
 		bind(EnvironmentConnector.class).to(AbstractEnvironment.class);
 		bind(EnvironmentServiceProvider.class).to(AbstractEnvironment.class);
-		bind(SharedStateStorage.class).to(MappedSharedState.class);
-		bind(EnvironmentSharedStateAccess.class).to(MappedSharedState.class);
+		bind(SharedStateStorage.class).to(storage);
+		bind(EnvironmentSharedStateAccess.class).to(storage);
 		bind(MappedSharedState.class).in(Singleton.class);
 
 		// bind Singleton implementation to AbstractEnvironment

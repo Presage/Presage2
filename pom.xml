@@ -15,6 +15,7 @@
 
 	<modules>
 		<module>core</module>
+		<module>rules</module>
 		<module>util</module>
 	</modules>
 
@@ -134,6 +135,12 @@
 				<version>1.9.0</version>
 				<configuration>
 					<header>header.txt</header>
+					<validHeaders>
+						<validHeader>header2011.txt</validHeader>
+					</validHeaders>
+					<excludes>
+						<exclude>header2011.txt</exclude>
+					</excludes>
 					<strictCheck>true</strictCheck>
 				</configuration>
 				<executions>
