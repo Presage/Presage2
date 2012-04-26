@@ -20,10 +20,10 @@ package uk.ac.imperial.presage2.util.environment;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
 
@@ -105,7 +105,7 @@ public class MappedSharedState implements SharedStateStorage {
 		super();
 		globalState = initGlobalStateMap();
 		agentState = initAgentStateMap();
-		stateChange = new LinkedList<MappedSharedState.StateChange>();
+		stateChange = new ConcurrentLinkedQueue<MappedSharedState.StateChange>();
 	}
 
 	@Inject(optional = true)
