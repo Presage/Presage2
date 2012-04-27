@@ -38,7 +38,7 @@ public class CannotSeeAgent extends RuntimeException {
 	UUID me;
 	UUID them;
 
-	CannotSeeAgent(UUID me, UUID them) {
+	public CannotSeeAgent(UUID me, UUID them) {
 		this.me = me;
 		this.them = them;
 	}
