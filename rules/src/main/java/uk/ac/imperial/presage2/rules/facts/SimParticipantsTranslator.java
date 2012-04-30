@@ -20,6 +20,7 @@ package uk.ac.imperial.presage2.rules.facts;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,6 +33,8 @@ import com.google.inject.Inject;
 public class SimParticipantsTranslator extends GenericGlobalStateTranslator {
 
 	StatefulKnowledgeSession session;
+
+	Set<FactHandle> agents = new HashSet<FactHandle>();
 
 	@Inject
 	public SimParticipantsTranslator(StatefulKnowledgeSession session) {
@@ -48,20 +51,12 @@ public class SimParticipantsTranslator extends GenericGlobalStateTranslator {
 	public Object getFactObject(String name, Serializable value) {
 		@SuppressWarnings("unchecked")
 		Set<UUID> aids = (Set<UUID>) value;
-		Collection<FactHandle> agentFacts = session.getFactHandles(new ObjectFilter() {
-			@Override
-			public boolean accept(Object object) {
-				return object instanceof Agent;
-			}
-		});
-		for (FactHandle factHandle : agentFacts) {
+
+		for (FactHandle factHandle : agents) {
 			aids.remove(((Agent) session.getObject(factHandle)).getAid());
 		}
 		for (UUID uuid : aids) {
-			Object a = getAgentFact(uuid);
-			if (session.getFactHandle(a) == null) {
-				session.insert(a);
-			}
+			agents.add(session.insert(getAgentFact(uuid)));
 		}
 		return super.getFactObject(name, value);
 	}
@@ -72,7 +67,11 @@ public class SimParticipantsTranslator extends GenericGlobalStateTranslator {
 
 	@Override
 	public Serializable getStateFromFact(Object fact) {
-		return super.getStateFromFact(fact);
+		HashSet<UUID> aids = new HashSet<UUID>();
+		for (FactHandle factHandle : agents) {
+			aids.add(((Agent) session.getObject(factHandle)).getAid());
+		}
+		return aids;
 	}
 
 }
