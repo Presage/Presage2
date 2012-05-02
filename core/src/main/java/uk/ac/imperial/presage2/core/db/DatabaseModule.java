@@ -43,23 +43,21 @@ public abstract class DatabaseModule extends AbstractModule {
 	public static DatabaseModule load() {
 		Properties dbProp = new Properties();
 		try {
-			logger.info("Looking for database settings in db.properties.");
 			dbProp.load(DatabaseModule.class.getClassLoader()
 					.getResource("db.properties").openStream());
 		} catch (IOException e) {
 			logger.info(
-					"Could not find db.properties, no database will be loaded.",
-					e);
+					"Could not find db.properties, no database will be loaded.");
 			return null;
 		} catch (NullPointerException e) {
 			logger.info(
-					"Could not find db.properties, no database will be loaded.",
-					e);
+					"Could not find db.properties, no database will be loaded.");
 			return null;
 		}
 
 		String dbModule = null;
 		try {
+			logger.info("Using database settings from db.properties.");
 			dbModule = dbProp.getProperty("module");
 			Class<? extends DatabaseModule> module = Class.forName(dbModule)
 					.asSubclass(DatabaseModule.class);

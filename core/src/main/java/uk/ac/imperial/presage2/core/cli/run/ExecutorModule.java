@@ -165,7 +165,7 @@ public class ExecutorModule extends AbstractModule {
 				return ctor.newInstance();
 			}
 		} catch (Exception e) {
-			logger.debug("Could not create module from executors.properties", e);
+			logger.debug("Could not create module from executors.properties");
 		}
 		// executors.properties fail, look for executors.json
 		// This file defines a set of classes to load with parameters for the
@@ -189,6 +189,8 @@ public class ExecutorModule extends AbstractModule {
 			// optional global settings
 			boolean enableLogs = execConf.optBoolean("enableLogs", false);
 			String logDir = execConf.optString("logDir");
+
+			logger.info("Building Executors from executors.json");
 
 			// Try and instantiate an instance of each executor in the spec.
 			for (int i = 0; i < executors.length(); i++) {
@@ -246,13 +248,14 @@ public class ExecutorModule extends AbstractModule {
 			}
 			return module;
 		} catch (JSONException e) {
-			logger.debug("Could not create module from executors.json", e);
+			logger.debug("Could not create module from executors.json");
 		} catch (NullPointerException e) {
-			logger.debug("Could not open executors.json", e);
+			logger.debug("Could not open executors.json");
 		}
 
 		// no executor config, use a default config: 1 local sub process
 		// executor.
+		logger.info("Using default ExecutorModule.");
 		return new ExecutorModule(1);
 	}
 }
