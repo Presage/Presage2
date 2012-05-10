@@ -31,6 +31,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.StateTransformer;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * <p>
@@ -58,6 +59,7 @@ import com.google.inject.Inject;
  * @author Sam Macbeth
  * 
  */
+@Singleton
 public class EnvironmentMembersService extends EnvironmentService {
 
 	/**
