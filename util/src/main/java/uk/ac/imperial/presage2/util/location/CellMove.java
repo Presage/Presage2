@@ -33,5 +33,17 @@ public class CellMove extends Move {
 	public CellMove(Location c) {
 		super(Math.floor(c.getX() + 0.5), Math.floor(c.getY() + 0.5), Math.floor(c.getZ() + 0.5));
 	}
+	
+	public int getXInt() {
+		return (int) this.getX();
+	}
+	
+	public int getYInt() {
+		return (int) this.getY();
+	}
+	
+	public int getZInt() {
+		return (int) this.getZ();
+	}
 
 }
