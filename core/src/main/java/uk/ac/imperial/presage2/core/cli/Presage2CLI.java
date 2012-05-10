@@ -371,6 +371,59 @@ public final class Presage2CLI {
 		stopDatabase();
 	}
 
+	@Command(description = "Duplicate a simulation.", name = "duplicate")
+	static void duplicate(String[] args) {
+		Options options = new Options();
+		options.addOption("h", "help", false, "Show help");
+
+		CommandLineParser parser = new GnuParser();
+		CommandLine cmd;
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			new HelpFormatter().printHelp("presage2cli duplicate <ID>",
+					options, true);
+			return;
+		}
+		if (cmd.hasOption("h") || args.length < 2) {
+			new HelpFormatter().printHelp("presage2cli duplicate <ID>",
+					options, true);
+			return;
+		}
+
+		long simulationID;
+		try {
+			simulationID = Long.parseLong(args[1]);
+		} catch (NumberFormatException e) {
+			System.err.println("Simulation ID should be an integer.");
+			return;
+		}
+
+		StorageService storage = getDatabase();
+
+		PersistentSimulation source = storage.getSimulationById(simulationID);
+		if (source == null) {
+			System.err.println("Could not retrieve simulation with ID "
+					+ simulationID);
+			return;
+		}
+
+		PersistentSimulation dupe = storage.createSimulation(source.getName(),
+				source.getClassName(), "NOT STARTED", source.getFinishTime());
+		for (Map.Entry<String, String> param : source.getParameters()
+				.entrySet()) {
+			dupe.addParameter(param.getKey(), param.getValue());
+		}
+		if (source.getParentSimulation() != null) {
+			dupe.setParentSimulation(source.getParentSimulation());
+		}
+
+		System.out.println("Added simulation ID: " + dupe.getID());
+
+		stopDatabase();
+	}
+
 	@Command(description = "Run a simulation.", name = "run")
 	static void run(String[] args) throws ClassNotFoundException,
 			NoSuchMethodException, InvocationTargetException,
