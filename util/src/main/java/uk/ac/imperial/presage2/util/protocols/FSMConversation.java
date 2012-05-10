@@ -45,8 +45,8 @@ public class FSMConversation implements Conversation {
 	public Object entity;
 	int lastTransition;
 
-	FSMConversation(final FSMDescription desc, String protocol, final Role role,
-			final NetworkAdaptor network) {
+	FSMConversation(final FSMDescription desc, String protocol,
+			final Role role, final NetworkAdaptor network) {
 		this.id = Random.randomUUID();
 		this.protocol = protocol;
 		this.role = role;
@@ -136,7 +136,8 @@ public class FSMConversation implements Conversation {
 			return network.getAddress();
 		}
 
-		public Set<NetworkAddress> getConnectedNodes() throws UnsupportedOperationException {
+		public Set<NetworkAddress> getConnectedNodes()
+				throws UnsupportedOperationException {
 			return network.getConnectedNodes();
 		}
 
@@ -149,5 +150,13 @@ public class FSMConversation implements Conversation {
 
 	public int getLastTransition() {
 		return lastTransition;
+	}
+
+	public Object getEntity() {
+		return entity;
+	}
+
+	public void setEntity(Object entity) {
+		this.entity = entity;
 	}
 }

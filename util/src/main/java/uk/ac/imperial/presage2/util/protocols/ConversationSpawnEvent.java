@@ -37,12 +37,12 @@ public class ConversationSpawnEvent {
 		super();
 	}
 
-	ConversationSpawnEvent(NetworkAddress with) {
+	public ConversationSpawnEvent(NetworkAddress with) {
 		super();
 		targets.add(with);
 	}
 
-	ConversationSpawnEvent(Set<NetworkAddress> with) {
+	public ConversationSpawnEvent(Set<NetworkAddress> with) {
 		super();
 		targets.addAll(with);
 	}

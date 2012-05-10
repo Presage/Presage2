@@ -159,7 +159,7 @@ public abstract class Message<T> implements Input {
 	 * 
 	 * @return
 	 */
-	protected T getData() {
+	public T getData() {
 		return data;
 	}
 
