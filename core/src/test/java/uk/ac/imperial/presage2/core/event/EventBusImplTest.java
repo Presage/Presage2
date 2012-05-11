@@ -56,21 +56,27 @@ public class EventBusImplTest {
 
 		// assert no invocation before subscription.
 		eventBus.publish(new MockEvent());
-		assertTrue(invocationCount == 0);
+		assertEquals(0, invocationCount);
 
 		// assert invocation after subscription
 		eventBus.subscribe(listener);
 		eventBus.publish(new MockEvent());
-		assertTrue(invocationCount == 1);
+		assertEquals(1, invocationCount);
 
 		// assert no invocation from different event
 		eventBus.publish(fakeEvent);
-		assertTrue(invocationCount == 1);
+		assertEquals(1, invocationCount);
 
 		// assert no invocation after unsubscribe
 		eventBus.unsubscribe(listener);
 		eventBus.publish(new MockEvent());
-		assertTrue(invocationCount == 1);
+		assertEquals(1, invocationCount);
+
+		// assert one invocation after double subscribe
+		eventBus.subscribe(listener);
+		eventBus.subscribe(listener);
+		eventBus.publish(new MockEvent());
+		assertEquals(2, invocationCount);
 	}
 
 }
