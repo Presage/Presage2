@@ -164,8 +164,6 @@ class EventBusImpl implements EventBus {
 
 	private void addTypeSpecificListener(final Object listener,
 			final Class<?> type) {
-		if (logger.isDebugEnabled())
-			logger.debug("Added listener in " + listener + " for type " + type);
 		// Get or create the Set of listeners for this type
 		Set<WeakReference<Object>> typeListeners = listeners.get(type);
 		if (typeListeners == null) {
@@ -173,8 +171,21 @@ class EventBusImpl implements EventBus {
 			listeners.put(type, typeListeners);
 		}
 
+		// check for existence of this listener for this type
+		for (WeakReference<Object> weakReference : typeListeners) {
+			if (weakReference.get().equals(listener)) {
+				if (logger.isDebugEnabled())
+					logger.debug("Skipped duplicate listener " + listener
+							+ " for type " + type);
+				return;
+			}
+		}
+
 		// Add the listener
 		typeListeners.add(new WeakReference<Object>(listener));
+
+		if (logger.isDebugEnabled())
+			logger.debug("Added listener in " + listener + " for type " + type);
 	}
 
 	private Iterator<Class<?>> superclassIterator(final Class<?> clazz) {
