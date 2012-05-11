@@ -134,11 +134,12 @@
 				<artifactId>maven-license-plugin</artifactId>
 				<version>1.9.0</version>
 				<configuration>
-					<header>header.txt</header>
+					<header>https://raw.github.com/Presage/Presage2/develop/header.txt</header>
 					<validHeaders>
-						<validHeader>header2011.txt</validHeader>
+						<validHeader>https://raw.github.com/Presage/Presage2/develop/header2011.txt</validHeader>
 					</validHeaders>
 					<excludes>
+						<exclude>header.txt</exclude>
 						<exclude>header2011.txt</exclude>
 					</excludes>
 					<strictCheck>true</strictCheck>
