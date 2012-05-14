@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.FinishTime;
 import uk.ac.imperial.presage2.core.Time;
@@ -101,8 +102,18 @@ class ScenarioBuilder implements Scenario {
 	@Override
 	public void addParticipant(Participant p) {
 		this.participants.add(p);
-		if(this.injector != null) {
+		if (this.injector != null) {
 			this.injector.injectMembers(p);
+		}
+	}
+
+	@Override
+	public void removeParticipant(UUID id) {
+		for (Participant p : this.participants) {
+			if (p.getID().equals(id)) {
+				this.participants.remove(p);
+				return;
+			}
 		}
 	}
 

@@ -22,6 +22,7 @@ package uk.ac.imperial.presage2.core.simulator;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
@@ -68,6 +69,14 @@ public interface Scenario {
 	public abstract void addPlugin(Plugin p);
 
 	public abstract void addParticipant(Participant p);
+
+	/**
+	 * Remove a participant from the scenario.
+	 * 
+	 * @param id
+	 *            {@link UUID} of the participant to remove.
+	 */
+	public abstract void removeParticipant(UUID id);
 
 	public void addEnvironment(TimeDriven e);
 

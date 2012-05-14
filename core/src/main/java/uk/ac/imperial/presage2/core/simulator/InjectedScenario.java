@@ -20,6 +20,7 @@
 package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
+import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.FinishTime;
 import uk.ac.imperial.presage2.core.Time;
@@ -96,6 +97,9 @@ public class InjectedScenario implements Scenario {
 	}
 
 	public void addParticipant(Participant p) {
+	}
+
+	public void removeParticipant(UUID id) {
 	}
 
 	@Override
