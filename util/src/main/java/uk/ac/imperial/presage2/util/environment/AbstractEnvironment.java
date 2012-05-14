@@ -242,7 +242,7 @@ public class AbstractEnvironment implements EnvironmentConnector,
 		type.toString();
 
 		for (EnvironmentService s : this.globalEnvironmentServices) {
-			if (s.getClass() == type) {
+			if (type.isInstance(s)) {
 				return (T) s;
 			}
 		}
