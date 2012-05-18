@@ -80,8 +80,12 @@ public class EnvironmentMembersService extends EnvironmentService {
 	@SuppressWarnings("unchecked")
 	public Set<UUID> getParticipants() {
 		try {
-			return Collections.unmodifiableSet((HashSet<UUID>) sharedState
-					.getGlobal("participants"));
+			HashSet<UUID> participants = (HashSet<UUID>) sharedState
+					.getGlobal("participants");
+			synchronized (participants) {
+				return Collections.unmodifiableSet(new HashSet<UUID>(
+						participants));
+			}
 		} catch (ClassCastException e) {
 			throw e;
 		}
