@@ -79,6 +79,9 @@ public class LocationStoragePlugin implements Plugin {
 					logger.debug("Exception getting agent location.", e);
 					continue;
 				}
+				if (l == null)
+					continue;
+
 				TransientAgentState state = this.storage.getAgentState(pid,
 						time.intValue());
 				state.setProperty("x", Double.toString(l.getX()));
