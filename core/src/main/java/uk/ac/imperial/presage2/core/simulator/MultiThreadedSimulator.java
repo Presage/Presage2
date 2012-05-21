@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.event.Event;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.plugin.Plugin;
@@ -182,6 +183,21 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 		}
 	}
 
+	private class EventBusPublisher implements Runnable {
+
+		private final Event e;
+
+		public EventBusPublisher(Event e) {
+			super();
+			this.e = e;
+		}
+
+		@Override
+		public void run() {
+			eventBus.publish(e);
+		}
+	}
+
 	/**
 	 * Runs the simulation. We split the simulation cycle into two parts. We add
 	 * all the participants to the thread pool, wait for them to finish
@@ -218,8 +234,27 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 				}
 			}
 			// wait for Participants to finish
+			waitFor(WaitCondition.AFTER_AGENTS);
+
+			try {
+				submitScheduled(new EventBusPublisher(new ParticipantsComplete(
+						time.clone())), WaitCondition.BEFORE_ENVIRONMENT);
+			} catch (Exception e) {
+				logger.warn("Exception thrown by event publication", e);
+			}
+
+			logger.info("Executing Plugins...");
+			for (Plugin pl : this.scenario.getPlugins()) {
+				try {
+					submitScheduled(new TimeIncrementor(pl),
+							WaitCondition.BEFORE_ENVIRONMENT);
+				} catch (Exception e) {
+					logger.warn("Exception thrown by Plugin " + pl
+							+ " on execution.", e);
+				}
+			}
+
 			waitFor(WaitCondition.BEFORE_ENVIRONMENT);
-			eventBus.publish(new ParticipantsComplete(time.clone()));
 
 			try {
 				submitScheduled(
@@ -230,17 +265,6 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 						"Exception thrown by Environment "
 								+ this.scenario.getEnvironment()
 								+ " on execution.", e);
-			}
-
-			logger.info("Executing Plugins...");
-			for (Plugin pl : this.scenario.getPlugins()) {
-				try {
-					submitScheduled(new TimeIncrementor(pl),
-							WaitCondition.END_OF_TIME_CYCLE);
-				} catch (Exception e) {
-					logger.warn("Exception thrown by Plugin " + pl
-							+ " on execution.", e);
-				}
 			}
 
 			waitFor(WaitCondition.END_OF_TIME_CYCLE);

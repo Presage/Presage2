@@ -36,7 +36,7 @@ import com.google.inject.ImplementedBy;
 public interface ThreadPool {
 
 	public enum WaitCondition {
-		END_OF_TIME_CYCLE, BEFORE_ENVIRONMENT, END_OF_INITIALISE
+		END_OF_TIME_CYCLE, BEFORE_ENVIRONMENT, AFTER_AGENTS, END_OF_INITIALISE
 	}
 
 	/**
