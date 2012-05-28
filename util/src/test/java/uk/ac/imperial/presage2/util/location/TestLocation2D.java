@@ -201,7 +201,7 @@ public class TestLocation2D {
 		final double lowSpeed = Math.sqrt(dx * dx + dy * dy)
 				- Random.randomInt((int) Math.max(Math.floor(Math.sqrt(dx * dx + dy * dy)), 1));
 		final Move m2 = l1.getMoveTo(l2, lowSpeed);
-		assertEquals(m2.getNorm(), lowSpeed, 0.00000001);
+		assertEquals(m2.getNorm(), lowSpeed, 0.0001);
 		assertEquals(Location.angle(m1, m2), 0, 0);
 	}
 
