@@ -43,23 +43,52 @@ public class MoveHandler implements ActionHandler {
 	private final Logger logger = Logger.getLogger(MoveHandler.class);
 
 	final protected HasArea environment;
-	final protected LocationService locationService;
 	final protected EnvironmentSharedStateAccess sharedState;
-	final protected AreaService areaService;
+	final protected EnvironmentServiceProvider serviceProvider;
+	private LocationService locationService = null;
+	private AreaService areaService = null;
 
 	@Inject
-	public MoveHandler(HasArea environment, EnvironmentServiceProvider serviceProvider,
-			EnvironmentSharedStateAccess sharedState) throws UnavailableServiceException {
+	public MoveHandler(HasArea environment,
+			EnvironmentServiceProvider serviceProvider,
+			EnvironmentSharedStateAccess sharedState)
+			throws UnavailableServiceException {
 		super();
 		this.environment = environment;
-		this.locationService = serviceProvider.getEnvironmentService(LocationService.class);
+		this.serviceProvider = serviceProvider;
+
 		this.sharedState = sharedState;
-		this.areaService = serviceProvider.getEnvironmentService(AreaService.class);
+		this.areaService = serviceProvider
+				.getEnvironmentService(AreaService.class);
 	}
 
 	@Override
 	public boolean canHandle(Action action) {
 		return action instanceof Move;
+	}
+
+	protected LocationService getLocationService() {
+		if (locationService == null) {
+			try {
+				this.locationService = serviceProvider
+						.getEnvironmentService(LocationService.class);
+			} catch (UnavailableServiceException e) {
+				logger.warn("Could not load location service", e);
+			}
+		}
+		return locationService;
+	}
+
+	protected AreaService getAreaService() {
+		if (areaService == null) {
+			try {
+				this.areaService = serviceProvider
+						.getEnvironmentService(AreaService.class);
+			} catch (UnavailableServiceException e) {
+				logger.warn("Could not load area service", e);
+			}
+		}
+		return areaService;
 	}
 
 	/**
@@ -77,16 +106,23 @@ public class MoveHandler implements ActionHandler {
 	 * {@link ActionHandlingException}.
 	 */
 	@Override
-	public Input handle(Action action, UUID actor) throws ActionHandlingException {
+	public Input handle(Action action, UUID actor)
+			throws ActionHandlingException {
+		getLocationService();
 		if (action instanceof CellMove) {
+			getAreaService();
 			final Move m = (CellMove) action;
 			synchronized (areaService) {
-				if (areaService.getCell((int) m.getX(), (int) m.getY(), (int) m.getZ()).size() == 0) {
-					Location target = new Cell((int) m.getX(), (int) m.getY(), (int) m.getZ());
+				if (areaService.getCell((int) m.getX(), (int) m.getY(),
+						(int) m.getZ()).size() == 0) {
+					Location target = new Cell((int) m.getX(), (int) m.getY(),
+							(int) m.getZ());
 					if (!target.in(environment.getArea())) {
 						try {
-							Location loc = locationService.getAgentLocation(actor);
-							final Move mNew = environment.getArea().getValidMove(loc, m);
+							Location loc = locationService
+									.getAgentLocation(actor);
+							final Move mNew = environment.getArea()
+									.getValidMove(loc, m);
 							target = new Location(loc.add(mNew));
 						} catch (EdgeException e) {
 							throw new ActionHandlingException(e);
@@ -95,7 +131,8 @@ public class MoveHandler implements ActionHandler {
 					this.locationService.setAgentLocation(actor, target);
 					return null;
 				} else {
-					throw new ActionHandlingException("Target cell already occupied.");
+					throw new ActionHandlingException(
+							"Target cell already occupied.");
 				}
 			}
 		}
@@ -112,7 +149,8 @@ public class MoveHandler implements ActionHandler {
 			Location target = new Location(loc.add(m));
 			if (!target.in(environment.getArea())) {
 				try {
-					final Move mNew = environment.getArea().getValidMove(loc, m);
+					final Move mNew = environment.getArea()
+							.getValidMove(loc, m);
 					target = new Location(loc.add(mNew));
 				} catch (EdgeException e) {
 					throw new ActionHandlingException(e);
@@ -121,7 +159,8 @@ public class MoveHandler implements ActionHandler {
 			this.locationService.setAgentLocation(actor, target);
 			return null;
 		}
-		throw new ActionHandlingException("MoveHandler was asked to handle non Move action!");
+		throw new ActionHandlingException(
+				"MoveHandler was asked to handle non Move action!");
 	}
 
 }
