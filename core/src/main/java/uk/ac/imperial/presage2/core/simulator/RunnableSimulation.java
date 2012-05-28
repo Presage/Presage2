@@ -66,7 +66,11 @@ public abstract class RunnableSimulation implements Runnable {
 	protected Simulator simulator;
 
 	protected DatabaseService database;
+	/**
+	 * @deprecated Renamed to {@link #storage}.
+	 */
 	protected StorageService graphDb;
+	protected StorageService storage;
 	protected PersistentSimulation simPersist;
 
 	private Map<String, Field> fieldParameters = new HashMap<String, Field>();
@@ -291,8 +295,9 @@ public abstract class RunnableSimulation implements Runnable {
 		this.database = database;
 	}
 
-	protected void setGraphDB(StorageService db) {
+	protected void setStorage(StorageService db) {
 		this.graphDb = db;
+		this.storage = db;
 	}
 
 	protected void setEventBus(EventBus e) {
@@ -518,7 +523,7 @@ public abstract class RunnableSimulation implements Runnable {
 		RunnableSimulation run = newFromClassName(sim.getClassName(), additionalModules);
 
 		run.setDatabase(db);
-		run.setGraphDB(sto);
+		run.setStorage(sto);
 
 		Map<String, String> providedParams = sim.getParameters();
 		for (Map.Entry<String, Class<?>> entry : run.getParameters().entrySet()) {

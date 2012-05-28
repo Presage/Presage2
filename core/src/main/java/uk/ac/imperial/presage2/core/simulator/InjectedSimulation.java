@@ -147,8 +147,8 @@ public abstract class InjectedSimulation extends RunnableSimulation {
 
 	@Override
 	@Inject(optional = true)
-	protected void setGraphDB(StorageService db) {
-		super.setGraphDB(db);
+	protected void setStorage(StorageService db) {
+		super.setStorage(db);
 	}
 
 	@Override
