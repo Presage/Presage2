@@ -86,6 +86,7 @@ public class NetworkMessageMonitor implements Plugin {
 	}
 
 	@Override
+	@Deprecated
 	public void execute() {
 	}
 
