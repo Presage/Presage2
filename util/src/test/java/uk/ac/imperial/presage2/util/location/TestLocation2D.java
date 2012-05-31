@@ -83,13 +83,13 @@ public class TestLocation2D {
 		assertTrue(l1.equals(l1));
 		assertTrue(l2.equals(l2));
 
-		// test same object comparison with Location cast
-		assertTrue(l1.equals(l1));
-		assertTrue(l2.equals(l2));
-		assertTrue((l1).equals(l1));
-		assertTrue((l2).equals(l2));
-		assertTrue((l1).equals(l1));
-		assertTrue((l2).equals(l2));
+		// test same object comparison with Object cast
+		assertTrue(l1.equals((Object)l1));
+		assertTrue(l2.equals((Object)l2));
+		assertTrue((Object)(l1).equals(l1));
+		assertTrue((Object)(l2).equals(l2));
+		assertTrue((Object)(l1).equals((Object)l1));
+		assertTrue((Object)(l2).equals((Object)l2));
 
 		// test equal but different object
 		assertTrue(l1.equals(new Location(x1, y1)));
