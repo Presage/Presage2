@@ -31,6 +31,7 @@ import com.google.inject.AbstractModule;
  */
 public interface Time extends Cloneable {
 
+	@Override
 	public String toString();
 
 	/**

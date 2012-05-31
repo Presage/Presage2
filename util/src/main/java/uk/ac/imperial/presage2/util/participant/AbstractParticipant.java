@@ -322,8 +322,10 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	 * the agent to be anything more than purely reactive you should add more to
 	 * this.
 	 * </p>
+	 * @deprecated Use {@link TimeDriven#incrementTime()} now.
 	 */
 	@Override
+	@Deprecated
 	public void execute() {
 
 		// pull in Messages from the network
