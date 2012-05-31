@@ -55,8 +55,9 @@ public class TestLocation2D {
 		final int y = Random.randomInt();
 		Location l = new Location(x, y);
 		assertNotNull(l);
-		assertTrue(x == l.getX());
-		assertTrue(y == l.getY());
+
+		assertEquals(x, l.getX(), 0);
+		assertEquals(y, l.getY(), 0);
 
 		assertSame(l, l.getLocation());
 	}
