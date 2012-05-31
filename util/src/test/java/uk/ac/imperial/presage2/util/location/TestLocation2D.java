@@ -63,6 +63,7 @@ public class TestLocation2D {
 	}
 
 	@Test
+	@SuppressWarnings("ObjectEqualsNull")
 	public void testEquals() {
 
 		// create actual locations
