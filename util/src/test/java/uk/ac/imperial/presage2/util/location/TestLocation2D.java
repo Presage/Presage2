@@ -162,8 +162,8 @@ public class TestLocation2D {
 		final Location l2 = new Location(x + dx, y + dy);
 
 		final Move m = l1.getMoveTo(l2);
-		assertEquals(m.getX(), dx, 0);
-		assertEquals(m.getY(), dy, 0);
+		assertEquals(dx, m.getX(), 0);
+		assertEquals(dy, m.getY(), 0);
 
 	}
 
@@ -177,8 +177,8 @@ public class TestLocation2D {
 		final Location l2 = new Location(x + dx, y + dy);
 
 		final Move m = l1.getMoveTo(l2);
-		assertEquals(m.getX(), dx, 0.000001);
-		assertEquals(m.getY(), dy, 0.000001);
+		assertEquals(dx, m.getX(), 0.000001);
+		assertEquals(dy, m.getY(), 0.000001);
 
 	}
 
@@ -193,14 +193,15 @@ public class TestLocation2D {
 
 		final double highSpeed = Math.sqrt(dx * dx + dy * dy) + Random.randomInt(5);
 		final Move m1 = l1.getMoveTo(l2, highSpeed);
-		assertEquals(m1.getX(), dx, 0);
-		assertEquals(m1.getY(), dy, 0);
+		assertEquals(dx, m1.getX(), 0);
+		assertEquals(dy, m1.getY(),  0);
 
 		final double lowSpeed = Math.sqrt(dx * dx + dy * dy)
 				- Random.randomInt((int) Math.max(Math.floor(Math.sqrt(dx * dx + dy * dy)), 1));
 		final Move m2 = l1.getMoveTo(l2, lowSpeed);
-		assertEquals(m2.getNorm(), lowSpeed, 0.0001);
-		assertEquals(Location.angle(m1, m2), 0, 0);
+
+		assertEquals(lowSpeed, m2.getNorm(), 0.0001);
+		assertEquals(0, Location.angle(m1, m2), 0);
 	}
 
 }
