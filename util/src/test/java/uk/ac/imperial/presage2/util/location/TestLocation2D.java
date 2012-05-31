@@ -30,7 +30,7 @@ import uk.ac.imperial.presage2.core.util.random.Random;
 
 /**
  * @author Sam Macbeth
- * 
+ *
  */
 public class TestLocation2D {
 
@@ -82,18 +82,18 @@ public class TestLocation2D {
 		assertTrue(l2.equals(l2));
 
 		// test same object comparison with Location cast
-		assertTrue(l1.equals((Location) l1));
-		assertTrue(l2.equals((Location) l2));
-		assertTrue(((Location) l1).equals((Location) l1));
-		assertTrue(((Location) l2).equals((Location) l2));
-		assertTrue(((Location) l1).equals(l1));
-		assertTrue(((Location) l2).equals(l2));
+		assertTrue(l1.equals(l1));
+		assertTrue(l2.equals(l2));
+		assertTrue((l1).equals(l1));
+		assertTrue((l2).equals(l2));
+		assertTrue((l1).equals(l1));
+		assertTrue((l2).equals(l2));
 
 		// test equal but different object
 		assertTrue(l1.equals(new Location(x1, y1)));
-		assertTrue(l1.equals((Location) new Location(x1, y1)));
+		assertTrue(l1.equals(new Location(x1, y1)));
 		assertTrue(l2.equals(new Location(x2, y2)));
-		assertTrue(l2.equals((Location) new Location(x2, y2)));
+		assertTrue(l2.equals(new Location(x2, y2)));
 		assertTrue(new Location(x1, y1).equals(l1));
 		assertTrue(new Location(x2, y2).equals(l2));
 
@@ -126,8 +126,8 @@ public class TestLocation2D {
 		assertEquals(distance, l1.distanceTo(l2), 0);
 		assertEquals(distance, l2.distanceTo(l1), 0);
 
-		assertEquals(distance, l1.distanceTo((Location) l2), 0);
-		assertEquals(distance, l2.distanceTo((Location) l1), 0);
+		assertEquals(distance, l1.distanceTo(l2), 0);
+		assertEquals(distance, l2.distanceTo(l1), 0);
 
 	}
 
@@ -149,8 +149,8 @@ public class TestLocation2D {
 		assertEquals(distance, l1.distanceTo(l2), 0);
 		assertEquals(distance, l2.distanceTo(l1), 0);
 
-		assertEquals(distance, l1.distanceTo((Location) l2), 0);
-		assertEquals(distance, l2.distanceTo((Location) l1), 0);
+		assertEquals(distance, l1.distanceTo(l2), 0);
+		assertEquals(distance, l2.distanceTo(l1), 0);
 
 	}
 
