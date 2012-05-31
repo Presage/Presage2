@@ -126,9 +126,6 @@ public class TestLocation2D {
 		assertEquals(distance, l1.distanceTo(l2), 0);
 		assertEquals(distance, l2.distanceTo(l1), 0);
 
-		assertEquals(distance, l1.distanceTo(l2), 0);
-		assertEquals(distance, l2.distanceTo(l1), 0);
-
 	}
 
 	@Test
