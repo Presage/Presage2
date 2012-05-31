@@ -31,6 +31,7 @@ import com.google.inject.AbstractModule;
  */
 public interface Time extends Cloneable {
 
+	@Override
 	public String toString();
 
 	/**
@@ -78,7 +79,8 @@ public interface Time extends Cloneable {
 	 * @author Sam Macbeth
 	 * 
 	 */
-	class Bind {
+	@SuppressWarnings("PublicInnerClass")
+	final class Bind {
 
 		/**
 		 * Bind {@link Time} to {@link IntegerTime} and set the simulation
@@ -96,6 +98,13 @@ public interface Time extends Cloneable {
 							.toInstance(new IntegerTime(finishTime));
 				}
 			};
+		}
+
+		/**
+		 * Prevent construction of instances
+		 */
+		private Bind()
+		{
 		}
 
 	}

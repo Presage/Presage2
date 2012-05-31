@@ -97,6 +97,7 @@ public class LocationStoragePlugin implements Plugin {
 	}
 
 	@Override
+	@Deprecated
 	public void execute() {
 	}
 
