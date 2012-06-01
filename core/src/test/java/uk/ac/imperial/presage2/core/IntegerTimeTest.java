@@ -26,6 +26,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import uk.ac.imperial.presage2.core.simulator.SimTime;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 /**
@@ -189,6 +190,45 @@ public class IntegerTimeTest {
 
 		assertFalse("A.greaterThan(null) should be false", t1.greaterThan(null));
 
+	}
+
+	@Test
+	public void testEqualsWithSimTime() {
+		final int n = rand.nextInt(Integer.MAX_VALUE - 2) + 1;
+
+		Time tBase = new IntegerTime(n);
+		new SimTime(tBase);
+		Time tOther = new IntegerTime(n - 1);
+
+		// time wrapped by simtime equals itself
+		assertTrue(tBase.equals(SimTime.get()));
+		assertTrue(SimTime.get().equals(tBase));
+		assertTrue(SimTime.get().equals(SimTime.get()));
+
+		// not equal to different time
+		assertFalse(tBase.equals(tOther));
+		assertFalse(SimTime.get().equals(tOther));
+
+		// Simtime equal to time with same int value
+		tOther.increment();
+		assertTrue(tOther.equals(tBase));
+		assertTrue(tOther.equals(SimTime.get()));
+		assertTrue(SimTime.get().equals(tOther));
+
+		// tOther greater than
+		tOther.increment();
+		// now different to tOther
+		assertFalse(tBase.equals(tOther));
+		assertFalse(SimTime.get().equals(tOther));
+
+		// Simtime mirrors wrapped time
+		tBase.increment();
+		assertTrue(tBase.equals(SimTime.get()));
+		assertTrue(SimTime.get().equals(tBase));
+		assertTrue(SimTime.get().equals(SimTime.get()));
+
+		assertTrue(tOther.equals(tBase));
+		assertTrue(tOther.equals(SimTime.get()));
 	}
 
 }

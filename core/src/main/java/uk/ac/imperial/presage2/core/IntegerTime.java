@@ -44,24 +44,29 @@ public final class IntegerTime implements Time {
 	 */
 	@Override
 	public boolean equals(Time t) {
-		if (t instanceof IntegerTime) {
-			IntegerTime it = (IntegerTime) t;
-			return it.time == this.time;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (o instanceof Time) {
-			return this.equals((Time) o);
-		} else
+		if(t == null)
 			return false;
+		return this.intValue() == t.intValue();
 	}
 
 	@Override
 	public int hashCode() {
-		return this.time;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + time;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if(obj instanceof Time) {
+			return equals((Time) obj);
+		}
+		return false;
 	}
 
 	/**
