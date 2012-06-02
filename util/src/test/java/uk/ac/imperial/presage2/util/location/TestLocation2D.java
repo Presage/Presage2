@@ -189,20 +189,24 @@ public class TestLocation2D {
 		final int y = Random.randomInt();
 		final Location l1 = new Location(x, y);
 		final int dx = Random.randomInt(10) - 5;
-		final int dy = Random.randomInt(10) - 5;
+		int dy = Random.randomInt(10) - 5;
+		if (dy == 0 && dx == dy)
+			dy = 1;
 		final Location l2 = new Location(x + dx, y + dy);
 
-		final double highSpeed = Math.sqrt(dx * dx + dy * dy) + Random.randomInt(5);
+		final double highSpeed = Math.sqrt(dx * dx + dy * dy)
+				+ Random.randomInt(5);
 		final Move m1 = l1.getMoveTo(l2, highSpeed);
 		assertEquals(dx, m1.getX(), 0);
-		assertEquals(dy, m1.getY(),  0);
+		assertEquals(dy, m1.getY(), 0);
 
 		final double lowSpeed = Math.sqrt(dx * dx + dy * dy)
-				- Random.randomInt((int) Math.max(Math.floor(Math.sqrt(dx * dx + dy * dy)), 1));
+				- Random.randomInt((int) Math.max(
+						Math.floor(Math.sqrt(dx * dx + dy * dy)), 1));
 		final Move m2 = l1.getMoveTo(l2, lowSpeed);
 
 		assertEquals(lowSpeed, m2.getNorm(), 0.0001);
-		assertEquals(0, Location.angle(m1, m2), 0);
+		assertEquals(0, Location.angle(m1, m2), 0.000001);
 	}
 
 }
