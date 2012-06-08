@@ -25,23 +25,26 @@ import java.util.UUID;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
-class Agent implements PersistentAgent {
+public class Agent implements PersistentAgent {
 
 	final SqlStorage sto;
 
 	boolean dirty = false;
 	boolean transientDirty = false;
+	
+	public final long simId;
 
 	UUID id;
 	String name;
-	Map<String, String> properties = new HashMap<String, String>();
-	Map<Integer, Map<String, String>> transientProperties = new HashMap<Integer, Map<String, String>>();
+	public Map<String, String> properties = new HashMap<String, String>();
+	public Map<Integer, Map<String, String>> transientProperties = new HashMap<Integer, Map<String, String>>();
 
 	Agent(UUID id, String name, SqlStorage sto) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.sto = sto;
+		this.simId = sto.getSimId();
 	}
 
 	@Override

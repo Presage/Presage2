@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.db.sql;
 
+import java.sql.Connection;
 import java.util.Properties;
 
 import com.google.inject.Singleton;
@@ -52,6 +53,7 @@ public class SqlModule extends DatabaseModule {
 		bind(impl).in(Singleton.class);
 		bind(DatabaseService.class).to(impl);
 		bind(StorageService.class).to(impl);
+		bind(Connection.class).toProvider(SqlStorage.class);
 	}
 
 }

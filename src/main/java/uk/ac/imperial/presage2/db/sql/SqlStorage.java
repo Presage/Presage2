@@ -24,6 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +37,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
@@ -48,11 +51,13 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
-public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
+public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
+		Provider<Connection> {
 
 	protected final Logger logger = Logger.getLogger(SqlStorage.class);
 	protected Properties jdbcInfo;
@@ -74,10 +79,11 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 	protected Set<Agent> agentTransientQ = Collections
 			.synchronizedSet(new HashSet<Agent>());
 
-	boolean timeDriven = false;
+	protected BlockingQueue<PreparedStatement> batchQueryQ = new LinkedBlockingQueue<PreparedStatement>(
+			20);
+	Thread queryExecutor;
 
-	PreparedStatement updateSimulation = null;
-	PreparedStatement updateParameters = null;
+	boolean timeDriven = false;
 
 	@Inject
 	public SqlStorage(@Named(value = "sql.info") Properties jdbcInfo) {
@@ -100,9 +106,52 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 				logger.warn("JDBC driver not found.", e);
 			}
 			initTables();
+			// start batch thread
+			queryExecutor = new Thread(new BatchQueryExecutor(),
+					"Query executor");
+			queryExecutor.start();
 			if (!timeDriven) {
 				startUpdater();
 			}
+		}
+	}
+
+	class BatchQueryExecutor implements Runnable {
+		@Override
+		public void run() {
+			while (true) {
+				List<PreparedStatement> tx = new ArrayList<PreparedStatement>();
+				boolean breakOnFinish = false;
+				try {
+					tx.add(batchQueryQ.take());
+					batchQueryQ.drainTo(tx);
+					conn.setAutoCommit(false);
+					for (PreparedStatement stmt : tx) {
+						if (stmt.isClosed())
+							breakOnFinish = true;
+						else {
+							logger.debug("Execute: " + stmt);
+							stmt.executeBatch();
+						}
+					}
+					conn.commit();
+					conn.setAutoCommit(true);
+					if (breakOnFinish)
+						break;
+
+				} catch (SQLException e) {
+					logger.warn("Error executing batch query", e);
+				} catch (InterruptedException e1) {
+				} finally {
+					for (PreparedStatement stmt : tx) {
+						try {
+							stmt.close();
+						} catch (SQLException e) {
+						}
+					}
+				}
+			}
+			logger.debug("shutdown");
 		}
 	}
 
@@ -141,6 +190,9 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 	void setScenario(Scenario s) {
 		s.addTimeDriven(this);
 		timeDriven = true;
+		if (syncTimer != null) {
+			syncTimer.cancel();
+		}
 	}
 
 	protected void startUpdater() {
@@ -155,28 +207,28 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 
 	public void incrementTime() {
 		updateSimulations();
-		updateEnvironment();
-		updateTransientEnvironment();
-		updateAgents();
-		updateTransientAgents();
+		if (timeDriven) {
+			updateEnvironment();
+			updateTransientEnvironment();
+			updateAgents();
+			updateTransientAgents();
+		}
 	}
 
 	protected void updateSimulations() {
-		if (updateSimulation == null || updateParameters == null) {
-			try {
-				updateSimulation = conn.prepareStatement("UPDATE simulations "
-						+ "SET state = ? ," + "currentTime = ? ,"
-						+ "startedAt = ? ," + "finishedAt = ? ,"
-						+ "parent = ? " + "WHERE id = ?" + " LIMIT 1");
-				updateParameters = conn
-						.prepareStatement("INSERT INTO parameters "
-								+ "(`simId`, `name`, `value`) "
-								+ "VALUES "
-								+ "(?, ?, ?) "
-								+ "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);");
-			} catch (SQLException e) {
-				throw new RuntimeException(e);
-			}
+		PreparedStatement updateSimulation = null;
+		PreparedStatement updateParameters = null;
+
+		try {
+			updateSimulation = conn.prepareStatement("UPDATE simulations "
+					+ "SET state = ? ," + "currentTime = ? ,"
+					+ "startedAt = ? ," + "finishedAt = ? ," + "parent = ? "
+					+ "WHERE id = ?" + " LIMIT 1");
+			updateParameters = conn.prepareStatement("INSERT INTO parameters "
+					+ "(`simId`, `name`, `value`) " + "VALUES " + "(?, ?, ?) "
+					+ "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);");
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
 		}
 
 		try {
@@ -201,14 +253,20 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 					}
 
 				}
-				updateSimulation.executeBatch();
-				updateSimulation.clearBatch();
-				updateParameters.executeBatch();
-				updateParameters.clearBatch();
+				batchQueryQ.put(updateSimulation);
+				batchQueryQ.put(updateParameters);
+				/*
+				 * updateSimulation.executeBatch();
+				 * updateSimulation.clearBatch();
+				 * updateParameters.executeBatch();
+				 * updateParameters.clearBatch();
+				 */
 				simulationQ.clear();
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -224,7 +282,7 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 			for (Environment e : environmentTransientQ) {
 				e.transientProperties.clear();
 			}
-			environmentQ.clear();
+			environmentTransientQ.clear();
 		}
 	}
 
@@ -254,7 +312,18 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 				syncTimer.cancel();
 			}
 			incrementTime();
+			try {
+				PreparedStatement queuePoison = conn
+						.prepareStatement("SELECT 1");
+				queuePoison.close();
+				batchQueryQ.put(queuePoison);
 
+				queryExecutor.join();
+			} catch (SQLException e2) {
+				throw new RuntimeException(e2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			try {
 				conn.close();
 			} catch (SQLException e) {
@@ -398,7 +467,7 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 							+ "FROM simulations ORDER BY `id` ASC");
 			getParameters = conn
 					.prepareStatement("SELECT `name`, `value` FROM parameters WHERE simId = ?");
-			
+
 			simRow = getSimulations.executeQuery();
 			while (simRow.next()) {
 				Simulation s = new Simulation(simRow, this);
@@ -506,6 +575,18 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven {
 			}
 		}
 		return simIds;
+	}
+
+	@Override
+	public Connection get() {
+		if (!isStarted()) {
+			try {
+				start();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return this.conn;
 	}
 
 }

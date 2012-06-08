@@ -24,17 +24,17 @@ import java.util.Map;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentEnvironment;
 
-class Environment implements PersistentEnvironment {
+public class Environment implements PersistentEnvironment {
 
 	final SqlStorage sto;
 
 	boolean pdirty = false;
 	boolean tdirty = false;
 	
-	final long simId;
+	public final long simId;
 
-	Map<String, String> properties = new HashMap<String, String>();
-	Map<Integer, Map<String, String>> transientProperties = new HashMap<Integer, Map<String, String>>();
+	public Map<String, String> properties = new HashMap<String, String>();
+	public Map<Integer, Map<String, String>> transientProperties = new HashMap<Integer, Map<String, String>>();
 
 	Environment(long simId, SqlStorage sto) {
 		super();
