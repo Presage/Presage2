@@ -54,6 +54,7 @@ import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * General implementation of an environment.
@@ -65,6 +66,9 @@ public class AbstractEnvironment implements EnvironmentConnector,
 		EnvironmentServiceProvider, TimeDriven {
 
 	private final Logger logger = Logger.getLogger(AbstractEnvironment.class);
+
+	@Inject
+	private Injector injector;
 
 	/**
 	 * Map of Participants in the simulation
@@ -400,7 +404,10 @@ public class AbstractEnvironment implements EnvironmentConnector,
 				for (Entry<Constructor<? extends EnvironmentService>, Object[]> ctor : validCtors
 						.entrySet()) {
 					try {
-						services.add(ctor.getKey().newInstance(ctor.getValue()));
+						EnvironmentService e = ctor.getKey().newInstance(
+								ctor.getValue());
+						injector.injectMembers(e);
+						services.add(e);
 						break;
 					} catch (Exception e) {
 						logger.warn("Unable to add service for participant: "
