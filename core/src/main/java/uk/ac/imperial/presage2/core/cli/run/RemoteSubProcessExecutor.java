@@ -138,7 +138,8 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 			try {
 				initialise();
 			} catch (Exception e) {
-				logger.warn("Initialise threw", e);
+				logger.warn("Initialise threw, shutting down executor", e);
+				MAX_PROCESSES = 0;
 				throw new InsufficientResourcesException(e);
 			}
 		}
