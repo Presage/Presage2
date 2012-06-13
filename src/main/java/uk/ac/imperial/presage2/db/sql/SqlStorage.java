@@ -255,12 +255,6 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 				}
 				batchQueryQ.put(updateSimulation);
 				batchQueryQ.put(updateParameters);
-				/*
-				 * updateSimulation.executeBatch();
-				 * updateSimulation.clearBatch();
-				 * updateParameters.executeBatch();
-				 * updateParameters.clearBatch();
-				 */
 				simulationQ.clear();
 			}
 		} catch (SQLException e) {
@@ -312,6 +306,7 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 				syncTimer.cancel();
 			}
 			incrementTime();
+			onComplete();
 			try {
 				PreparedStatement queuePoison = conn
 						.prepareStatement("SELECT 1");
@@ -326,10 +321,14 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 			}
 			try {
 				conn.close();
+				conn = null;
 			} catch (SQLException e) {
 				logger.warn("Exception when closing db.", e);
 			}
 		}
+	}
+
+	protected void onComplete() {
 	}
 
 	public long getSimId() {
