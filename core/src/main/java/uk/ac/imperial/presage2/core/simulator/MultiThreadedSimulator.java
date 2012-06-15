@@ -279,6 +279,14 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 	@Override
 	public void complete() {
 		logger.info("Running simulation completion tasks...");
+		for (Participant p : this.scenario.getParticipants()) {
+			try {
+				p.onSimulationComplete();
+			} catch (Exception e) {
+				logger.warn("Exception thrown by Participant " + p
+						+ " on simulation completion.", e);
+			}
+		}
 		for (Plugin pl : this.scenario.getPlugins()) {
 			try {
 				pl.onSimulationComplete();
@@ -308,6 +316,7 @@ public class MultiThreadedSimulator extends Simulator implements ThreadPool {
 	@Override
 	public void shutdown() {
 		threadPool.shutdown();
+		logger.info("Simulation complete.");
 	}
 
 	@Override
