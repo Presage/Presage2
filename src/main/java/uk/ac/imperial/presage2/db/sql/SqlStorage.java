@@ -175,11 +175,13 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 							+ " PRIMARY KEY (`id`)" + ")");
 			createSimulations.close();
 			createParameters = conn.createStatement();
-			createParameters.execute("CREATE TABLE IF NOT EXISTS parameters"
-					+ "(`simId` bigint(20) NOT NULL,"
-					+ "`name` varchar(255) NOT NULL,"
-					+ "`value` varchar(255) NOT NULL,"
-					+ "PRIMARY KEY (`simId`, `name`), INDEX (`simId`))");
+			createParameters
+					.execute("CREATE TABLE IF NOT EXISTS parameters"
+							+ "(`simId` bigint(20) NOT NULL,"
+							+ "`name` varchar(255) NOT NULL,"
+							+ "`value` varchar(255) NOT NULL,"
+							+ "PRIMARY KEY (`simId`, `name`), INDEX (`simId`),"
+							+ "FOREIGN KEY (`simID`) REFERENCES `simulations` (`ID`) ON DELETE CASCADE)");
 			createParameters.close();
 		} catch (SQLException e) {
 			logger.warn("Couldn't create tables", e);
@@ -306,7 +308,6 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 				syncTimer.cancel();
 			}
 			incrementTime();
-			onComplete();
 			try {
 				PreparedStatement queuePoison = conn
 						.prepareStatement("SELECT 1");
@@ -319,6 +320,8 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			if (timeDriven)
+				onComplete();
 			try {
 				conn.close();
 				conn = null;
