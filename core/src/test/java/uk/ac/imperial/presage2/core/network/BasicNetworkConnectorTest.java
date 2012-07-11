@@ -35,6 +35,7 @@ public class BasicNetworkConnectorTest extends NetworkConnectorTest {
 
 	@Override
 	public void setUp() throws Exception {
+		mockExpectations();
 		this.testConnector = new BasicNetworkConnector(controller,
 				networkAddressFactory, addressUuid);
 	}

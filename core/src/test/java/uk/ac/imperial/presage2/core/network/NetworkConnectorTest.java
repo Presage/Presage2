@@ -75,7 +75,6 @@ abstract public class NetworkConnectorTest {
 	@Before
 	abstract public void setUp() throws Exception;
 
-	@Before
 	public void mockExpectations() {
 		context.checking(new Expectations() {
 			{
