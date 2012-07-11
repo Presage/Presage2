@@ -48,7 +48,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class SubProcessExecutor implements SimulationExecutor {
 
-	protected final Logger logger = Logger.getLogger(this.getClass());
+	protected Logger logger = Logger.getLogger(this.toString());;
 	protected int MAX_PROCESSES;
 	protected List<Process> running;
 	protected Timer processMonitor;

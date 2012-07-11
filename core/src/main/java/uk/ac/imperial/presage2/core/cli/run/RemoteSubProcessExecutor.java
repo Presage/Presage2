@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import uk.ac.imperial.presage2.core.cli.Presage2CLI;
 
 /**
@@ -59,6 +61,7 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 		this.remoteUser = remoteUser;
 		this.remoteHost = remoteHost;
 		this.remoteWorkingDir = remoteWorkingDir;
+		logger = Logger.getLogger(this.toString());
 	}
 
 	public RemoteSubProcessExecutor(int max_processes, String remoteHost,
@@ -68,6 +71,7 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 		this.remoteHost = remoteHost;
 		this.remoteWorkingDir = remoteWorkingDir;
 		this.remoteUser = remoteUser;
+		logger = Logger.getLogger(this.toString());
 	}
 
 	public RemoteSubProcessExecutor(int max_processes, String remoteHost,
@@ -76,6 +80,7 @@ public class RemoteSubProcessExecutor extends SubProcessExecutor implements
 		this.remoteHost = remoteHost;
 		this.remoteWorkingDir = remoteWorkingDir;
 		this.remoteUser = remoteUser;
+		logger = Logger.getLogger(this.toString());
 	}
 
 	protected void initialise() throws IOException {
