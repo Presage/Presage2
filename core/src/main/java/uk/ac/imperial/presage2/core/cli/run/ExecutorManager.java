@@ -25,6 +25,7 @@ import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.log4j.Logger;
 
 import com.google.inject.Inject;
@@ -59,6 +60,9 @@ public class ExecutorManager extends Thread {
 	private final Logger logger = Logger.getLogger(ExecutorManager.class);
 	final BlockingQueue<Long> queue;
 	Set<SimulationExecutor> executors = new HashSet<SimulationExecutor>();
+
+	private long startTime = 0;
+	private int submittedCount = 0;
 
 	public ExecutorManager() {
 		super("ExecutorManager");
@@ -96,6 +100,7 @@ public class ExecutorManager extends Thread {
 		logger.info("Starting with " + queueSize
 				+ " simulations in the queue and " + executors.size()
 				+ " executors. Pool size is " + poolSize);
+		startTime = System.currentTimeMillis();
 
 		// Checks every second and notifies if there are executors available.
 		Timer executorChecker = new Timer(true);
@@ -132,6 +137,7 @@ public class ExecutorManager extends Thread {
 					SimulationExecutor exe;
 					while ((exe = getNextExecutor()) == null) {
 						logger.info("No Executors available, waiting.");
+						logStatus();
 						wait();
 					}
 
@@ -139,6 +145,7 @@ public class ExecutorManager extends Thread {
 						logger.info("Submitting simulation " + simId
 								+ " to executor: " + exe.toString());
 						exe.run(simId);
+						submittedCount++;
 					} catch (InsufficientResourcesException e) {
 						queue.offer(simId);
 					}
@@ -148,6 +155,7 @@ public class ExecutorManager extends Thread {
 		}
 
 		logger.debug("No more simulations to submit, waiting for executors to finish.");
+		logStatus();
 		// wait for executors to finish
 		for (SimulationExecutor exe : executors) {
 			synchronized (this) {
@@ -160,8 +168,33 @@ public class ExecutorManager extends Thread {
 					}
 				}
 			}
+			logStatus();
 		}
 		logger.info("ExecutorManager shutting down.");
+	}
+
+	private void logStatus() {
+		logger.info("Time elapsed: "
+				+ DurationFormatUtils.formatDuration(System.currentTimeMillis()
+						- startTime, "H:mm:ss"));
+		int poolSize = 0;
+		int poolUtil = 0;
+		for (SimulationExecutor exe : executors) {
+			poolSize += exe.maxConcurrent();
+			poolUtil += exe.running();
+		}
+		int completed = submittedCount - poolUtil;
+		int total = submittedCount + queue.size();
+		logger.info("Simulations running: " + poolUtil + "/" + poolSize);
+		logger.info("Job progress: " + completed + "/" + total + " ("
+				+ (100 * completed) / total + "%)");
+		if (completed > 0) {
+			long timeRemaining = ((System.currentTimeMillis() - startTime) * (queue
+					.size() + poolUtil)) / completed;
+			logger.info("Estimated time remaining: "
+					+ DurationFormatUtils.formatDuration(timeRemaining,
+							"H:mm:ss"));
+		}
 	}
 
 	/**
