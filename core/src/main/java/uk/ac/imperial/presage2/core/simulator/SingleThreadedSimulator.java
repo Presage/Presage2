@@ -134,6 +134,14 @@ public class SingleThreadedSimulator extends Simulator implements ThreadPool {
 	@Override
 	public void complete() {
 		logger.info("Running completion tasks and tidying up.");
+		for (Participant p : this.scenario.getParticipants()) {
+			try {
+				p.onSimulationComplete();
+			} catch (Exception e) {
+				logger.warn("Exception thrown by Participant " + p
+						+ " on simulation completion.", e);
+			}
+		}
 		for (Plugin pl : this.scenario.getPlugins()) {
 			try {
 				pl.onSimulationComplete();

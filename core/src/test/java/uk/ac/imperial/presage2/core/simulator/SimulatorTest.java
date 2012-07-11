@@ -160,6 +160,9 @@ abstract public class SimulatorTest {
 				oneOf(plug1).onSimulationComplete();
 				oneOf(plug2).onSimulationComplete();
 				oneOf(eventBus).publish(with(any(FinalizeEvent.class)));
+				for (Participant p : partSet) {
+					oneOf(p).onSimulationComplete();
+				}
 			}
 		});
 
