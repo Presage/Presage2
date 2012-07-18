@@ -129,7 +129,8 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @return
 	 */
 	public int getSimluationPercentComplete() {
-		if (getSimulationFinishTime() == null || getCurrentSimulationTime() == null)
+		if (getSimulationFinishTime() == null
+				|| getCurrentSimulationTime() == null)
 			return 0;
 		else
 			return 100 * getCurrentSimulationTime().intValue()
@@ -166,9 +167,11 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 		if (this.graphDb != null) {
 			if (simPersist == null) {
-				simPersist = graphDb.createSimulation(getClass().getSimpleName(), getClass()
-						.getCanonicalName(), getState().name(), getSimulationFinishTime()
-						.intValue());
+				simPersist = graphDb
+						.createSimulation(getClass().getSimpleName(),
+								getClass().getCanonicalName(), getState()
+										.name(), getSimulationFinishTime()
+										.intValue());
 				for (String s : getParameters().keySet()) {
 					simPersist.addParameter(s, getParameter(s));
 				}
@@ -222,7 +225,8 @@ public abstract class RunnableSimulation implements Runnable {
 		parameters.putAll(getParametersFromFields());
 		parameters.putAll(getParametersFromMethods());
 		if (logger.isDebugEnabled()) {
-			logger.debug("Got " + parameters.size() + " parameters in simulation "
+			logger.debug("Got " + parameters.size()
+					+ " parameters in simulation "
 					+ this.getClass().getSimpleName());
 		}
 		return parameters;
@@ -256,6 +260,20 @@ public abstract class RunnableSimulation implements Runnable {
 		return parameters;
 	}
 
+	final protected void setParameters(Map<String, String> provided)
+			throws UndefinedParameterException, IllegalArgumentException,
+			IllegalAccessException, InvocationTargetException {
+		for (Map.Entry<String, Class<?>> entry : this.getParameters()
+				.entrySet()) {
+			if (!provided.containsKey(entry.getKey())) {
+				logger.fatal("No value provided for " + entry.getKey()
+						+ " parameter.");
+				throw new UndefinedParameterException(entry.getKey());
+			}
+			this.setParameter(entry.getKey(), provided.get(entry.getKey()));
+		}
+	}
+
 	/**
 	 * Set the value of the named parameter for this simulation.
 	 * 
@@ -268,8 +286,9 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 */
-	final public void setParameter(String name, String value) throws IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException {
+	final protected void setParameter(String name, String value)
+			throws IllegalArgumentException, IllegalAccessException,
+			InvocationTargetException {
 		if (fieldParameters.containsKey(name)) {
 			Class<?> type = fieldParameters.get(name).getType();
 			if (type == String.class) {
@@ -277,16 +296,19 @@ public abstract class RunnableSimulation implements Runnable {
 			} else if (type == Integer.class || type == Integer.TYPE) {
 				fieldParameters.get(name).setInt(this, Integer.parseInt(value));
 			} else if (type == Double.class || type == Double.TYPE) {
-				fieldParameters.get(name).setDouble(this, Double.parseDouble(value));
+				fieldParameters.get(name).setDouble(this,
+						Double.parseDouble(value));
 			}
 		} else if (methodParameters.containsKey(name)) {
 			Class<?> type = methodParameters.get(name).getParameterTypes()[0];
 			if (type == String.class) {
 				methodParameters.get(name).invoke(this, value);
 			} else if (type == Integer.class || type == Integer.TYPE) {
-				methodParameters.get(name).invoke(this, Integer.parseInt(value));
+				methodParameters.get(name)
+						.invoke(this, Integer.parseInt(value));
 			} else if (type == Double.class || type == Double.TYPE) {
-				methodParameters.get(name).invoke(this, Double.parseDouble(value));
+				methodParameters.get(name).invoke(this,
+						Double.parseDouble(value));
 			}
 		}
 	}
@@ -327,15 +349,17 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	final public static RunnableSimulation newFromClassName(String className, Object... ctorParams)
-			throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+	final public static RunnableSimulation newFromClassName(String className,
+			Object... ctorParams) throws ClassNotFoundException,
+			NoSuchMethodException, InvocationTargetException,
 			InstantiationException, IllegalAccessException {
 		final Logger logger = Logger.getLogger(RunnableSimulation.class);
 
 		// Find Class and assert it is a RunnableSimulation
 		Class<? extends RunnableSimulation> clazz = null;
 		try {
-			clazz = Class.forName(className).asSubclass(RunnableSimulation.class);
+			clazz = Class.forName(className).asSubclass(
+					RunnableSimulation.class);
 		} catch (ClassNotFoundException e) {
 			logger.fatal(className + " is not on the classpath!", e);
 			throw e;
@@ -432,10 +456,13 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws InvocationTargetException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
+	 * @throws UndefinedParameterException
+	 * @throws IllegalArgumentException
 	 */
 	final public static void main(String[] args) throws ClassNotFoundException,
-			NoSuchMethodException, InvocationTargetException, InstantiationException,
-			IllegalAccessException {
+			NoSuchMethodException, InvocationTargetException,
+			InstantiationException, IllegalAccessException,
+			IllegalArgumentException, UndefinedParameterException {
 
 		if (args.length < 1) {
 			System.err.println("No args provided, expected 1 or more.");
@@ -462,8 +489,6 @@ public abstract class RunnableSimulation implements Runnable {
 		// Create the runnable simulation assuming it's an InjectedSimulation
 		RunnableSimulation sim = newFromClassName(args[0], additionalModules);
 
-		Map<String, Class<?>> parameters = sim.getParameters();
-
 		// check for parameters in args
 		Map<String, String> providedParams = new HashMap<String, String>();
 		for (int i = 1; i < args.length; i++) {
@@ -474,13 +499,7 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 
 		// set parameters
-		for (Map.Entry<String, Class<?>> entry : parameters.entrySet()) {
-			if (!providedParams.containsKey(entry.getKey())) {
-				System.err.println("No value provided for " + entry.getKey() + " parameter.");
-				return;
-			}
-			sim.setParameter(entry.getKey(), providedParams.get(entry.getKey()));
-		}
+		sim.setParameters(providedParams);
 
 		// go!
 		sim.load();
@@ -488,9 +507,11 @@ public abstract class RunnableSimulation implements Runnable {
 
 	}
 
-	final public static void runSimulationID(final DatabaseService db, final StorageService sto,
-			long simID, int threads) throws ClassNotFoundException, NoSuchMethodException,
-			InvocationTargetException, InstantiationException, IllegalAccessException {
+	final public static void runSimulationID(final DatabaseService db,
+			final StorageService sto, long simID, int threads)
+			throws ClassNotFoundException, NoSuchMethodException,
+			InvocationTargetException, InstantiationException,
+			IllegalAccessException {
 		// Additional modules we want for this simulation run
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
 		additionalModules.add(SimulatorModule.multiThreadedSimulator(threads));
@@ -508,33 +529,37 @@ public abstract class RunnableSimulation implements Runnable {
 		// get PersistentSimulation
 		PersistentSimulation sim = sto.getSimulationById(simID);
 		if (sim == null) {
-			System.err.println("Simulation with ID " + simID + " not found in storage. Aborting.");
+			System.err.println("Simulation with ID " + simID
+					+ " not found in storage. Aborting.");
 			db.stop();
 			return;
 		}
-		if (!sim.getState().equalsIgnoreCase("NOT STARTED") && !sim.getState().equalsIgnoreCase("AUTO START")) {
-			System.err.println("Simulation " + simID + " has already been started. Aborting.");
+		if (!sim.getState().equalsIgnoreCase("NOT STARTED")
+				&& !sim.getState().equalsIgnoreCase("AUTO START")) {
+			System.err.println("Simulation " + simID
+					+ " has already been started. Aborting.");
 			db.stop();
 			return;
 		}
 		sim.setState(SimulationState.LOADING.name());
 		sto.setSimulation(sim);
 
-		RunnableSimulation run = newFromClassName(sim.getClassName(), additionalModules);
+		RunnableSimulation run = newFromClassName(sim.getClassName(),
+				additionalModules);
 
 		run.setDatabase(db);
 		run.setStorage(sto);
 
-		Map<String, String> providedParams = sim.getParameters();
-		for (Map.Entry<String, Class<?>> entry : run.getParameters().entrySet()) {
-			if (!providedParams.containsKey(entry.getKey())) {
-				System.err.println("No value provided for " + entry.getKey()
-						+ " parameter. Aborting.");
-				sim.setState("FAILED");
-				db.stop();
-				return;
-			}
-			run.setParameter(entry.getKey(), providedParams.get(entry.getKey()));
+		try {
+			run.setParameters(sim.getParameters());
+		} catch (IllegalArgumentException e) {
+			sim.setState("FAILED");
+			db.stop();
+			return;
+		} catch (UndefinedParameterException e) {
+			sim.setState("FAILED");
+			db.stop();
+			return;
 		}
 
 		run.simPersist = sim;
@@ -547,8 +572,9 @@ public abstract class RunnableSimulation implements Runnable {
 	private static class ObjectFactory {
 
 		@SuppressWarnings("unchecked")
-		static <T> Constructor<? extends T> getConstructor(final Class<T> clazz,
-				Class<?>... paramTypes) throws NoSuchMethodException {
+		static <T> Constructor<? extends T> getConstructor(
+				final Class<T> clazz, Class<?>... paramTypes)
+				throws NoSuchMethodException {
 
 			for (Constructor<?> ctor : clazz.getConstructors()) {
 				Class<?>[] ctorParams = ctor.getParameterTypes();
@@ -567,8 +593,9 @@ public abstract class RunnableSimulation implements Runnable {
 						return (Constructor<? extends T>) ctor;
 				}
 			}
-			throw new NoSuchMethodException("Could not find constructor to match parameters for "
-					+ clazz.getSimpleName());
+			throw new NoSuchMethodException(
+					"Could not find constructor to match parameters for "
+							+ clazz.getSimpleName());
 		}
 
 	}
