@@ -492,7 +492,7 @@ public abstract class RunnableSimulation implements Runnable {
 		// check for parameters in args
 		Map<String, String> providedParams = new HashMap<String, String>();
 		for (int i = 1; i < args.length; i++) {
-			if (Pattern.matches("([a-zA-Z0-9_]+)=([a-zA-Z0-9_.])+$", args[i])) {
+			if (Pattern.matches("([a-zA-Z0-9_]+)=([a-zA-Z0-9_.,])+$", args[i])) {
 				String[] pieces = args[i].split("=", 2);
 				providedParams.put(pieces[0], pieces[1]);
 			}
