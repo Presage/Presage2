@@ -167,4 +167,46 @@ public class ParameterTest {
 		assertEquals(finishTime, simUnderTest.finishTime);
 	}
 
+	@Test
+	public void testParameterNotSet() throws IllegalArgumentException,
+			UndefinedParameterException, IllegalAccessException,
+			InvocationTargetException {
+		RunnableSimulation simUnderTest = new RunnableSimulation() {
+
+			@Parameter(name = "param1")
+			public String param1;
+
+			@Override
+			public void load() {
+			}
+		};
+		// finishTime is always required
+		final int finishTime = random.nextInt(10000);
+		providedParameters.put("finishTime", Integer.toString(finishTime));
+
+		try {
+			simUnderTest.setParameters(providedParameters);
+			fail("Exception not thrown for undefined parameter");
+		} catch (UndefinedParameterException e) {
+
+		}
+	}
+
+	@Test
+	public void testFinishTimeNotSet() throws IllegalArgumentException,
+			UndefinedParameterException, IllegalAccessException,
+			InvocationTargetException {
+		RunnableSimulation simUnderTest = new RunnableSimulation() {
+			@Override
+			public void load() {
+			}
+		};
+		try {
+			simUnderTest.setParameters(providedParameters);
+			fail("Exception not thrown for undefined parameter");
+		} catch (UndefinedParameterException e) {
+
+		}
+	}
+
 }
