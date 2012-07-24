@@ -285,4 +285,33 @@ public class ParameterTest {
 		assertEquals("testValue", simUnderTest.getParameter("param1"));
 	}
 
+	@Test
+	public void testOptionalParameterIsSet() throws IllegalArgumentException,
+			UndefinedParameterException, IllegalAccessException,
+			InvocationTargetException {
+		RunnableSimulation simUnderTest = new RunnableSimulation() {
+
+			@Parameter(name = "param1", optional = true)
+			public String param1 = "testValue";
+
+			@Override
+			public void load() {
+			}
+		};
+
+		final int finishTime = random.nextInt(10000);
+		providedParameters.put("finishTime", Integer.toString(finishTime));
+		final String param1 = RandomStringUtils.random(random.nextInt(300));
+		providedParameters.put("param1", param1);
+
+		simUnderTest.setParameters(providedParameters);
+
+		// assert time is set
+		assertEquals(finishTime,
+				Integer.parseInt(simUnderTest.getParameter("finishTime")));
+		assertEquals(finishTime, simUnderTest.finishTime);
+		// assert param1 is set
+		assertEquals(param1, simUnderTest.getParameter("param1"));
+	}
+
 }
