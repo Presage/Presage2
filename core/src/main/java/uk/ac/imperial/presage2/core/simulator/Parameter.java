@@ -27,4 +27,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Parameter {
 	public String name();
+
+	public boolean optional() default false;
+
 }

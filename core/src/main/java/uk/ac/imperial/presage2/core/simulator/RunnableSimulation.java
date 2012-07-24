@@ -266,12 +266,27 @@ public abstract class RunnableSimulation implements Runnable {
 		for (Map.Entry<String, Class<?>> entry : this.getParameters()
 				.entrySet()) {
 			if (!provided.containsKey(entry.getKey())) {
-				logger.fatal("No value provided for " + entry.getKey()
-						+ " parameter.");
-				throw new UndefinedParameterException(entry.getKey());
+				if (!optionalParameter(entry.getKey())) {
+					logger.fatal("No value provided for " + entry.getKey()
+							+ " parameter.");
+					throw new UndefinedParameterException(entry.getKey());
+				}
+				continue;
 			}
 			this.setParameter(entry.getKey(), provided.get(entry.getKey()));
 		}
+	}
+
+	private boolean optionalParameter(String key)
+			throws UndefinedParameterException {
+		if (fieldParameters.containsKey(key)) {
+			return fieldParameters.get(key).getAnnotation(Parameter.class)
+					.optional();
+		} else if (methodParameters.containsKey(key)) {
+			return methodParameters.get(key).getAnnotation(Parameter.class)
+					.optional();
+		}
+		throw new UndefinedParameterException(key);
 	}
 
 	/**
