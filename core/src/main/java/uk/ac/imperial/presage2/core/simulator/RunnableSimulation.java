@@ -298,6 +298,9 @@ public abstract class RunnableSimulation implements Runnable {
 			} else if (type == Double.class || type == Double.TYPE) {
 				fieldParameters.get(name).setDouble(this,
 						Double.parseDouble(value));
+			} else if (type == Boolean.class || type == Boolean.TYPE) {
+				fieldParameters.get(name).setBoolean(this,
+						Boolean.parseBoolean(value));
 			}
 		} else if (methodParameters.containsKey(name)) {
 			Class<?> type = methodParameters.get(name).getParameterTypes()[0];
@@ -309,6 +312,9 @@ public abstract class RunnableSimulation implements Runnable {
 			} else if (type == Double.class || type == Double.TYPE) {
 				methodParameters.get(name).invoke(this,
 						Double.parseDouble(value));
+			} else if (type == Boolean.class || type == Boolean.TYPE) {
+				methodParameters.get(name).invoke(this,
+						Boolean.parseBoolean(value));
 			}
 		}
 	}

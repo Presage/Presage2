@@ -144,6 +144,37 @@ public class ParameterTest {
 	}
 
 	@Test
+	public void testBooleanParameter() throws IllegalArgumentException,
+			UndefinedParameterException, IllegalAccessException,
+			InvocationTargetException {
+		RunnableSimulation simUnderTest = new RunnableSimulation() {
+
+			@Parameter(name = "param1")
+			public boolean param1;
+
+			@Override
+			public void load() {
+			}
+		};
+		// finishTime is always required
+		final int finishTime = random.nextInt(10000);
+		providedParameters.put("finishTime", Integer.toString(finishTime));
+		// set param1
+		final boolean param1 = random.nextBoolean();
+		providedParameters.put("param1", Boolean.toString(param1));
+
+		simUnderTest.setParameters(providedParameters);
+
+		// assert time is set
+		assertEquals(finishTime,
+				Integer.parseInt(simUnderTest.getParameter("finishTime")));
+		assertEquals(finishTime, simUnderTest.finishTime);
+		// assert param1 is set
+		assertEquals(param1,
+				Boolean.parseBoolean(simUnderTest.getParameter("param1")));
+	}
+
+	@Test
 	public void testIgnoreNonPublicParameterField()
 			throws IllegalArgumentException, UndefinedParameterException,
 			IllegalAccessException, InvocationTargetException {
