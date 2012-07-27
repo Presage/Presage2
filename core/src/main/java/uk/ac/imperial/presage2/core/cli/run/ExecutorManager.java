@@ -155,7 +155,6 @@ public class ExecutorManager extends Thread {
 		}
 
 		logger.debug("No more simulations to submit, waiting for executors to finish.");
-		logStatus();
 		// wait for executors to finish
 		for (SimulationExecutor exe : executors) {
 			synchronized (this) {
@@ -168,8 +167,8 @@ public class ExecutorManager extends Thread {
 					}
 				}
 			}
-			logStatus();
 		}
+		logStatus();
 		logger.info("ExecutorManager shutting down.");
 	}
 
@@ -185,6 +184,8 @@ public class ExecutorManager extends Thread {
 		}
 		int completed = submittedCount - poolUtil;
 		int total = submittedCount + queue.size();
+		if(total == 0)
+			return;
 		logger.info("Simulations running: " + poolUtil + "/" + poolSize);
 		logger.info("Job progress: " + completed + "/" + total + " ("
 				+ (100 * completed) / total + "%)");
