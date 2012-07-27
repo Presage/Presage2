@@ -186,7 +186,8 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 							+ "FOREIGN KEY (`simID`) REFERENCES `simulations` (`ID`) ON DELETE CASCADE)");
 			createParameters.close();
 		} catch (SQLException e) {
-			logger.warn("Couldn't create tables", e);
+			logger.fatal("Couldn't create tables", e);
+			throw new RuntimeException(e);
 		}
 	}
 
