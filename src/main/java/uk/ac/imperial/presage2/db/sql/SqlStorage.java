@@ -100,10 +100,12 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 				this.conn = DriverManager.getConnection(
 						jdbcInfo.getProperty("url"), jdbcInfo);
 			} catch (SQLException e) {
-				logger.warn(
+				logger.fatal(
 						"Exception while attempting to connect to jdbc db.", e);
+				throw e;
 			} catch (ClassNotFoundException e) {
-				logger.warn("JDBC driver not found.", e);
+				logger.fatal("JDBC driver not found.", e);
+				throw e;
 			}
 			initTables();
 			// start batch thread
@@ -204,7 +206,7 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 			public void run() {
 				incrementTime();
 			}
-		}, 200L, 1000L);
+		}, 200L, 5000L);
 	}
 
 	public void incrementTime() {
