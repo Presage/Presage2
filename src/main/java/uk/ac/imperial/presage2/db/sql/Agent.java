@@ -31,7 +31,7 @@ public class Agent implements PersistentAgent {
 
 	boolean dirty = false;
 	boolean transientDirty = false;
-	
+
 	public final long simId;
 
 	UUID id;

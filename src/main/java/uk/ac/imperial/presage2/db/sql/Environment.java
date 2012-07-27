@@ -30,7 +30,7 @@ public class Environment implements PersistentEnvironment {
 
 	boolean pdirty = false;
 	boolean tdirty = false;
-	
+
 	public final long simId;
 
 	public Map<String, String> properties = new HashMap<String, String>();

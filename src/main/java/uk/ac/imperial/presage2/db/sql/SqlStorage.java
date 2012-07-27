@@ -89,6 +89,9 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 	public SqlStorage(@Named(value = "sql.info") Properties jdbcInfo) {
 		super();
 		this.jdbcInfo = jdbcInfo;
+		if (jdbcInfo.getProperty("driver", "").equalsIgnoreCase(
+				"org.postgresql.Driver"))
+			Sql.dialect = Dialect.POSTGRESQL;
 	}
 
 	@Override
@@ -143,6 +146,7 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 
 				} catch (SQLException e) {
 					logger.warn("Error executing batch query", e);
+					logger.warn("Next exception was: ", e.getNextException());
 				} catch (InterruptedException e1) {
 				} finally {
 					for (PreparedStatement stmt : tx) {
@@ -162,28 +166,10 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 		Statement createParameters = null;
 		try {
 			createSimulations = conn.createStatement();
-			createSimulations
-					.execute("" + "CREATE TABLE IF NOT EXISTS simulations"
-							+ "(`id` bigint(20) NOT NULL AUTO_INCREMENT,"
-							+ "`name` varchar(255) NOT NULL,"
-							+ "`state` varchar(80) NOT NULL,"
-							+ "`classname` varchar(255) NOT NULL,"
-							+ "`currentTime` int(11) NOT NULL DEFAULT 0,"
-							+ "`finishTime` int(11) NOT NULL,"
-							+ "`createdAt` bigint(20) NOT NULL DEFAULT 0,"
-							+ "`startedAt` bigint(20) NOT NULL DEFAULT 0,"
-							+ "`finishedAt` bigint(20) NOT NULL DEFAULT 0,"
-							+ "`parent` bigint(20) NULL,"
-							+ " PRIMARY KEY (`id`)" + ")");
+			createSimulations.execute(Sql.createSimulationTable());
 			createSimulations.close();
 			createParameters = conn.createStatement();
-			createParameters
-					.execute("CREATE TABLE IF NOT EXISTS parameters"
-							+ "(`simId` bigint(20) NOT NULL,"
-							+ "`name` varchar(255) NOT NULL,"
-							+ "`value` varchar(255) NOT NULL,"
-							+ "PRIMARY KEY (`simId`, `name`), INDEX (`simId`),"
-							+ "FOREIGN KEY (`simID`) REFERENCES `simulations` (`ID`) ON DELETE CASCADE)");
+			createParameters.execute(Sql.createParametersTable());
 			createParameters.close();
 		} catch (SQLException e) {
 			logger.fatal("Couldn't create tables", e);
@@ -222,16 +208,18 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 
 	protected void updateSimulations() {
 		PreparedStatement updateSimulation = null;
+		PreparedStatement insertParameters = null;
 		PreparedStatement updateParameters = null;
 
 		try {
-			updateSimulation = conn.prepareStatement("UPDATE simulations "
-					+ "SET state = ? ," + "currentTime = ? ,"
-					+ "startedAt = ? ," + "finishedAt = ? ," + "parent = ? "
-					+ "WHERE id = ?" + " LIMIT 1");
-			updateParameters = conn.prepareStatement("INSERT INTO parameters "
-					+ "(`simId`, `name`, `value`) " + "VALUES " + "(?, ?, ?) "
-					+ "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);");
+			updateSimulation = conn.prepareStatement(Sql
+					.formatQuery("UPDATE simulations " + "SET `state` = ? ,"
+							+ "`currentTime` = ? ," + "`startedAt` = ? ,"
+							+ "`finishedAt` = ? ," + "`parent` = ? "
+							+ "WHERE `id` = ?" + ""));
+			insertParameters = conn
+					.prepareStatement(Sql.insertIntoParameters());
+			updateParameters = conn.prepareStatement(Sql.updateParameters());
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -251,15 +239,32 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 
 					for (Map.Entry<String, String> p : s.getParameters()
 							.entrySet()) {
-						updateParameters.setLong(1, s.getID());
-						updateParameters.setString(2, p.getKey());
-						updateParameters.setString(3, p.getValue());
-						updateParameters.addBatch();
+						switch (Sql.dialect) {
+						case POSTGRESQL:
+							updateParameters.setString(1, p.getValue());
+							updateParameters.setLong(2, s.getID());
+							updateParameters.setString(3, p.getKey());
+							insertParameters.setLong(1, s.getID());
+							insertParameters.setString(2, p.getKey());
+							insertParameters.setString(3, p.getValue());
+							insertParameters.setLong(4, s.getID());
+							insertParameters.setString(5, p.getKey());
+							updateParameters.addBatch();
+							break;
+						case MYSQL:
+						default:
+							insertParameters.setLong(1, s.getID());
+							insertParameters.setString(2, p.getKey());
+							insertParameters.setString(3, p.getValue());
+						}
+
+						insertParameters.addBatch();
 					}
 
 				}
 				batchQueryQ.put(updateSimulation);
 				batchQueryQ.put(updateParameters);
+				batchQueryQ.put(insertParameters);
 				simulationQ.clear();
 			}
 		} catch (SQLException e) {
@@ -351,11 +356,9 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 		PreparedStatement createSimulation = null;
 		ResultSet generatedKeys = null;
 		try {
-			createSimulation = conn
-					.prepareStatement(
-							"INSERT INTO simulations (`name`, `state`, `classname`, `finishTime`, `createdAt`)"
-									+ "VALUES (?, ?, ?, ?, ?)",
-							Statement.RETURN_GENERATED_KEYS);
+			createSimulation = conn.prepareStatement(
+					Sql.insertIntoSimulations(),
+					Statement.RETURN_GENERATED_KEYS);
 			createSimulation.setString(1, name);
 			createSimulation.setString(2, state);
 			createSimulation.setString(3, classname);
@@ -406,13 +409,15 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 			ResultSet paramsRow = null;
 			try {
 				getSimulation = conn
-						.prepareStatement("SELECT `id`, `name`, `state`, `classname`, `currentTime`, `finishTime`, "
-								+ "`createdAt`, "
-								+ "`startedAt`, "
-								+ "`finishedAt`, `parent` "
-								+ "FROM simulations WHERE `id` = ?");
+						.prepareStatement(Sql
+								.formatQuery("SELECT `id`, `name`, `state`, `classname`, `currentTime`, `finishTime`, "
+										+ "`createdAt`, "
+										+ "`startedAt`, "
+										+ "`finishedAt`, `parent` "
+										+ "FROM simulations WHERE `id` = ?"));
 				getParameters = conn
-						.prepareStatement("SELECT `name`, `value` FROM parameters WHERE simId = ?");
+						.prepareStatement(Sql
+								.formatQuery("SELECT `name`, `value` FROM parameters WHERE `simId` = ?"));
 
 				getSimulation.setLong(1, id);
 				simRow = getSimulation.executeQuery();
@@ -551,11 +556,12 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 		ResultSet simRow = null;
 		try {
 			getChildren = conn
-					.prepareStatement("SELECT `id`, `name`, `state`, `classname`, `currentTime`, `finishTime`, "
-							+ "`createdAt`, "
-							+ "`startedAt`, "
-							+ "`finishedAt`, `parent` "
-							+ "FROM simulations WHERE `parent` = ?");
+					.prepareStatement(Sql
+							.formatQuery("SELECT `id`, `name`, `state`, `classname`, `currentTime`, `finishTime`, "
+									+ "`createdAt`, "
+									+ "`startedAt`, "
+									+ "`finishedAt`, `parent` "
+									+ "FROM simulations WHERE `parent` = ?"));
 			getChildren.setLong(1, simId);
 			simRow = getChildren.executeQuery();
 			while (simRow.next()) {
