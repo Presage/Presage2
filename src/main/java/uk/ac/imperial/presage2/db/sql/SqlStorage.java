@@ -415,9 +415,7 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 										+ "`startedAt`, "
 										+ "`finishedAt`, `parent` "
 										+ "FROM simulations WHERE `id` = ?"));
-				getParameters = conn
-						.prepareStatement(Sql
-								.formatQuery("SELECT `name`, `value` FROM parameters WHERE `simId` = ?"));
+				getParameters = conn.prepareStatement(Sql.getParametersById());
 
 				getSimulation.setLong(1, id);
 				simRow = getSimulation.executeQuery();
@@ -469,14 +467,8 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 		ResultSet paramsRow = null;
 		List<Long> simIds = new LinkedList<Long>();
 		try {
-			getSimulations = conn
-					.prepareStatement("SELECT `id`, `name`, `state`, `classname`, `currentTime`, `finishTime`, "
-							+ "`createdAt`, "
-							+ "`startedAt`, "
-							+ "`finishedAt`, `parent` "
-							+ "FROM simulations ORDER BY `id` ASC");
-			getParameters = conn
-					.prepareStatement("SELECT `name`, `value` FROM parameters WHERE simId = ?");
+			getSimulations = conn.prepareStatement(Sql.getSimulations());
+			getParameters = conn.prepareStatement(Sql.getParametersById());
 
 			simRow = getSimulations.executeQuery();
 			while (simRow.next()) {
