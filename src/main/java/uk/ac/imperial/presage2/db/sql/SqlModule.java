@@ -33,14 +33,26 @@ public class SqlModule extends DatabaseModule {
 	Properties properties;
 	Class<? extends SqlStorage> impl;
 
+	final String defaultDriver = "org.postgresql.Driver";
+	final String defaultPostgresqlImpl = "uk.ac.imperial.presage2.db.sql.PostGreSqlStorage";
+	final String defaultMysqlImpl = "uk.ac.imperial.presage2.db.sql.SqlStorage";
+	String implClass = defaultPostgresqlImpl;
+
 	@SuppressWarnings("unchecked")
 	public SqlModule(Properties properties) {
 		super();
 		this.properties = properties;
+
+		// set driver to postgresql if not defined; use SqlStorage
+		// implementation if driver is not postgres
+		if (!this.properties.containsKey("driver")) {
+			this.properties.put("driver", defaultDriver);
+		} else if (!this.properties.getProperty("driver").equals(defaultDriver)) {
+			implClass = defaultMysqlImpl;
+		}
 		try {
 			impl = (Class<? extends SqlStorage>) Class.forName(properties
-					.getProperty("implementation",
-							"uk.ac.imperial.presage2.db.sql.SqlStorage"));
+					.getProperty("implementation", implClass));
 		} catch (ClassNotFoundException e) {
 		}
 	}
