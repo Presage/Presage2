@@ -543,6 +543,17 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 	}
 
 	List<Long> getChildren(long simId) {
+		// wait for empty query queue to ensure changes have been committed to
+		// db.
+		logger.debug("getChildren wait");
+		updateSimulations();
+		while (!batchQueryQ.isEmpty()) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+		}
+		logger.debug("getChildren continue");
 		List<Long> simIds = new LinkedList<Long>();
 		PreparedStatement getChildren = null;
 		ResultSet simRow = null;

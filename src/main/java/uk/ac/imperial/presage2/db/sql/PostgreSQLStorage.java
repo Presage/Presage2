@@ -21,25 +21,21 @@ package uk.ac.imperial.presage2.db.sql;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-public class PostGreSqlStorage extends SqlStorage {
+public class PostgreSQLStorage extends SqlStorage {
 
 	PreparedStatement createAgent = null;
 
 	@Inject
-	public PostGreSqlStorage(@Named(value = "sql.info") Properties jdbcInfo) {
+	public PostgreSQLStorage(@Named(value = "sql.info") Properties jdbcInfo) {
 		super(jdbcInfo);
 		if (Sql.dialect != Dialect.POSTGRESQL) {
 			throw new RuntimeException(
@@ -106,15 +102,17 @@ public class PostGreSqlStorage extends SqlStorage {
 	@Override
 	protected void updateSimulations() {
 		PreparedStatement updateSimulation = null;
+		PreparedStatement updateParameters = null;
 		try {
 			updateSimulation = conn
 					.prepareStatement("UPDATE simulations SET state = ?, "
 							+ "\"currentTime\" = ?, " + "\"startedAt\" = ?, "
 							+ "\"finishedAt\" = ?," + "parent = ? "
 							+ "WHERE id = ? ;");
+			updateParameters = conn
+					.prepareStatement("UPDATE simulations SET parameters = parameters || hstore(?, ?) WHERE id = ?");
 			synchronized (simulationQ) {
 				for (Simulation s : simulationQ) {
-					s.dirty = false;
 
 					updateSimulation.setString(1, s.getState());
 					updateSimulation.setInt(2, s.getCurrentTime());
@@ -125,25 +123,22 @@ public class PostGreSqlStorage extends SqlStorage {
 
 					updateSimulation.addBatch();
 
-					List<String> paramPairs = new ArrayList<String>();
-					for (Map.Entry<String, String> p : s.getParameters()
-							.entrySet()) {
-						paramPairs.add("\"" + p.getKey() + "\" => \""
-								+ p.getValue() + "\"");
-					}
-
-					// update parameters if there are more than 1
-					if (paramPairs.size() > 0) {
-						String paramsHstore = StringUtils.join(paramPairs, ',');
-						PreparedStatement updateParameters = conn
-								.prepareStatement("UPDATE simulations SET parameters = parameters || ('"
-										+ paramsHstore + "') WHERE id = ?");
-						updateParameters.setLong(1, s.getID());
-						updateParameters.addBatch();
-						batchQueryQ.add(updateParameters);
+					// update parameters if they are dirty
+					if (s.dirty) {
+						for (Map.Entry<String, String> p : s.getParameters()
+								.entrySet()) {
+							updateParameters.setString(1, p.getKey());
+							updateParameters.setString(2, p.getValue());
+							updateParameters.setLong(3, s.getID());
+							updateParameters.addBatch();
+						}
+						batchQueryQ.put(updateParameters);
+						s.dirty = false;
 					}
 				}
-				batchQueryQ.put(updateSimulation);
+				if (simulationQ.size() > 0) {
+					batchQueryQ.put(updateSimulation);
+				}
 				simulationQ.clear();
 			}
 		} catch (SQLException e) {
@@ -170,14 +165,17 @@ public class PostGreSqlStorage extends SqlStorage {
 							.entrySet()) {
 						insertEnvironment.setLong(1, env.simId);
 						insertEnvironment.setLong(2, env.simId);
+						insertEnvironment.addBatch();
 						updateEnvironment.setString(1, prop.getKey());
 						updateEnvironment.setString(2, prop.getValue());
 						updateEnvironment.setLong(3, env.simId);
 						updateEnvironment.addBatch();
 					}
 				}
-				batchQueryQ.put(insertEnvironment);
-				batchQueryQ.put(updateEnvironment);
+				if (environmentQ.size() > 0) {
+					batchQueryQ.put(insertEnvironment);
+					batchQueryQ.put(updateEnvironment);
+				}
 				environmentQ.clear();
 			}
 		} catch (SQLException e) {
@@ -197,7 +195,7 @@ public class PostGreSqlStorage extends SqlStorage {
 			PreparedStatement updateEnvironment = conn
 					.prepareStatement("UPDATE environmentTransient SET state = state || hstore(?, ?) "
 							+ "WHERE \"simId\" = ? AND \"time\" = ?");
-			synchronized (environmentQ) {
+			synchronized (environmentTransientQ) {
 				for (Environment e : environmentTransientQ) {
 					for (Integer t : e.transientProperties.keySet()) {
 						for (Map.Entry<String, String> p : e.transientProperties
@@ -216,8 +214,10 @@ public class PostGreSqlStorage extends SqlStorage {
 					}
 					e.transientProperties.clear();
 				}
-				batchQueryQ.put(insertEnvironment);
-				batchQueryQ.put(updateEnvironment);
+				if (environmentTransientQ.size() > 0) {
+					batchQueryQ.put(insertEnvironment);
+					batchQueryQ.put(updateEnvironment);
+				}
 				environmentTransientQ.clear();
 			}
 		} catch (SQLException e) {
@@ -257,7 +257,8 @@ public class PostGreSqlStorage extends SqlStorage {
 						updateAgents.addBatch();
 					}
 				}
-				batchQueryQ.put(updateAgents);
+				if (agentQ.size() > 0)
+					batchQueryQ.put(updateAgents);
 				agentQ.clear();
 			}
 		} catch (SQLException e) {
@@ -302,8 +303,10 @@ public class PostGreSqlStorage extends SqlStorage {
 					}
 					a.transientProperties.clear();
 				}
-				batchQueryQ.put(insertAgentState);
-				batchQueryQ.put(updateAgentState);
+				if (agentTransientQ.size() > 0) {
+					batchQueryQ.put(insertAgentState);
+					batchQueryQ.put(updateAgentState);
+				}
 				agentTransientQ.clear();
 			}
 		} catch (SQLException e) {

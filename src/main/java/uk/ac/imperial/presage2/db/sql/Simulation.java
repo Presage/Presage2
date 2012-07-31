@@ -114,7 +114,10 @@ public class Simulation implements PersistentSimulation {
 
 	@Override
 	public void setParentSimulation(PersistentSimulation parent) {
-		this.parent = parent.getID();
+		if (parent == null)
+			this.parent = 0;
+		else
+			this.parent = parent.getID();
 		this.sto.simulationQ.add(this);
 	}
 
@@ -162,6 +165,7 @@ public class Simulation implements PersistentSimulation {
 
 	@Override
 	public void addParameter(String name, String value) {
+		this.dirty = true;
 		this.parameters.put(name, value);
 		this.sto.simulationQ.add(this);
 	}
