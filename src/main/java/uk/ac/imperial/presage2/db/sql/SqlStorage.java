@@ -92,6 +92,8 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 		if (jdbcInfo.getProperty("driver", "").equalsIgnoreCase(
 				"org.postgresql.Driver"))
 			Sql.dialect = Dialect.POSTGRESQL;
+		else
+			Sql.dialect = Dialect.MYSQL;
 	}
 
 	@Override
