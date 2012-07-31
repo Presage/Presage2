@@ -20,12 +20,8 @@ package uk.ac.imperial.presage2.db.sql;
 
 import java.util.Properties;
 
-import org.junit.Ignore;
-
 import uk.ac.imperial.presage2.core.db.GenericStorageServiceTest;
-import uk.ac.imperial.presage2.db.sql.SqlStorage;
 
-@Ignore
 public class SqlStorageTest extends GenericStorageServiceTest {
 
 	SqlStorage sqlSto;
@@ -35,8 +31,8 @@ public class SqlStorageTest extends GenericStorageServiceTest {
 		Properties jdbcInfo = new Properties();
 		jdbcInfo.put("driver", "com.mysql.jdbc.Driver");
 		jdbcInfo.put("url", "jdbc:mysql://localhost/presage_test");
-		jdbcInfo.put("user", "root");
-		//jdbcInfo.put("password", "v6Bn6vsU3sGA2CSV");
+		jdbcInfo.put("user", "presage_test");
+		jdbcInfo.put("password", "test_user");
 		this.sqlSto = new SqlStorage(jdbcInfo);
 		this.db = sqlSto;
 		this.sto = sqlSto;
