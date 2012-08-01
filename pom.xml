@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>uk.ac.imperial.presage2</groupId>
 		<artifactId>presage2</artifactId>
-		<version>0.3.3-SNAPSHOT</version>
+		<version>0.3.3</version>
 	</parent>
 	<artifactId>presage2-sqldb</artifactId>
 	<packaging>jar</packaging>
@@ -67,6 +67,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12</version>
 				<configuration>
 					<forkMode>always</forkMode>
 				</configuration>
