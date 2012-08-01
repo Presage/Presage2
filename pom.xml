@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>uk.ac.imperial.presage2</groupId>
 		<artifactId>presage2</artifactId>
-		<version>0.3.3</version>
+		<version>0.3.4-SNAPSHOT</version>
 	</parent>
 	<artifactId>presage2-sqldb</artifactId>
 	<packaging>jar</packaging>
