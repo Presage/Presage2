@@ -192,7 +192,7 @@ public class Area implements HasArea {
 			return this;
 		}
 
-		public Bind addEdgeHander(Edge e, Class<? extends EdgeHandler> h) {
+		public Bind addEdgeHandler(Edge e, Class<? extends EdgeHandler> h) {
 			edges.put(e, h);
 			return this;
 		}
