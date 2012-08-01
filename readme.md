@@ -32,7 +32,7 @@ The following parameters can be used in the db.properties file to specify the db
 
  * `module` - This is the module used to load the presage2 db driver. It should be set to `uk.ac.imperial.presage2.db.sql.SqlModule`
  * `driver` (optional) - The JDBC driver to use for the database connection. Default is `org.postgresql.Driver`
- * `url` - JDBC connection url, including database name. This will depend in the JDBC driver being used, for mysql it will be in the format `jdbc:postgresql://host[:port]/dbname`
+ * `url` - JDBC connection url, including database name. This will depend in the JDBC driver being used, for PostgreSQL it will be in the format `jdbc:postgresql://host[:port]/dbname`
  * `user` - Database username.
  * `password` - Database user's password.
  * `implementation` (optional) - A class extending `uk.ac.imperial.presage2.db.sql.SqlStorage` which should be used as the StorageService implementation. This allows you to add your custom sql into this class. By default `uk.ac.imperial.presage2.db.sql.PostgreSQLStorage` is used.
