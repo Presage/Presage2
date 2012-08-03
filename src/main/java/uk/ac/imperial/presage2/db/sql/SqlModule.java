@@ -34,7 +34,7 @@ public class SqlModule extends DatabaseModule {
 	Class<? extends SqlStorage> impl;
 
 	final String defaultDriver = "org.postgresql.Driver";
-	final String defaultPostgresqlImpl = "uk.ac.imperial.presage2.db.sql.PostGreSqlStorage";
+	final String defaultPostgresqlImpl = "uk.ac.imperial.presage2.db.sql.PostgreSQLStorage";
 	final String defaultMysqlImpl = "uk.ac.imperial.presage2.db.sql.SqlStorage";
 	String implClass = defaultPostgresqlImpl;
 
@@ -47,14 +47,23 @@ public class SqlModule extends DatabaseModule {
 		// implementation if driver is not postgres
 		if (!this.properties.containsKey("driver")) {
 			this.properties.put("driver", defaultDriver);
-		} else if (!this.properties.getProperty("driver").equals(defaultDriver)) {
-			implClass = defaultMysqlImpl;
+		}
+		implClass = this.properties.getProperty("implementation");
+		if (implClass == null) {
+			if (this.properties.get("driver").equals(defaultDriver))
+				implClass = defaultPostgresqlImpl;
+			else
+				implClass = defaultMysqlImpl;
 		}
 		try {
 			impl = (Class<? extends SqlStorage>) Class.forName(properties
 					.getProperty("implementation", implClass));
 		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
 		}
+		if (impl == null)
+			throw new RuntimeException("Could not find storage class: "
+					+ implClass);
 	}
 
 	@Override
