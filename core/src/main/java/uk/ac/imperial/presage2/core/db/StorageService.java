@@ -21,6 +21,8 @@ package uk.ac.imperial.presage2.core.db;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.ImplementedBy;
+
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
@@ -31,6 +33,7 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
  * @author Sam Macbeth
  * 
  */
+@ImplementedBy(StubStorageService.class)
 public interface StorageService {
 
 	/**
