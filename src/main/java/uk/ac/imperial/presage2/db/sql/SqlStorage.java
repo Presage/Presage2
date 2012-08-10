@@ -208,10 +208,52 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 		}
 	}
 
+	PreparedStatement insertParameters = null;
+	PreparedStatement updateParameters = null;
+
+	protected synchronized void setParameter(long simId, String key,
+			String value) {
+		if (insertParameters == null || updateParameters == null) {
+			try {
+				insertParameters = conn.prepareStatement(Sql
+						.insertIntoParameters());
+				updateParameters = conn
+						.prepareStatement(Sql.updateParameters());
+			} catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		try {
+			switch (Sql.dialect) {
+			case POSTGRESQL:
+				updateParameters.setString(1, value);
+				updateParameters.setLong(2, simId);
+				updateParameters.setString(3, key);
+				insertParameters.setLong(1, simId);
+				insertParameters.setString(2, key);
+				insertParameters.setString(3, value);
+				insertParameters.setLong(4, simId);
+				insertParameters.setString(5, key);
+
+				insertParameters.executeUpdate();
+				updateParameters.executeUpdate();
+				break;
+			case MYSQL:
+			default:
+				insertParameters.setLong(1, simId);
+				insertParameters.setString(2, key);
+				insertParameters.setString(3, value);
+
+				insertParameters.executeUpdate();
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	protected void updateSimulations() {
 		PreparedStatement updateSimulation = null;
-		PreparedStatement insertParameters = null;
-		PreparedStatement updateParameters = null;
 
 		try {
 			updateSimulation = conn.prepareStatement(Sql
@@ -219,9 +261,7 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 							+ "`currentTime` = ? ," + "`startedAt` = ? ,"
 							+ "`finishedAt` = ? ," + "`parent` = ? "
 							+ "WHERE `id` = ?" + ""));
-			insertParameters = conn
-					.prepareStatement(Sql.insertIntoParameters());
-			updateParameters = conn.prepareStatement(Sql.updateParameters());
+
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -238,35 +278,8 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 					updateSimulation.addBatch();
 
 					s.dirty = false;
-
-					for (Map.Entry<String, String> p : s.getParameters()
-							.entrySet()) {
-						switch (Sql.dialect) {
-						case POSTGRESQL:
-							updateParameters.setString(1, p.getValue());
-							updateParameters.setLong(2, s.getID());
-							updateParameters.setString(3, p.getKey());
-							insertParameters.setLong(1, s.getID());
-							insertParameters.setString(2, p.getKey());
-							insertParameters.setString(3, p.getValue());
-							insertParameters.setLong(4, s.getID());
-							insertParameters.setString(5, p.getKey());
-							updateParameters.addBatch();
-							break;
-						case MYSQL:
-						default:
-							insertParameters.setLong(1, s.getID());
-							insertParameters.setString(2, p.getKey());
-							insertParameters.setString(3, p.getValue());
-						}
-
-						insertParameters.addBatch();
-					}
-
 				}
 				batchQueryQ.put(updateSimulation);
-				batchQueryQ.put(updateParameters);
-				batchQueryQ.put(insertParameters);
 				simulationQ.clear();
 			}
 		} catch (SQLException e) {
