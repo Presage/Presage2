@@ -27,7 +27,6 @@ class Sql {
 		case POSTGRESQL:
 		case POSTGRESQL_HSTORE:
 			String q = query.replace("`", "\"");
-			System.out.println(q);
 			return q;
 		case MYSQL:
 		default:

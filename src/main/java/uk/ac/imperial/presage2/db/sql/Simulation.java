@@ -165,9 +165,8 @@ public class Simulation implements PersistentSimulation {
 
 	@Override
 	public void addParameter(String name, String value) {
-		this.dirty = true;
+		this.sto.setParameter(id, name, value);
 		this.parameters.put(name, value);
-		this.sto.simulationQ.add(this);
 	}
 
 	@Override

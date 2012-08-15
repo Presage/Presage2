@@ -19,13 +19,16 @@
 package uk.ac.imperial.presage2.db.sql;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -100,17 +103,36 @@ public class PostgreSQLStorage extends SqlStorage {
 	}
 
 	@Override
+	protected synchronized void setParameter(long simId, String key,
+			String value) {
+		if (updateParameters == null) {
+			try {
+				updateParameters = conn
+						.prepareStatement("UPDATE simulations SET parameters = parameters || hstore(?, ?) WHERE id = ?");
+			} catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		try {
+			updateParameters.setString(1, key);
+			updateParameters.setString(2, value);
+			updateParameters.setLong(3, simId);
+			updateParameters.executeUpdate();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	protected void updateSimulations() {
 		PreparedStatement updateSimulation = null;
-		PreparedStatement updateParameters = null;
 		try {
 			updateSimulation = conn
 					.prepareStatement("UPDATE simulations SET state = ?, "
 							+ "\"currentTime\" = ?, " + "\"startedAt\" = ?, "
 							+ "\"finishedAt\" = ?," + "parent = ? "
 							+ "WHERE id = ? ;");
-			updateParameters = conn
-					.prepareStatement("UPDATE simulations SET parameters = parameters || hstore(?, ?) WHERE id = ?");
+
 			synchronized (simulationQ) {
 				for (Simulation s : simulationQ) {
 
@@ -123,18 +145,6 @@ public class PostgreSQLStorage extends SqlStorage {
 
 					updateSimulation.addBatch();
 
-					// update parameters if they are dirty
-					if (s.dirty) {
-						for (Map.Entry<String, String> p : s.getParameters()
-								.entrySet()) {
-							updateParameters.setString(1, p.getKey());
-							updateParameters.setString(2, p.getValue());
-							updateParameters.setLong(3, s.getID());
-							updateParameters.addBatch();
-						}
-						batchQueryQ.put(updateParameters);
-						s.dirty = false;
-					}
 				}
 				if (simulationQ.size() > 0) {
 					batchQueryQ.put(updateSimulation);
@@ -280,28 +290,30 @@ public class PostgreSQLStorage extends SqlStorage {
 							+ "WHERE \"simId\" = ? AND \"aid\" = ? AND \"time\" = ?");
 			synchronized (agentTransientQ) {
 				for (Agent a : agentTransientQ) {
-					for (Integer t : a.transientProperties.keySet()) {
-						// create agent state if it doesn't exist
-						insertAgentState.setLong(1, a.simId);
-						insertAgentState.setObject(2, a.getID());
-						insertAgentState.setLong(3, t);
-						insertAgentState.setLong(4, a.simId);
-						insertAgentState.setObject(5, a.getID());
-						insertAgentState.setLong(6, t);
-						insertAgentState.addBatch();
+					synchronized (a) {
+						for (Integer t : a.transientProperties.keySet()) {
+							// create agent state if it doesn't exist
+							insertAgentState.setLong(1, a.simId);
+							insertAgentState.setObject(2, a.getID());
+							insertAgentState.setLong(3, t);
+							insertAgentState.setLong(4, a.simId);
+							insertAgentState.setObject(5, a.getID());
+							insertAgentState.setLong(6, t);
+							insertAgentState.addBatch();
 
-						// insert/update states for this time
-						for (Map.Entry<String, String> p : a.transientProperties
-								.get(t).entrySet()) {
-							updateAgentState.setString(1, p.getKey());
-							updateAgentState.setString(2, p.getValue());
-							updateAgentState.setLong(3, a.simId);
-							updateAgentState.setObject(4, a.getID());
-							updateAgentState.setInt(5, t);
-							updateAgentState.addBatch();
+							// insert/update states for this time
+							for (Map.Entry<String, String> p : a.transientProperties
+									.get(t).entrySet()) {
+								updateAgentState.setString(1, p.getKey());
+								updateAgentState.setString(2, p.getValue());
+								updateAgentState.setLong(3, a.simId);
+								updateAgentState.setObject(4, a.getID());
+								updateAgentState.setInt(5, t);
+								updateAgentState.addBatch();
+							}
 						}
+						a.transientProperties.clear();
 					}
-					a.transientProperties.clear();
 				}
 				if (agentTransientQ.size() > 0) {
 					batchQueryQ.put(insertAgentState);
@@ -316,4 +328,85 @@ public class PostgreSQLStorage extends SqlStorage {
 		}
 	}
 
+	PreparedStatement getAgents = null;
+	PreparedStatement getAgentState = null;
+	PreparedStatement getAgentTransState = null;
+	PreparedStatement getEnvironment = null;
+	PreparedStatement getEnvironmentTrans = null;
+
+	@Override
+	public PersistentSimulation getSimulationById(long id) {
+		Simulation sim = (Simulation) super.getSimulationById(id);
+		if (sim != null) {
+			try {
+				this.simId = id;
+				if (getAgents == null)
+					getAgents = conn
+							.prepareStatement("SELECT aid, name FROM agents WHERE \"simId\" = ? ");
+				if (getAgentState == null)
+					getAgentState = conn
+							.prepareStatement("SELECT (a.state).key, (a.state).value FROM "
+									+ "(SELECT each(state) AS state FROM agents WHERE \"simId\" = ? AND aid = ?) AS a");
+				if (getAgentTransState == null)
+					getAgentTransState = conn
+							.prepareStatement("SELECT a.\"time\", (a.state).key, (a.state).value FROM "
+									+ "(SELECT \"time\", each(state) AS state FROM agenttransient WHERE \"simId\" = ? AND aid = ?) AS a  ORDER BY a.\"time\" ASC");
+				getAgents.setLong(1, id);
+				ResultSet rs = getAgents.executeQuery();
+				while (rs.next()) {
+					Agent a = new Agent(UUID.fromString(rs.getString(1)),
+							rs.getString(2), this);
+					getAgentState.setLong(1, id);
+					getAgentState.setObject(2, a.getID());
+					ResultSet as = getAgentState.executeQuery();
+					while (as.next()) {
+						a.properties.put(as.getString(1), as.getString(2));
+					}
+					getAgentTransState.setLong(1, id);
+					getAgentTransState.setObject(2, a.getID());
+					as = getAgentTransState.executeQuery();
+					while (as.next()) {
+						int time = as.getInt(1);
+						if (!a.transientProperties.containsKey(time)) {
+							a.transientProperties.put(time,
+									new HashMap<String, String>());
+						}
+						a.transientProperties.get(time).put(as.getString(2),
+								as.getString(3));
+					}
+					sim.agents.add(a);
+				}
+
+				// environment
+				if (getEnvironment == null)
+					getEnvironment = conn
+							.prepareStatement("SELECT (e.state).key, (e.state).value FROM "
+									+ "(SELECT each(state) AS state FROM environment WHERE \"simId\" = ?) AS e");
+				if (getEnvironmentTrans == null)
+					getEnvironmentTrans = conn
+							.prepareStatement("SELECT e.\"time\", (e.state).key, (e.state).value FROM "
+									+ "(SELECT \"time\", each(state) AS state FROM environmenttransient WHERE \"simId\" = ?) AS e  ORDER BY e.\"time\" ASC");
+
+				getEnvironment.setLong(1, id);
+				rs = getEnvironment.executeQuery();
+				while (rs.next()) {
+					sim.env.properties.put(rs.getString(1), rs.getString(2));
+				}
+				getEnvironmentTrans.setLong(1, id);
+				rs = getEnvironmentTrans.executeQuery();
+				while (rs.next()) {
+					int time = rs.getInt(1);
+					if (!sim.env.transientProperties.containsKey(time)) {
+						sim.env.transientProperties.put(time,
+								new HashMap<String, String>());
+					}
+					sim.env.transientProperties.get(time).put(rs.getString(2),
+							rs.getString(3));
+				}
+			} catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return sim;
+	}
 }
