@@ -618,4 +618,16 @@ public class SqlStorage implements StorageService, DatabaseService, TimeDriven,
 		return this.conn;
 	}
 
+	/**
+	 * Signals that data retrieval is taking place for this simulation and state
+	 * data should be retrieved from storage to facilitate this. (optional
+	 * operation)
+	 * 
+	 * @param simId
+	 *            ID of simulation data to load.
+	 */
+	protected void fetchData(long simId) {
+
+	}
+
 }

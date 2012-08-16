@@ -23,12 +23,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -333,9 +334,13 @@ public class PostgreSQLStorage extends SqlStorage {
 	PreparedStatement getAgentTransState = null;
 	PreparedStatement getEnvironment = null;
 	PreparedStatement getEnvironmentTrans = null;
+	Set<Long> fetched = new HashSet<Long>();
 
 	@Override
-	public PersistentSimulation getSimulationById(long id) {
+	protected void fetchData(final long id) {
+		if (fetched.contains(id))
+			return;
+
 		Simulation sim = (Simulation) super.getSimulationById(id);
 		if (sim != null) {
 			try {
@@ -403,10 +408,11 @@ public class PostgreSQLStorage extends SqlStorage {
 					sim.env.transientProperties.get(time).put(rs.getString(2),
 							rs.getString(3));
 				}
+				fetched.add(id);
 			} catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
 		}
-		return sim;
 	}
+
 }
