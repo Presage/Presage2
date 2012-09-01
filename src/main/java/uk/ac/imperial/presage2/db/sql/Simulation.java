@@ -176,6 +176,7 @@ public class Simulation implements PersistentSimulation {
 
 	@Override
 	public PersistentEnvironment getEnvironment() {
+		sto.fetchData(this.id);
 		return this.env;
 	}
 
@@ -186,6 +187,7 @@ public class Simulation implements PersistentSimulation {
 
 	@Override
 	public Set<PersistentAgent> getAgents() {
+		sto.fetchData(this.id);
 		Set<PersistentAgent> agentsCopy = new HashSet<PersistentAgent>(agents);
 		return agentsCopy;
 	}
