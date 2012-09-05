@@ -24,18 +24,19 @@ import uk.ac.imperial.presage2.util.fsm.State;
 import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
 
 /**
- * FSM {@link TransitionCondition} to check the <code>type</code> and <code>data</code> properties of a
- * received message matches a given value.
+ * FSM {@link TransitionCondition} to check the <code>type</code> and
+ * <code>data</code> properties of a received message matches a given value.
+ * 
  * @author dws04
- *
+ * 
  * @param <T>
  */
-public class MessageTypeAndContentsCondition<T> implements TransitionCondition {
+public class MessageTypeAndContentsCondition implements TransitionCondition {
 
 	private final String type;
-	private final T data;
-	
-	public MessageTypeAndContentsCondition(String type, T data) {
+	private final Object data;
+
+	public MessageTypeAndContentsCondition(String type, Object data) {
 		super();
 		this.type = type;
 		this.data = data;
@@ -43,9 +44,9 @@ public class MessageTypeAndContentsCondition<T> implements TransitionCondition {
 
 	@Override
 	public boolean allow(Object event, Object entity, State state) {
-		if (event instanceof Message){
-			@SuppressWarnings("unchecked")
-			Message<T> m = (Message<T>) event;
+		if (event instanceof Message) {
+			@SuppressWarnings("rawtypes")
+			Message m = (Message) event;
 			return (type.equals(m.getType()) && (m.getData().equals(data)));
 		}
 		return false;
