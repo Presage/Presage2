@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2012 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2012 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -16,7 +16,6 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package uk.ac.imperial.presage2.util.protocols;
 
 import uk.ac.imperial.presage2.core.network.Message;
@@ -29,7 +28,6 @@ import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
  * 
  * @author dws04
  * 
- * @param <T>
  */
 public class MessageTypeAndContentsCondition implements TransitionCondition {
 
