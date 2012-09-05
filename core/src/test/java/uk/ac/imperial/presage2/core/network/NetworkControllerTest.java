@@ -134,7 +134,7 @@ public class NetworkControllerTest {
 	@Test
 	public void testDeliverMessageWithNoRegisteredChannels() {
 
-		final Message<?> undeliveredMessage = new UnicastMessage<Object>(
+		final Message undeliveredMessage = new UnicastMessage(
 				Performative.ACCEPT_PROPOSAL, channel2Address, channel1Address,
 				time);
 		context.checking(new Expectations() {
@@ -154,7 +154,7 @@ public class NetworkControllerTest {
 	@Test
 	public void testRegisterConnectorAllowsMessageDelivery() {
 
-		final Message<?> deliveredMessage = new UnicastMessage<Object>(
+		final Message deliveredMessage = new UnicastMessage(
 				Performative.ACCEPT_PROPOSAL, channel2Address, channel1Address,
 				time);
 		context.checking(new Expectations() {
@@ -175,7 +175,7 @@ public class NetworkControllerTest {
 	@Test
 	public void testDeliverMessageDoesNotRetroactivelyDeliver() {
 
-		final Message<?> undeliveredMessage = new UnicastMessage<Object>(
+		final Message undeliveredMessage = new UnicastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, channel2Address,
 				time);
 		context.checking(new Expectations() {
@@ -197,7 +197,7 @@ public class NetworkControllerTest {
 	@Test
 	public void testMessageNotDeliveredInSameCycle() {
 
-		final Message<?> undeliveredMessage = new UnicastMessage<Object>(
+		final Message undeliveredMessage = new UnicastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, channel2Address,
 				time);
 		context.checking(new Expectations() {
@@ -217,7 +217,7 @@ public class NetworkControllerTest {
 	public void testUniCastDelivery() {
 
 		// message from channel1 to channel2
-		final Message<?> message = new UnicastMessage<Object>(
+		final Message message = new UnicastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, channel2Address,
 				time);
 
@@ -245,7 +245,7 @@ public class NetworkControllerTest {
 	public void testMultiCastDelivery() {
 
 		// message from channel1 to channel2 and 3
-		final MulticastMessage<?> message = new MulticastMessage<Object>(
+		final MulticastMessage message = new MulticastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, time);
 		message.addRecipient(channel2Address);
 		message.addRecipient(channel3Address);
@@ -276,7 +276,7 @@ public class NetworkControllerTest {
 	public void testBroadCastDelivery() {
 
 		// message from channel1 to channel2 and 3
-		final Message<?> message = new BroadcastMessage<Object>(
+		final Message message = new BroadcastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, time);
 
 		context.checking(new Expectations() {
@@ -350,7 +350,7 @@ public class NetworkControllerTest {
 		testController.register(regRequest2);
 
 		// build multicast message
-		final MulticastMessage<?> message = new MulticastMessage<Object>(
+		final MulticastMessage message = new MulticastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, time);
 
 		// test with 1 invalid recipient
@@ -381,7 +381,7 @@ public class NetworkControllerTest {
 		testController.register(regRequest2);
 
 		// build multicast message
-		final MulticastMessage<?> message = new MulticastMessage<Object>(
+		final MulticastMessage message = new MulticastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, time);
 
 		// test with 2 invalid recipients
@@ -414,7 +414,7 @@ public class NetworkControllerTest {
 		testController.register(regRequest2);
 
 		// build multicast message
-		final MulticastMessage<?> message = new MulticastMessage<Object>(
+		final MulticastMessage message = new MulticastMessage(
 				Performative.ACCEPT_PROPOSAL, channel1Address, time);
 
 		// test with 2 invalid recipients & 1 valid

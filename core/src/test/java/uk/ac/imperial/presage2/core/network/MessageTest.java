@@ -60,7 +60,7 @@ public abstract class MessageTest {
 	 * 
 	 * @return
 	 */
-	protected abstract Message<?> getRandomMessage();
+	protected abstract Message getRandomMessage();
 
 	/**
 	 * Generates a random instance of time for instantiating in a test message
@@ -98,7 +98,7 @@ public abstract class MessageTest {
 	@Test
 	public void testToString() {
 		// ensure tostring is not empty string
-		Message<?> m = this.getRandomMessage();
+		Message m = this.getRandomMessage();
 		assertNotNull(m.toString());
 		assertFalse(m.toString().equals(""));
 	}
@@ -119,7 +119,7 @@ public abstract class MessageTest {
 	 */
 	@Test
 	public void testGetPerformative() {
-		Message<?> m = this.getRandomMessage();
+		Message m = this.getRandomMessage();
 		assertEquals(this.lastPerf, m.getPerformative());
 
 	}
@@ -130,7 +130,7 @@ public abstract class MessageTest {
 	 */
 	@Test
 	public void testGetTimestamp() {
-		Message<?> m = this.getRandomMessage();
+		Message m = this.getRandomMessage();
 		assertEquals(this.lastTime, m.getTimestamp());
 	}
 
@@ -141,7 +141,7 @@ public abstract class MessageTest {
 	 */
 	@Test
 	public void testSetTimestamp() {
-		Message<?> m = this.getRandomMessage();
+		Message m = this.getRandomMessage();
 		assertEquals(this.lastTime, m.getTimestamp());
 		final Time timeTest = new IntegerTime(rand.nextInt());
 		m.setTimestamp(timeTest);
@@ -154,7 +154,7 @@ public abstract class MessageTest {
 	 */
 	@Test
 	public void testGetFrom() {
-		Message<?> m = this.getRandomMessage();
+		Message m = this.getRandomMessage();
 		assertEquals(this.lastFrom, m.getFrom());
 	}
 

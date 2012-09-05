@@ -36,17 +36,17 @@ public class BroadcastMessageTest extends MessageTest {
 	 * @see uk.ac.imperial.presage2.core.network.MessageTest#getRandomMessage()
 	 */
 	@Override
-	protected BroadcastMessage<?> getRandomMessage() {
+	protected BroadcastMessage getRandomMessage() {
 		this.lastTime = this.randomTime();
 		this.lastFrom = this.randomAddress();
 		this.lastPerf = this.randomPerformative();
-		return new BroadcastMessage<Object>(lastPerf, lastFrom, lastTime);
+		return new BroadcastMessage(lastPerf, lastFrom, lastTime);
 	}
 
 	@Override
 	@Test
 	public void testMessage() {
-		Message<?> m = this.getRandomMessage();
+		Message m = this.getRandomMessage();
 
 		assertNotNull(m);
 	}

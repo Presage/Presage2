@@ -43,19 +43,19 @@ public class BasicNetworkConnectorTest extends NetworkConnectorTest {
 	@Test
 	public void testMessagesClearedAfterRetrieving() {
 		// create a message to send
-		Message<?> m = new UnicastMessage<Object>(Performative.CANCEL,
+		Message m = new UnicastMessage(Performative.CANCEL,
 				new NetworkAddress(new UUID(rand.nextLong(), rand.nextLong())),
 				networkAddressFactory.create(addressUuid), time);
 
 		// deliver it
 		testConnector.deliverMessage(m);
 		// check we can retrieve it
-		final List<Message<?>> messages = testConnector.getMessages();
+		final List<Message> messages = testConnector.getMessages();
 		// check we have only this message
 		assertTrue(messages.size() == 1);
 		assertEquals(messages.get(0), m);
 
-		final List<Message<?>> messages2 = testConnector.getMessages();
+		final List<Message> messages2 = testConnector.getMessages();
 		// check this list is empty
 		assertTrue(messages2.size() == 0);
 	}

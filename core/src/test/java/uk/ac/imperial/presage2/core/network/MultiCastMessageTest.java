@@ -47,7 +47,7 @@ public class MultiCastMessageTest extends MessageTest {
 	 * @see uk.ac.imperial.presage2.core.network.MessageTest#getRandomMessage()
 	 */
 	@Override
-	protected MulticastMessage<?> getRandomMessage() {
+	protected MulticastMessage getRandomMessage() {
 		this.lastTime = this.randomTime();
 		this.lastFrom = this.randomAddress();
 		this.lastTo = new ArrayList<NetworkAddress>();
@@ -55,7 +55,7 @@ public class MultiCastMessageTest extends MessageTest {
 			this.lastTo.add(this.randomAddress());
 		}
 		this.lastPerf = this.randomPerformative();
-		return new MulticastMessage<Object>(lastPerf, lastFrom, lastTo,
+		return new MulticastMessage(lastPerf, lastFrom, lastTo,
 				lastTime);
 	}
 
@@ -65,12 +65,12 @@ public class MultiCastMessageTest extends MessageTest {
 	@Override
 	@Test
 	public void testMessage() {
-		Message<?> m = this.getRandomMessage();
+		Message m = this.getRandomMessage();
 
 		assertNotNull(m);
 
 		// test constructor with no to args
-		MulticastMessage<?> m2 = new MulticastMessage<Object>(lastPerf,
+		MulticastMessage m2 = new MulticastMessage(lastPerf,
 				lastFrom, lastTime);
 
 		assertNotNull(m2);
@@ -80,7 +80,7 @@ public class MultiCastMessageTest extends MessageTest {
 
 	@Test
 	public void testGetTo() {
-		MulticastMessage<?> m = this.getRandomMessage();
+		MulticastMessage m = this.getRandomMessage();
 		for (NetworkAddress addr : this.lastTo) {
 			assertTrue(m.getTo().contains(addr));
 		}
@@ -88,7 +88,7 @@ public class MultiCastMessageTest extends MessageTest {
 
 	@Test
 	public void testaddRecipient() {
-		MulticastMessage<?> m = this.getRandomMessage();
+		MulticastMessage m = this.getRandomMessage();
 		final NetworkAddress addrCheck = this.randomAddress();
 		assertFalse(m.getTo().contains(addrCheck));
 
@@ -98,7 +98,7 @@ public class MultiCastMessageTest extends MessageTest {
 
 	@Test
 	public void testAddRecipients() {
-		MulticastMessage<?> m = this.getRandomMessage();
+		MulticastMessage m = this.getRandomMessage();
 		final List<NetworkAddress> addrs = new ArrayList<NetworkAddress>();
 		for (int i = 0; i < rand.nextInt(10); i++) {
 			NetworkAddress ad = this.randomAddress();
