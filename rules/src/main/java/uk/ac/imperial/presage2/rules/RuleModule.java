@@ -22,12 +22,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.drools.KnowledgeBase;
 import org.drools.runtime.StatefulKnowledgeSession;
 
 import uk.ac.imperial.presage2.rules.facts.AgentStateTranslator;
 import uk.ac.imperial.presage2.rules.facts.StateTranslator;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
@@ -89,6 +91,11 @@ public class RuleModule extends AbstractModule {
 		for (Class<? extends AgentStateTranslator> clazz : agentStateTranslators) {
 			agentTranslatorBinder.addBinding().to(clazz);
 		}
+	}
+
+	@Provides
+	KnowledgeBase getDroolsKnowledgeBase(RuleStorage rules) {
+		return rules.getKbase();
 	}
 
 }

@@ -231,6 +231,10 @@ public class RuleStorage implements SharedStateStorage,
 		return agentState.get(participantID).get(name);
 	}
 
+	public KnowledgeBase getKbase() {
+		return kbase;
+	}
+
 	@Override
 	public Serializable getGlobal(String name) {
 		for (StateTranslator t : globalTranslators) {
