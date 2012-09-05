@@ -37,13 +37,13 @@ public class MessagesToRuleEngine implements NetworkConstraint {
 	}
 
 	@Override
-	public Message<?> constrainMessage(Message<?> m) {
+	public Message constrainMessage(Message m) {
 		session.insert(m);
 		return m;
 	}
 
 	@Override
-	public boolean blockMessageDelivery(NetworkAddress to, Message<?> m) {
+	public boolean blockMessageDelivery(NetworkAddress to, Message m) {
 		return false;
 	}
 
