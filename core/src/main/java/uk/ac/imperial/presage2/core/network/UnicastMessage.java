@@ -35,7 +35,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public class UnicastMessage<T> extends Message<T> {
+public class UnicastMessage extends Message {
 
 	/**
 	 * Intended recipient of this message.
@@ -48,26 +48,26 @@ public class UnicastMessage<T> extends Message<T> {
 	 * @param timestamp
 	 * @param to
 	 */
-	public UnicastMessage(Performative performative, NetworkAddress from, NetworkAddress to,
-			Time timestamp) {
+	public UnicastMessage(Performative performative, NetworkAddress from,
+			NetworkAddress to, Time timestamp) {
 		super(performative, from, timestamp);
 		this.to = to;
 	}
 
-	public UnicastMessage(Performative performative, NetworkAddress from, NetworkAddress to,
-			Time timestamp, T data) {
+	public UnicastMessage(Performative performative, NetworkAddress from,
+			NetworkAddress to, Time timestamp, Object data) {
 		super(performative, from, timestamp, data);
 		this.to = to;
 	}
 
-	public UnicastMessage(Performative performative, String type, Time timestamp,
-			NetworkAddress from, NetworkAddress to, T data) {
+	public UnicastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, NetworkAddress to, Object data) {
 		super(performative, type, timestamp, from, data);
 		this.to = to;
 	}
 
-	public UnicastMessage(Performative performative, String type, Time timestamp,
-			NetworkAddress from, NetworkAddress to) {
+	public UnicastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, NetworkAddress to) {
 		super(performative, type, timestamp, from);
 		this.to = to;
 	}
@@ -86,8 +86,9 @@ public class UnicastMessage<T> extends Message<T> {
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ": (Time: " + this.timestamp.toString()
-				+ ", from: " + this.from.toString() + ", to: " + this.to.toString() + ", perf: "
+		return this.getClass().getSimpleName() + ": (Time: "
+				+ this.timestamp.toString() + ", from: " + this.from.toString()
+				+ ", to: " + this.to.toString() + ", perf: "
 				+ this.performative.toString() + ")";
 	}
 

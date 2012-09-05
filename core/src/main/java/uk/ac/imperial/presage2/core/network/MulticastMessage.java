@@ -38,7 +38,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public class MulticastMessage<T> extends Message<T> {
+public class MulticastMessage extends Message {
 
 	protected List<NetworkAddress> to;
 
@@ -51,7 +51,8 @@ public class MulticastMessage<T> extends Message<T> {
 	 * @param from
 	 * @param timestamp
 	 */
-	public MulticastMessage(Performative performative, NetworkAddress from, Time timestamp) {
+	public MulticastMessage(Performative performative, NetworkAddress from,
+			Time timestamp) {
 		super(performative, from, timestamp);
 		this.to = new ArrayList<NetworkAddress>();
 	}
@@ -63,7 +64,8 @@ public class MulticastMessage<T> extends Message<T> {
 	 * @param timestamp
 	 * @param data
 	 */
-	public MulticastMessage(Performative performative, NetworkAddress from, Time timestamp, T data) {
+	public MulticastMessage(Performative performative, NetworkAddress from,
+			Time timestamp, Object data) {
 		super(performative, from, timestamp, data);
 		this.to = new ArrayList<NetworkAddress>();
 	}
@@ -75,8 +77,8 @@ public class MulticastMessage<T> extends Message<T> {
 	 * @param from
 	 * @param data
 	 */
-	public MulticastMessage(Performative performative, String type, Time timestamp,
-			NetworkAddress from, T data) {
+	public MulticastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, Object data) {
 		super(performative, type, timestamp, from, data);
 		this.to = new ArrayList<NetworkAddress>();
 	}
@@ -95,14 +97,15 @@ public class MulticastMessage<T> extends Message<T> {
 		this.to = to;
 	}
 
-	public MulticastMessage(Performative performative, String type, Time timestamp,
-			NetworkAddress from, List<NetworkAddress> to) {
+	public MulticastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, List<NetworkAddress> to) {
 		super(performative, type, timestamp, from);
 		this.to = to;
 	}
 
-	public MulticastMessage(Performative performative, String type, Time timestamp,
-			NetworkAddress from, List<NetworkAddress> to, T data) {
+	public MulticastMessage(Performative performative, String type,
+			Time timestamp, NetworkAddress from, List<NetworkAddress> to,
+			Object data) {
 		super(performative, type, timestamp, from, data);
 		this.to = to;
 	}
@@ -129,9 +132,10 @@ public class MulticastMessage<T> extends Message<T> {
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ": (Time: " + this.timestamp.toString()
-				+ ", from: " + this.from.toString() + ", to: " + this.to.size()
-				+ " recipients, perf: " + this.performative.toString() + ")";
+		return this.getClass().getSimpleName() + ": (Time: "
+				+ this.timestamp.toString() + ", from: " + this.from.toString()
+				+ ", to: " + this.to.size() + " recipients, perf: "
+				+ this.performative.toString() + ")";
 	}
 
 }

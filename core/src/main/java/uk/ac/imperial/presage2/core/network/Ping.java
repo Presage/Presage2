@@ -33,7 +33,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-class Ping extends Message<Object> {
+class Ping extends Message {
 
 	Ping(NetworkAddress from, Time timestamp) {
 		super(Performative.REQUEST, from, timestamp);

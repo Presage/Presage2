@@ -32,14 +32,17 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-class Pong extends Message<Set<NetworkAddress>> {
+class Pong extends Message {
+
+	final Set<NetworkAddress> links;
 
 	Pong(Time timestamp, Set<NetworkAddress> data) {
-		super(Performative.INFORM, null, timestamp, data);
+		super(Performative.INFORM, null, timestamp);
+		this.links = data;
 	}
 
 	Set<NetworkAddress> getLinks() {
-		return getData();
+		return links;
 	}
 
 }
