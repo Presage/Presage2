@@ -40,13 +40,13 @@ public abstract class InitialiseConversationAction extends MessageAction {
 	 *      uk.ac.imperial.presage2.util.fsm.Transition)
 	 */
 	@Override
-	public final void processMessage(Message<?> message, FSMConversation conv, Transition transition) {
+	public final void processMessage(Message message, FSMConversation conv, Transition transition) {
 		conv.setConversationKey(message.getConversationKey());
 		conv.recipients.add(message.getFrom());
 		processInitialMessage(message, conv, transition);
 	}
 
-	public abstract void processInitialMessage(Message<?> message, FSMConversation conv,
+	public abstract void processInitialMessage(Message message, FSMConversation conv,
 			Transition transition);
 
 }

@@ -57,13 +57,13 @@ public class NetworkRangeConstraint implements NetworkConstraint {
 	}
 
 	@Override
-	public Message<?> constrainMessage(Message<?> m) {
+	public Message constrainMessage(Message m) {
 		// we don't need to modify messages, we just block at point of delivery.
 		return m;
 	}
 
 	@Override
-	public boolean blockMessageDelivery(NetworkAddress to, Message<?> m) {
+	public boolean blockMessageDelivery(NetworkAddress to, Message m) {
 		final UUID sender = m.getFrom().getId();
 		final UUID receiver = to.getId();
 		boolean result = areLinked(sender, receiver);

@@ -67,7 +67,7 @@ public abstract class Protocol implements InputHandler, TimeDriven {
 	@Override
 	public boolean canHandle(Input in) {
 		if (in instanceof Message) {
-			return ((Message<?>) in).getProtocol().equals(name);
+			return ((Message) in).getProtocol().equals(name);
 		}
 		return false;
 	}
@@ -87,7 +87,7 @@ public abstract class Protocol implements InputHandler, TimeDriven {
 					it.remove();
 			}
 			if (handleCount == 0) {
-				spawn((Message<?>) in);
+				spawn((Message) in);
 			}
 		}
 	}
@@ -121,7 +121,7 @@ public abstract class Protocol implements InputHandler, TimeDriven {
 	 * @param m
 	 * @return
 	 */
-	public abstract void spawn(Message<?> m);
+	public abstract void spawn(Message m);
 
 	/**
 	 * Get the set of active conversations managed by this protocol.

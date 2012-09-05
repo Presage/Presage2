@@ -47,7 +47,7 @@ class DisconnectedNetworkConnector extends NetworkConnector {
 	}
 
 	@Override
-	public List<Message<?>> getMessages() {
+	public List<Message> getMessages() {
 		return Collections.emptyList();
 	}
 
@@ -58,11 +58,11 @@ class DisconnectedNetworkConnector extends NetworkConnector {
 	}
 
 	@Override
-	public void deliverMessage(Message<?> m) {
+	public void deliverMessage(Message m) {
 	}
 
 	@Override
-	public void sendMessage(Message<?> m) {
+	public void sendMessage(Message m) {
 	}
 
 }
