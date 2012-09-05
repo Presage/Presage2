@@ -46,13 +46,13 @@ public class BasicNetworkConnector extends NetworkConnector {
 
 	final private Logger logger = Logger.getLogger(BasicNetworkConnector.class);
 
-	protected List<Message<?>> receivedMessages;
+	protected List<Message> receivedMessages;
 
 	@Inject
 	protected BasicNetworkConnector(NetworkChannel controller,
 			NetworkAddressFactory networkAddressFactory, @Assisted UUID id) {
 		super(controller, networkAddressFactory, id);
-		receivedMessages = new LinkedList<Message<?>>();
+		receivedMessages = new LinkedList<Message>();
 	}
 
 	public BasicNetworkConnector(NetworkChannel controller,
@@ -72,9 +72,9 @@ public class BasicNetworkConnector extends NetworkConnector {
 	 * @see uk.ac.imperial.presage2.core.network.NetworkAdaptor#getMessages()
 	 */
 	@Override
-	public List<Message<?>> getMessages() {
-		List<Message<?>> messages = receivedMessages;
-		receivedMessages = new LinkedList<Message<?>>();
+	public List<Message> getMessages() {
+		List<Message> messages = receivedMessages;
+		receivedMessages = new LinkedList<Message>();
 		return messages;
 	}
 
@@ -82,7 +82,7 @@ public class BasicNetworkConnector extends NetworkConnector {
 	 * @see uk.ac.imperial.presage2.core.network.NetworkConnector#deliverMessage(uk.ac.imperial.presage2.core.network.Message)
 	 */
 	@Override
-	synchronized public void deliverMessage(Message<?> m) {
+	synchronized public void deliverMessage(Message m) {
 		if (logger.isDebugEnabled())
 			logger.debug("Received message: " + m.toString());
 		this.receivedMessages.add(m);
@@ -92,7 +92,7 @@ public class BasicNetworkConnector extends NetworkConnector {
 	 * @see uk.ac.imperial.presage2.core.network.NetworkConnector#sendMessage(uk.ac.imperial.presage2.core.network.Message)
 	 */
 	@Override
-	public void sendMessage(Message<?> m) {
+	public void sendMessage(Message m) {
 		if (logger.isDebugEnabled())
 			logger.debug("Sending message: " + m.toString());
 		this.controller.deliverMessage(m);

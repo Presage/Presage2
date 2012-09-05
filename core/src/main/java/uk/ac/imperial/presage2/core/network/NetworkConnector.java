@@ -92,7 +92,7 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	 * @see uk.ac.imperial.presage2.core.network.NetworkChannel#deliverMessage(uk.ac.imperial.presage2.core.network.Message)
 	 */
 	@Override
-	public abstract void deliverMessage(Message<?> m);
+	public abstract void deliverMessage(Message m);
 
 	/**
 	 * Participant requesting to send a message.
@@ -100,7 +100,7 @@ public abstract class NetworkConnector implements NetworkAdaptor,
 	 * @see uk.ac.imperial.presage2.core.network.NetworkAdaptor#sendMessage(uk.ac.imperial.presage2.core.network.Message)
 	 */
 	@Override
-	public abstract void sendMessage(Message<?> m);
+	public abstract void sendMessage(Message m);
 
 	/**
 	 * @see uk.ac.imperial.presage2.core.network.NetworkAdaptor#getAddress()

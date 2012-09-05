@@ -31,10 +31,10 @@ import uk.ac.imperial.presage2.core.event.Event;
 public final class MessageDeliveryEvent implements Event {
 
 	final protected Time time;
-	final protected Message<?> message;
+	final protected Message message;
 	final protected NetworkAddress recipient;
 
-	MessageDeliveryEvent(Time time, Message<?> message, NetworkAddress recipient) {
+	MessageDeliveryEvent(Time time, Message message, NetworkAddress recipient) {
 		super();
 		this.time = time;
 		this.message = message;
@@ -45,7 +45,7 @@ public final class MessageDeliveryEvent implements Event {
 		return time;
 	}
 
-	public final Message<?> getMessage() {
+	public final Message getMessage() {
 		return message;
 	}
 
