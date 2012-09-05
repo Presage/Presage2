@@ -22,8 +22,10 @@ package uk.ac.imperial.presage2.core.participant;
 import java.util.Collection;
 import java.util.UUID;
 
+import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
 import uk.ac.imperial.presage2.core.messaging.Input;
 
 /**
@@ -93,5 +95,11 @@ public interface Participant extends TimeDriven {
 	 * @param inputs
 	 */
 	public void enqueueInput(Collection<? extends Input> inputs);
+	
+	/**
+	 * Perform the action <code>a</code>
+	 * @param a	action to perform
+	 */
+	public void act(Action a) throws ActionHandlingException;
 
 }
