@@ -18,9 +18,9 @@
  */
 package uk.ac.imperial.presage2.db.sql;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
@@ -36,8 +36,8 @@ public class Agent implements PersistentAgent {
 
 	UUID id;
 	String name;
-	public Map<String, String> properties = new HashMap<String, String>();
-	public Map<Integer, Map<String, String>> transientProperties = new HashMap<Integer, Map<String, String>>();
+	public Map<String, String> properties = new ConcurrentHashMap<String, String>();
+	public Map<Integer, Map<String, String>> transientProperties = new ConcurrentHashMap<Integer, Map<String, String>>();
 
 	Agent(UUID id, String name, SqlStorage sto) {
 		super();
@@ -96,12 +96,12 @@ public class Agent implements PersistentAgent {
 	}
 
 	@Override
-	public synchronized String getProperty(String key) {
+	public String getProperty(String key) {
 		return properties.get(key);
 	}
 
 	@Override
-	public synchronized void setProperty(String key, String value) {
+	public void setProperty(String key, String value) {
 		properties.put(key, value);
 		this.sto.agentQ.add(this);
 	}
@@ -109,15 +109,19 @@ public class Agent implements PersistentAgent {
 	@Override
 	public synchronized TransientAgentState getState(final int time) {
 		if (!transientProperties.containsKey(time)) {
-			transientProperties.put(time, new HashMap<String, String>());
+			transientProperties.put(time, new ConcurrentHashMap<String, String>());
 		}
 		final Map<String, String> state = transientProperties.get(time);
 
 		return new TransientAgentState() {
 			@Override
 			public void setProperty(String key, String value) {
-				state.put(key, value);
-				sto.agentTransientQ.add(Agent.this);
+				synchronized (sto.agentTransientQ) {
+					state.put(key, value);
+					if(!transientProperties.containsKey(time))
+						transientProperties.put(time, state);
+					sto.agentTransientQ.add(Agent.this);
+				}
 			}
 
 			@Override

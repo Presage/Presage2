@@ -19,8 +19,8 @@
 package uk.ac.imperial.presage2.db.sql;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentEnvironment;
 
@@ -33,8 +33,8 @@ public class Environment implements PersistentEnvironment {
 
 	public final long simId;
 
-	public Map<String, String> properties = new HashMap<String, String>();
-	public Map<Integer, Map<String, String>> transientProperties = new HashMap<Integer, Map<String, String>>();
+	public Map<String, String> properties = new ConcurrentHashMap<String, String>();
+	public Map<Integer, Map<String, String>> transientProperties = new ConcurrentHashMap<Integer, Map<String, String>>();
 
 	Environment(long simId, SqlStorage sto) {
 		super();
@@ -80,11 +80,14 @@ public class Environment implements PersistentEnvironment {
 
 	@Override
 	public synchronized void setProperty(String key, int timestep, String value) {
-		if (!transientProperties.containsKey(timestep)) {
-			transientProperties.put(timestep, new HashMap<String, String>());
+		synchronized (sto.environmentTransientQ) {
+			if (!transientProperties.containsKey(timestep)) {
+				transientProperties.put(timestep,
+						new ConcurrentHashMap<String, String>());
+			}
+			transientProperties.get(timestep).put(key, value);
+			this.sto.environmentTransientQ.add(this);
 		}
-		transientProperties.get(timestep).put(key, value);
-		this.sto.environmentTransientQ.add(this);
 	}
 
 }
