@@ -291,7 +291,6 @@ public class PostgreSQLStorage extends SqlStorage {
 							+ "WHERE \"simId\" = ? AND \"aid\" = ? AND \"time\" = ?");
 			synchronized (agentTransientQ) {
 				for (Agent a : agentTransientQ) {
-					synchronized (a) {
 						for (Integer t : a.transientProperties.keySet()) {
 							// create agent state if it doesn't exist
 							insertAgentState.setLong(1, a.simId);
@@ -314,7 +313,6 @@ public class PostgreSQLStorage extends SqlStorage {
 							}
 						}
 						a.transientProperties.clear();
-					}
 				}
 				if (agentTransientQ.size() > 0) {
 					batchQueryQ.put(insertAgentState);
