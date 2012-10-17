@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import uk.ac.imperial.presage2.core.IntegerTime;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.db.StorageService;
@@ -228,6 +229,9 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	 */
 	@Override
 	public void initialise() {
+		// init time
+		if (this.time == null)
+			initialiseTime(new IntegerTime());
 
 		registerWithEnvironment();
 
