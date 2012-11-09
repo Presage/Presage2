@@ -44,7 +44,11 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
+@Singleton
 public class JsonStorage implements StorageService, DatabaseService {
 
 	private final Logger logger = Logger.getLogger(JsonStorage.class);
@@ -68,7 +72,8 @@ public class JsonStorage implements StorageService, DatabaseService {
 		this("data/");
 	}
 
-	public JsonStorage(String baseStoragePath) {
+	@Inject
+	public JsonStorage(@Named(JsonModule.STORAGEPATH_KEY) String baseStoragePath) {
 		super();
 		this.baseStoragePath = baseStoragePath;
 		if (this.baseStoragePath.length() > 0) {
