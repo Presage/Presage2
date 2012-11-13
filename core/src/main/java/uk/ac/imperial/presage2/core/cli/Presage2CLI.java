@@ -57,20 +57,61 @@ import uk.ac.imperial.presage2.core.simulator.RunnableSimulation;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-public final class Presage2CLI {
+public class Presage2CLI {
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.METHOD)
-	private @interface Command {
+	protected @interface Command {
 		String name();
 
 		String description();
 	}
 
-	private static Map<String, Method> commands = null;
-	private static boolean shell = false;
+	private Class<?> commandSource = Presage2CLI.class;
+	private Map<String, Method> commands = null;
+	private boolean shell = false;
 
-	private static OptionGroup getCommands() {
+	protected Presage2CLI() {
+		this(Presage2CLI.class);
+	}
+
+	protected Presage2CLI(Class<?> commandSource) {
+		this.commandSource = commandSource;
+		// inspect available commands
+		commands = new HashMap<String, Method>();
+		Class<?> clazz = this.commandSource;
+		do {
+			for (Method m : clazz.getDeclaredMethods()) {
+				Command c = m.getAnnotation(Command.class);
+				if (c != null) {
+					commands.put(c.name(), m);
+				}
+
+			}
+			clazz = clazz.getSuperclass();
+		} while (clazz != null);
+	}
+
+	public void invokeCommand(String[] args) {
+		// first arg must be a command
+		if (args.length == 0 || !commands.containsKey(args[0])) {
+			printHelp();
+			System.exit(1);
+		}
+
+		// attempt to invoke command
+		try {
+			commands.get(args[0]).invoke(this, (Object) args);
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private OptionGroup getCommands() {
 		OptionGroup cmdGroup = new OptionGroup();
 		for (String cmd : commands.keySet()) {
 			cmdGroup.addOption(new Option(cmd, commands.get(cmd)
@@ -79,11 +120,11 @@ public final class Presage2CLI {
 		return cmdGroup;
 	}
 
-	private static void printHelp() {
+	protected void printHelp() {
 		HelpFormatter formatter = new HelpFormatter();
 		Options cmdOpts = new Options();
 
-		cmdOpts.addOptionGroup(Presage2CLI.getCommands());
+		cmdOpts.addOptionGroup(getCommands());
 
 		formatter.setOptPrefix("");
 		formatter.printHelp("presage2-cli <command> [OPTIONS]", cmdOpts);
@@ -93,40 +134,15 @@ public final class Presage2CLI {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-
-		// inspect available commands
-		commands = new HashMap<String, Method>();
-		for (Method m : Presage2CLI.class.getDeclaredMethods()) {
-			Command c = m.getAnnotation(Command.class);
-			if (c != null) {
-				commands.put(c.name(), m);
-			}
-		}
-
-		// first arg must be a command
-		if (args.length == 0 || !commands.containsKey(args[0])) {
-			printHelp();
-			System.exit(1);
-		}
-
-		// attempt to invoke command
-		try {
-			commands.get(args[0]).invoke(null, (Object) args);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-
+		Presage2CLI cli = new Presage2CLI();
+		cli.invokeCommand(args);
 	}
 
-	private static Injector injector;
-	private static DatabaseService database;
-	private static StorageService storage;
+	protected Injector injector;
+	protected DatabaseService database;
+	protected StorageService storage;
 
-	private static StorageService getDatabase() {
+	protected StorageService getDatabase() {
 		if (storage != null)
 			return storage;
 
@@ -145,19 +161,20 @@ public final class Presage2CLI {
 		throw new RuntimeException("Couldn't get a database connection.");
 	}
 
-	private static void stopDatabase() {
-		database.stop();
+	protected void stopDatabase() {
+		if(database != null)
+			database.stop();
 		database = null;
 		storage = null;
 	}
 
-	private static void prompt() {
+	private void prompt() {
 		System.out.println();
 		System.out.print("> ");
 	}
 
 	@Command(name = "shell", description = "Open an interactive session")
-	static void shell(String[] args) throws IOException {
+	void shell(String[] args) throws IOException {
 		// prevent nested shells
 		if (shell) {
 			printHelp();
@@ -211,7 +228,7 @@ public final class Presage2CLI {
 	 * @param args
 	 */
 	@Command(name = "list", description = "Lists all simulations")
-	static void list(String[] args) {
+	void list(String[] args) {
 
 		Options options = new Options();
 		options.addOption("h", "help", false, "Show help");
@@ -284,7 +301,7 @@ public final class Presage2CLI {
 
 	@SuppressWarnings("static-access")
 	@Command(description = "Add a new simulation.", name = "add")
-	static void add(String[] args) {
+	void add(String[] args) {
 
 		Options options = new Options();
 
@@ -372,7 +389,7 @@ public final class Presage2CLI {
 	}
 
 	@Command(description = "Duplicate a simulation.", name = "duplicate")
-	static void duplicate(String[] args) {
+	void duplicate(String[] args) {
 		Options options = new Options();
 		options.addOption("h", "help", false, "Show help");
 
@@ -425,7 +442,7 @@ public final class Presage2CLI {
 	}
 
 	@Command(description = "Run a simulation.", name = "run")
-	static void run(String[] args) throws ClassNotFoundException,
+	void run(String[] args) throws ClassNotFoundException,
 			NoSuchMethodException, InvocationTargetException,
 			InstantiationException, IllegalAccessException {
 		int threads = 4;
@@ -477,7 +494,7 @@ public final class Presage2CLI {
 	}
 
 	@Command(description = "Run all simulations which have not yet started", name = "runall")
-	static void runAll(String[] args) {
+	void runAll(String[] args) {
 		Options options = new Options();
 		options.addOption(
 				"a",

@@ -19,10 +19,13 @@
 package uk.ac.imperial.presage2.rules;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -140,8 +143,12 @@ public class RuleStorage implements SharedStateStorage,
 	}
 
 	@Inject
-	public RuleStorage(@Rules Set<String> ruleSets) {
+	public RuleStorage(@Rules Map<Integer, String> ruleFiles) {
 		super();
+		SortedMap<Integer, String> sortedFiles = new TreeMap<Integer, String>(
+				ruleFiles);
+		Collection<String> ruleSets = sortedFiles.values();
+
 		// drools initialisation
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory
 				.newKnowledgeBuilder();
@@ -222,6 +229,10 @@ public class RuleStorage implements SharedStateStorage,
 
 	private FactHandle getCachedHandle(String name, UUID participantID) {
 		return agentState.get(participantID).get(name);
+	}
+
+	public KnowledgeBase getKbase() {
+		return kbase;
 	}
 
 	@Override

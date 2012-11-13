@@ -4,7 +4,7 @@
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.3.3</version>
+	<version>0.3.4</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
@@ -115,6 +115,7 @@
 						-since http://presage.github.com/docs/api/0.3.0.xml 0.3.0
 						-since http://presage.github.com/docs/api/0.3.1.xml 0.3.1
 						-since http://presage.github.com/docs/api/0.3.2.xml 0.3.2
+						-since http://presage.github.com/docs/api/0.3.3.xml 0.3.3
 					</additionalparam>
 					<useStandardDocletOptions>false</useStandardDocletOptions>
 					<!-- | Apple's JVM sometimes requires more memory -->

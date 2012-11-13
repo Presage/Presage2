@@ -58,7 +58,7 @@ public abstract class DatabaseModule extends AbstractModule {
 		String dbModule = null;
 		try {
 			logger.info("Using database settings from db.properties.");
-			dbModule = dbProp.getProperty("module");
+			dbModule = dbProp.getProperty("module").trim();
 			Class<? extends DatabaseModule> module = Class.forName(dbModule)
 					.asSubclass(DatabaseModule.class);
 			// look for suitable ctor, either Properties parameter or default

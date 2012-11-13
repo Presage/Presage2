@@ -18,16 +18,20 @@
  */
 package uk.ac.imperial.presage2.rules;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.drools.KnowledgeBase;
 import org.drools.runtime.StatefulKnowledgeSession;
 
 import uk.ac.imperial.presage2.rules.facts.AgentStateTranslator;
 import uk.ac.imperial.presage2.rules.facts.StateTranslator;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 
 /**
@@ -40,7 +44,7 @@ import com.google.inject.multibindings.Multibinder;
  */
 public class RuleModule extends AbstractModule {
 
-	private Set<String> ruleFiles = new HashSet<String>();
+	private ArrayList<String> ruleFiles = new ArrayList<String>();
 	private Set<Class<? extends StateTranslator>> stateTranslators = new HashSet<Class<? extends StateTranslator>>();
 	private Set<Class<? extends AgentStateTranslator>> agentStateTranslators = new HashSet<Class<? extends AgentStateTranslator>>();
 
@@ -69,11 +73,14 @@ public class RuleModule extends AbstractModule {
 		bind(RuleStorage.class).in(Singleton.class);
 		bind(StatefulKnowledgeSession.class).toProvider(RuleStorage.class);
 
-		Multibinder<String> rulesBinder = Multibinder.newSetBinder(binder(),
-				String.class, Rules.class);
-		for (String file : ruleFiles) {
-			rulesBinder.addBinding().toInstance(file);
+		// bind rule files in MapBinder with key to match order in which files
+		// have been added.
+		MapBinder<Integer, String> rulesBinder = MapBinder.newMapBinder(
+				binder(), Integer.class, String.class, Rules.class);
+		for (int i = 0; i < ruleFiles.size(); i++) {
+			rulesBinder.addBinding(i).toInstance(ruleFiles.get(i));
 		}
+
 		Multibinder<StateTranslator> translatorBinder = Multibinder
 				.newSetBinder(binder(), StateTranslator.class);
 		for (Class<? extends StateTranslator> clazz : stateTranslators) {
@@ -84,6 +91,11 @@ public class RuleModule extends AbstractModule {
 		for (Class<? extends AgentStateTranslator> clazz : agentStateTranslators) {
 			agentTranslatorBinder.addBinding().to(clazz);
 		}
+	}
+
+	@Provides
+	KnowledgeBase getDroolsKnowledgeBase(RuleStorage rules) {
+		return rules.getKbase();
 	}
 
 }
