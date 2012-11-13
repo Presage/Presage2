@@ -76,7 +76,7 @@ public class FSMProtocol extends Protocol implements TimeDriven {
 	}
 
 	@Override
-	public void spawn(Message<?> m) {
+	public void spawn(Message m) {
 		FSMConversation conv = new FSMConversation(description, this.name, Role.REPLIER, network);
 		try {
 			conv.fsm.applyEvent(m);

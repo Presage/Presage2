@@ -36,7 +36,7 @@ public abstract class MessageAction implements Action {
 	@Override
 	public void execute(Object event, Object entity, Transition transition) {
 		try {
-			processMessage((Message<?>) event, (FSMConversation) entity, transition);
+			processMessage((Message) event, (FSMConversation) entity, transition);
 		} catch (ClassCastException e) {
 			throw new RuntimeException("Unexpected types passed to MessageAction", e);
 		}
@@ -49,7 +49,7 @@ public abstract class MessageAction implements Action {
 	 * @param conv
 	 * @param transition
 	 */
-	public abstract void processMessage(Message<?> message, FSMConversation conv,
+	public abstract void processMessage(Message message, FSMConversation conv,
 			Transition transition);
 
 }

@@ -41,7 +41,7 @@ public class MessageTypeCondition implements TransitionCondition {
 	@Override
 	public boolean allow(Object event, Object entity, State state) {
 		if (event instanceof Message) {
-			Message<?> m = (Message<?>) event;
+			Message m = (Message) event;
 			return type.equals(m.getType());
 		}
 		return false;

@@ -43,7 +43,6 @@ public class MessageTypeAndContentsCondition implements TransitionCondition {
 	@Override
 	public boolean allow(Object event, Object entity, State state) {
 		if (event instanceof Message) {
-			@SuppressWarnings("rawtypes")
 			Message m = (Message) event;
 			return (type.equals(m.getType()) && (m.getData().equals(data)));
 		}

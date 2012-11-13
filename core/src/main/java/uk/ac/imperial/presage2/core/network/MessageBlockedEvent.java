@@ -24,10 +24,10 @@ import uk.ac.imperial.presage2.core.event.Event;
 public class MessageBlockedEvent implements Event {
 
 	final protected Time time;
-	final protected Message<?> message;
+	final protected Message message;
 	final protected NetworkAddress recipient;
 
-	MessageBlockedEvent(Time time, Message<?> message, NetworkAddress recipient) {
+	MessageBlockedEvent(Time time, Message message, NetworkAddress recipient) {
 		super();
 		this.time = time;
 		this.message = message;
@@ -38,7 +38,7 @@ public class MessageBlockedEvent implements Event {
 		return time;
 	}
 
-	public final Message<?> getMessage() {
+	public final Message getMessage() {
 		return message;
 	}
 

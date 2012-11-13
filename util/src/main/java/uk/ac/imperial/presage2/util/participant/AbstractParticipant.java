@@ -28,11 +28,13 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.IntegerTime;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
 import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationRequest;
 import uk.ac.imperial.presage2.core.environment.EnvironmentRegistrationResponse;
@@ -60,7 +62,8 @@ import com.google.inject.assistedinject.Assisted;
  * @author Sam Macbeth
  * 
  */
-public abstract class AbstractParticipant implements Participant, EnvironmentServiceProvider {
+public abstract class AbstractParticipant implements Participant,
+		EnvironmentServiceProvider {
 
 	/**
 	 * {@link Logger} for this agent.
@@ -130,9 +133,11 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		this.environment = environment;
 		this.network = network;
 		this.time = time;
-		this.logger = Logger.getLogger(this.getName() + "(" + this.getID() + ")");
+		this.logger = Logger.getLogger(this.getName() + "(" + this.getID()
+				+ ")");
 		if (logger.isDebugEnabled()) {
-			logger.debug("Created Participant " + this.getName() + ", UUID: " + this.getID());
+			logger.debug("Created Participant " + this.getName() + ", UUID: "
+					+ this.getID());
 		}
 	}
 
@@ -164,7 +169,8 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 		this.name = name;
 		this.logger = Logger.getLogger(this.getName());
 		if (logger.isDebugEnabled()) {
-			logger.debug("Created Participant " + this.getName() + ", UUID: " + this.getID());
+			logger.debug("Created Participant " + this.getName() + ", UUID: "
+					+ this.getID());
 		}
 	}
 
@@ -252,11 +258,13 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	 */
 	private void registerWithEnvironment() {
 		// Create base registration request
-		EnvironmentRegistrationRequest request = new EnvironmentRegistrationRequest(getID(), this);
+		EnvironmentRegistrationRequest request = new EnvironmentRegistrationRequest(
+				getID(), this);
 		// Add any shared state we have
 		request.setSharedState(this.getSharedState());
 		// Register
-		EnvironmentRegistrationResponse response = environment.register(request);
+		EnvironmentRegistrationResponse response = environment
+				.register(request);
 		// Save the returned authkey
 		this.authkey = response.getAuthKey();
 		// process the returned environment services
@@ -326,6 +334,7 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	 * the agent to be anything more than purely reactive you should add more to
 	 * this.
 	 * </p>
+	 * 
 	 * @deprecated Use {@link TimeDriven#incrementTime()} now.
 	 */
 	@Override
@@ -365,6 +374,14 @@ public abstract class AbstractParticipant implements Participant, EnvironmentSer
 	public void onSimulationComplete() {
 		// empty - override is optional if the participant implementor wants to
 		// use this method.
+	}
+
+	@Override
+	public void act(Action a) throws ActionHandlingException {
+		if (authkey == null)
+			throw new ActionHandlingException(
+					"Agent is not registered with environment yet.");
+		this.environment.act(a, getID(), authkey);
 	}
 
 }

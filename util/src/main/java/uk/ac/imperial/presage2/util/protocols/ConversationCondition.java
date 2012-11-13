@@ -35,7 +35,7 @@ public class ConversationCondition implements TransitionCondition {
 	@Override
 	public boolean allow(Object event, Object entity, State state) {
 		if (event instanceof Message) {
-			Message<?> m = (Message<?>) event;
+			Message m = (Message) event;
 			return ((FSMConversation) entity).getID().equals(m.getConversationKey());
 		}
 		return false;

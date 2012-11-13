@@ -60,7 +60,7 @@ public class FSMConversation implements Conversation {
 	@Override
 	public boolean canHandle(final Input in) {
 		if (in instanceof Message) {
-			Message<?> m = (Message<?>) in;
+			Message m = (Message) in;
 			return m.getConversationKey().equals(id);
 		}
 		return false;
@@ -122,11 +122,11 @@ public class FSMConversation implements Conversation {
 			this.network = real;
 		}
 
-		public List<Message<?>> getMessages() {
+		public List<Message> getMessages() {
 			return network.getMessages();
 		}
 
-		public void sendMessage(Message<?> m) {
+		public void sendMessage(Message m) {
 			m.setConversationKey(id);
 			m.setProtocol(protocol);
 			network.sendMessage(m);

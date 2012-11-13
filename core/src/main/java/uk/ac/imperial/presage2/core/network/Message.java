@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.core.network;
 
 import java.util.UUID;
 
+import uk.ac.imperial.presage2.core.Action;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.messaging.Performative;
@@ -38,7 +39,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public abstract class Message<T> implements Input {
+public abstract class Message implements Input, Action {
 
 	/**
 	 * FIPA performative of the message
@@ -67,14 +68,15 @@ public abstract class Message<T> implements Input {
 	 */
 	protected String protocol;
 
-	protected T data;
+	protected Object data;
 
 	/**
 	 * @param performative
 	 * @param from
 	 * @param timestamp
 	 */
-	public Message(Performative performative, NetworkAddress from, Time timestamp) {
+	public Message(Performative performative, NetworkAddress from,
+			Time timestamp) {
 		super();
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
@@ -83,7 +85,8 @@ public abstract class Message<T> implements Input {
 		this.type = "";
 	}
 
-	public Message(Performative performative, NetworkAddress from, Time timestamp, T data) {
+	public Message(Performative performative, NetworkAddress from,
+			Time timestamp, Object data) {
 		super();
 		this.performative = performative;
 		this.timestamp = timestamp.clone();
@@ -92,8 +95,8 @@ public abstract class Message<T> implements Input {
 		this.type = "";
 	}
 
-	public Message(Performative performative, String type, Time timestamp, NetworkAddress from,
-			T data) {
+	public Message(Performative performative, String type, Time timestamp,
+			NetworkAddress from, Object data) {
 		super();
 		this.performative = performative;
 		this.type = type;
@@ -102,7 +105,8 @@ public abstract class Message<T> implements Input {
 		this.data = data;
 	}
 
-	public Message(Performative performative, String type, Time timestamp, NetworkAddress from) {
+	public Message(Performative performative, String type, Time timestamp,
+			NetworkAddress from) {
 		super();
 		this.performative = performative;
 		this.type = type;
@@ -149,9 +153,9 @@ public abstract class Message<T> implements Input {
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ": (Time: " + this.timestamp.toString()
-				+ ", from: " + this.from.toString() + ", perf: " + this.performative.toString()
-				+ ")";
+		return this.getClass().getSimpleName() + ": (Time: "
+				+ this.timestamp.toString() + ", from: " + this.from.toString()
+				+ ", perf: " + this.performative.toString() + ")";
 	}
 
 	/**
@@ -159,7 +163,7 @@ public abstract class Message<T> implements Input {
 	 * 
 	 * @return
 	 */
-	public T getData() {
+	public Object getData() {
 		return data;
 	}
 
