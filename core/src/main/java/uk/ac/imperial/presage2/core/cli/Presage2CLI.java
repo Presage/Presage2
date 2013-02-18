@@ -210,7 +210,7 @@ public class Presage2CLI {
 			}
 			// invoke command
 			try {
-				commands.get(command[0]).invoke(null, (Object) command);
+				commands.get(command[0]).invoke(this, (Object) command);
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
