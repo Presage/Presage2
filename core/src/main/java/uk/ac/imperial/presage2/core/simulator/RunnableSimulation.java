@@ -301,6 +301,7 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	final protected void setParameter(String name, String value)
 			throws IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
@@ -316,6 +317,9 @@ public abstract class RunnableSimulation implements Runnable {
 			} else if (type == Boolean.class || type == Boolean.TYPE) {
 				fieldParameters.get(name).setBoolean(this,
 						Boolean.parseBoolean(value));
+			} else if (type.isEnum()) {
+				fieldParameters.get(name).set(this,
+						Enum.valueOf((Class<Enum>) type, value));
 			}
 		} else if (methodParameters.containsKey(name)) {
 			Class<?> type = methodParameters.get(name).getParameterTypes()[0];
@@ -330,6 +334,9 @@ public abstract class RunnableSimulation implements Runnable {
 			} else if (type == Boolean.class || type == Boolean.TYPE) {
 				methodParameters.get(name).invoke(this,
 						Boolean.parseBoolean(value));
+			} else if (type.isEnum()) {
+				methodParameters.get(name).invoke(this,
+						Enum.valueOf((Class<Enum>) type, value));
 			}
 		}
 	}
