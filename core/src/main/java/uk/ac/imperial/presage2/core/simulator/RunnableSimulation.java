@@ -542,7 +542,6 @@ public abstract class RunnableSimulation implements Runnable {
 			IllegalAccessException {
 		// Additional modules we want for this simulation run
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
-		additionalModules.add(SimulatorModule.multiThreadedSimulator(threads));
 		additionalModules.add(new EventBusModule());
 		// wrap db bindings into a new module as they were already created from
 		// elsewhere.

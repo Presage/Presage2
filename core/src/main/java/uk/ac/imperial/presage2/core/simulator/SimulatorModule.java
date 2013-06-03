@@ -35,7 +35,7 @@ public class SimulatorModule extends AbstractModule {
 
 	final private Class<? extends Simulator> simulatorImplementation;
 
-	private SimulatorModule(Class<? extends Simulator> simulatorImplementation) {
+	public SimulatorModule(Class<? extends Simulator> simulatorImplementation) {
 		super();
 		this.simulatorImplementation = simulatorImplementation;
 	}
