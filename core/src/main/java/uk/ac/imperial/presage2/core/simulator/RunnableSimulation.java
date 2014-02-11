@@ -41,6 +41,8 @@ import uk.ac.imperial.presage2.core.event.EventBusModule;
 import uk.ac.imperial.presage2.core.event.EventListener;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * <p>
@@ -66,10 +68,6 @@ public abstract class RunnableSimulation implements Runnable {
 	protected Simulator simulator;
 
 	protected DatabaseService database;
-	/**
-	 * @deprecated Renamed to {@link #storage}.
-	 */
-	protected StorageService graphDb;
 	protected StorageService storage;
 	protected PersistentSimulation simPersist;
 
@@ -79,6 +77,8 @@ public abstract class RunnableSimulation implements Runnable {
 
 	@Parameter(name = "finishTime")
 	public int finishTime;
+
+	private long id = -1;
 
 	public enum SimulationState {
 		LOADING, READY, INITIALISING, RUNNING, PAUSED, STOPPED, FINISHING, COMPLETE
@@ -162,18 +162,22 @@ public abstract class RunnableSimulation implements Runnable {
 			} catch (Exception e) {
 				logger.warn("Failed to start DB", e);
 				this.database = null;
-				this.graphDb = null;
+				this.storage = null;
 			}
 		}
-		if (this.graphDb != null) {
+		if (this.storage != null) {
 			if (simPersist == null) {
-				simPersist = graphDb
-						.createSimulation(getClass().getSimpleName(),
-								getClass().getCanonicalName(), getState()
-										.name(), getSimulationFinishTime()
-										.intValue());
-				for (String s : getParameters().keySet()) {
-					simPersist.addParameter(s, getParameter(s));
+				if (this.id >= 0) {
+					simPersist = storage.getSimulationById(this.id);
+					storage.setSimulation(simPersist);
+				} else {
+					simPersist = storage.createSimulation(getClass()
+							.getSimpleName(), getClass().getCanonicalName(),
+							getState().name(), getSimulationFinishTime()
+									.intValue());
+					for (String s : getParameters().keySet()) {
+						simPersist.addParameter(s, getParameter(s));
+					}
 				}
 			}
 			simPersist.setStartedAt(new Date().getTime());
@@ -181,7 +185,7 @@ public abstract class RunnableSimulation implements Runnable {
 	}
 
 	private void updateDatabase() {
-		if (this.graphDb != null) {
+		if (this.storage != null) {
 			if (!getState().name().equals(simPersist.getState())) {
 				simPersist.setState(getState().name());
 				if (getState() == SimulationState.COMPLETE) {
@@ -339,7 +343,6 @@ public abstract class RunnableSimulation implements Runnable {
 	}
 
 	protected void setStorage(StorageService db) {
-		this.graphDb = db;
 		this.storage = db;
 	}
 
@@ -528,66 +531,66 @@ public abstract class RunnableSimulation implements Runnable {
 
 	}
 
-	final public static void runSimulationID(final DatabaseService db,
-			final StorageService sto, long simID, int threads)
-			throws ClassNotFoundException, NoSuchMethodException,
-			InvocationTargetException, InstantiationException,
-			IllegalAccessException {
+	final public static void runSimulationID(long simID, int threads)
+			throws Exception {
 		// Additional modules we want for this simulation run
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
 		additionalModules.add(SimulatorModule.multiThreadedSimulator(threads));
 		additionalModules.add(new EventBusModule());
-		// wrap db bindings into a new module as they were already created from
-		// elsewhere.
-		additionalModules.add(new AbstractModule() {
-			@Override
-			protected void configure() {
-				bind(DatabaseService.class).toInstance(db);
-				bind(StorageService.class).toInstance(sto);
-			}
-		});
 
-		// get PersistentSimulation
-		PersistentSimulation sim = sto.getSimulationById(simID);
-		if (sim == null) {
-			System.err.println("Simulation with ID " + simID
-					+ " not found in storage. Aborting.");
-			db.stop();
-			return;
-		}
-		if (!sim.getState().equalsIgnoreCase("NOT STARTED")
-				&& !sim.getState().equalsIgnoreCase("AUTO START")) {
-			System.err.println("Simulation " + simID
-					+ " has already been started. Aborting.");
-			db.stop();
-			return;
-		}
-		sim.setState(SimulationState.LOADING.name());
-		sto.setSimulation(sim);
+		DatabaseModule db = DatabaseModule.load();
+		additionalModules.add(db);
 
-		RunnableSimulation run = newFromClassName(sim.getClassName(),
-				additionalModules);
-
-		run.setDatabase(db);
-		run.setStorage(sto);
-
+		RunnableSimulation run;
 		try {
-			run.setParameters(sim.getParameters());
-		} catch (IllegalArgumentException e) {
-			sim.setState("FAILED");
-			db.stop();
-			return;
-		} catch (UndefinedParameterException e) {
-			sim.setState("FAILED");
-			db.stop();
-			return;
+			run = newFromStorage(simID, db, additionalModules);
+		} catch (Exception e) {
+			throw e;
 		}
-
-		run.simPersist = sim;
 
 		// now run
 		run.load();
 		run.run();
+	}
+
+	public static RunnableSimulation newFromStorage(long simID,
+			DatabaseModule db, Set<AbstractModule> additionalModules)
+			throws Exception {
+		// db connect and get info we need
+		Injector injector = Guice.createInjector(db);
+		DatabaseService database = injector.getInstance(DatabaseService.class);
+		StorageService storage = injector.getInstance(StorageService.class);
+		database.start();
+		// get PersistentSimulation
+		PersistentSimulation sim = storage.getSimulationById(simID);
+		if (sim == null) {
+			database.stop();
+			throw new RuntimeException("Simulation with ID " + simID
+					+ " not found in storage. Aborting.");
+		}
+		if (!sim.getState().equalsIgnoreCase("NOT STARTED")
+				&& !sim.getState().equalsIgnoreCase("AUTO START")) {
+			database.stop();
+			throw new RuntimeException("Simulation " + simID
+					+ " has already been started. Aborting.");
+		}
+
+		RunnableSimulation run = newFromClassName(sim.getClassName(),
+				additionalModules);
+		try {
+			run.setParameters(sim.getParameters());
+		} catch (IllegalArgumentException e) {
+			sim.setState("FAILED");
+			database.stop();
+			throw new RuntimeException(e);
+		} catch (UndefinedParameterException e) {
+			sim.setState("FAILED");
+			database.stop();
+			throw new RuntimeException(e);
+		}
+		run.id = simID;
+		database.stop();
+		return run;
 	}
 
 	private static class ObjectFactory {

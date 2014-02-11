@@ -139,6 +139,7 @@ public class Presage2CLI {
 	}
 
 	protected Injector injector;
+	protected DatabaseModule db;
 	protected DatabaseService database;
 	protected StorageService storage;
 
@@ -146,7 +147,7 @@ public class Presage2CLI {
 		if (storage != null)
 			return storage;
 
-		DatabaseModule db = DatabaseModule.load();
+		db = DatabaseModule.load();
 		if (db != null) {
 			injector = Guice.createInjector(db);
 			database = injector.getInstance(DatabaseService.class);
@@ -162,7 +163,7 @@ public class Presage2CLI {
 	}
 
 	protected void stopDatabase() {
-		if(database != null)
+		if (database != null)
 			database.stop();
 		database = null;
 		storage = null;
@@ -442,9 +443,7 @@ public class Presage2CLI {
 	}
 
 	@Command(description = "Run a simulation.", name = "run")
-	void run(String[] args) throws ClassNotFoundException,
-			NoSuchMethodException, InvocationTargetException,
-			InstantiationException, IllegalAccessException {
+	void run(String[] args) throws Exception {
 		int threads = 4;
 
 		Options options = new Options();
@@ -485,10 +484,7 @@ public class Presage2CLI {
 			return;
 		}
 
-		StorageService storage = getDatabase();
-		DatabaseService db = database;
-
-		RunnableSimulation.runSimulationID(db, storage, simulationID, threads);
+		RunnableSimulation.runSimulationID(simulationID, threads);
 
 		stopDatabase();
 	}
@@ -538,6 +534,10 @@ public class Presage2CLI {
 			exec.join();
 		} catch (InterruptedException e) {
 		}
+
+	}
+
+	void addExperiment(String[] args) {
 
 	}
 }
