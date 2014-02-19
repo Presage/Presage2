@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Singleton;
+
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentEnvironment;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
@@ -38,6 +40,7 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
  * @author Sam Macbeth
  * 
  */
+@Singleton
 class StubStorageService implements StorageService {
 
 	StubSimulation current = null;

@@ -30,6 +30,7 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * <p>
@@ -46,6 +47,7 @@ import com.google.inject.Inject;
  * @author Sam Macbeth
  * 
  */
+@Singleton
 public class ConstrainedNetworkController extends NetworkController {
 
 	private final Logger logger = Logger

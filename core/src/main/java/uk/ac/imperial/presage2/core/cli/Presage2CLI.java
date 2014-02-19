@@ -211,7 +211,7 @@ public class Presage2CLI {
 			}
 			// invoke command
 			try {
-				commands.get(command[0]).invoke(null, (Object) command);
+				commands.get(command[0]).invoke(this, (Object) command);
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
@@ -400,13 +400,13 @@ public class Presage2CLI {
 			cmd = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
-			new HelpFormatter().printHelp("presage2cli duplicate <ID>",
-					options, true);
+			new HelpFormatter().printHelp(
+					"presage2cli duplicate <ID> [<count>]", options, true);
 			return;
 		}
 		if (cmd.hasOption("h") || args.length < 2) {
-			new HelpFormatter().printHelp("presage2cli duplicate <ID>",
-					options, true);
+			new HelpFormatter().printHelp(
+					"presage2cli duplicate <ID> [<count>]", options, true);
 			return;
 		}
 
@@ -416,6 +416,15 @@ public class Presage2CLI {
 		} catch (NumberFormatException e) {
 			System.err.println("Simulation ID should be an integer.");
 			return;
+		}
+		int count = 1;
+		if (args.length >= 3) {
+			try {
+				count = Integer.parseInt(args[2]);
+			} catch (NumberFormatException e) {
+				System.err.println("Invalid count argument.");
+				return;
+			}
 		}
 
 		StorageService storage = getDatabase();
@@ -427,17 +436,19 @@ public class Presage2CLI {
 			return;
 		}
 
-		PersistentSimulation dupe = storage.createSimulation(source.getName(),
-				source.getClassName(), "NOT STARTED", source.getFinishTime());
-		for (Map.Entry<String, String> param : source.getParameters()
-				.entrySet()) {
-			dupe.addParameter(param.getKey(), param.getValue());
+		for (int i = 0; i < count; i++) {
+			PersistentSimulation dupe = storage.createSimulation(
+					source.getName(), source.getClassName(), "NOT STARTED",
+					source.getFinishTime());
+			for (Map.Entry<String, String> param : source.getParameters()
+					.entrySet()) {
+				dupe.addParameter(param.getKey(), param.getValue());
+			}
+			if (source.getParentSimulation() != null) {
+				dupe.setParentSimulation(source.getParentSimulation());
+			}
+			System.out.println("Added simulation ID: " + dupe.getID());
 		}
-		if (source.getParentSimulation() != null) {
-			dupe.setParentSimulation(source.getParentSimulation());
-		}
-
-		System.out.println("Added simulation ID: " + dupe.getID());
 
 		stopDatabase();
 	}

@@ -125,4 +125,52 @@ public class NetworkAddressTest {
 		assertEquals(id, generatedAddr.getId());
 	}
 
+	public void testAddressEquality() {
+		final UUID uuid1 = Random.randomUUID();
+		final UUID uuid2 = new UUID(uuid1.getMostSignificantBits(),
+				uuid1.getLeastSignificantBits());
+		final NetworkAddress x = new NetworkAddress(uuid1);
+		final NetworkAddress y = new NetworkAddress(uuid1);
+		final NetworkAddress z = new NetworkAddress(uuid2);
+		final NetworkAddress notx = new NetworkAddress(Random.randomUUID());
+
+		assertTrue("Class equal to itself.", x.equals(x));
+		assertFalse(
+				"Passing incompatible object to equals should return false",
+				x.equals("string"));
+		assertFalse("Passing null to equals should return false",
+				x.equals(null));
+
+		assertTrue("Reflexive test fail 1,2", x.equals(y));
+		assertTrue("Symmetric test fail 2", y.equals(x));
+		assertTrue("Reflexive test fail 1,3", x.equals(z));
+		assertTrue("Symmetric test fail 3", z.equals(x));
+
+		assertTrue("Transitive test fails 1,2", x.equals(y));
+		assertTrue("Transitive test fails 2,3", y.equals(z));
+		assertTrue("Transitive test fails 1,3", x.equals(z));
+
+		assertTrue("Consistent test fail 1,2", x.equals(y));
+		assertTrue("Consistent test fail 1,2", x.equals(y));
+		assertTrue("Consistent test fail 1,2", x.equals(y));
+		assertFalse(notx.equals(x));
+		assertFalse(notx.equals(x));
+		assertFalse(notx.equals(x));
+
+		int initial_hashcode = x.hashCode();
+		assertEquals("Consistent hashcode test fails", initial_hashcode,
+				x.hashCode());
+		assertEquals("Consistent hashcode test fails", initial_hashcode,
+				x.hashCode());
+
+		int xhashcode = x.hashCode();
+		int yhashcode = y.hashCode();
+		assertEquals("Equal object, return equal hashcode test fails",
+				xhashcode, yhashcode);
+
+		int notxHashcode = notx.hashCode();
+		assertTrue("Equal object, return unequal hashcode test fails",
+				!(xhashcode == notxHashcode));
+	}
+
 }
