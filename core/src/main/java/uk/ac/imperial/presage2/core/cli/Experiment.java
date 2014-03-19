@@ -18,13 +18,13 @@
  */
 package uk.ac.imperial.presage2.core.cli;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Describes a set of simulation parameters permutations.
@@ -61,9 +61,30 @@ public class Experiment implements Iterator<Simulation> {
 		return this;
 	}
 
-	public Experiment addArrayParameter(String name, String[] values) {
+	public Experiment addFixedParameter(String name, String value) {
+		return addArrayParameter(name, new String[] { value });
+	}
+
+	public Experiment addArrayParameter(String name, String... values) {
 		parameters.put(name, Arrays.asList(values));
 		return this;
+	}
+
+	public Experiment addArrayParameter(String name, Object... values) {
+		List<String> strVals = new ArrayList<String>();
+		for (Object o : values) {
+			strVals.add(o.toString());
+		}
+		return addParameter(name, strVals);
+	}
+
+	public Experiment addRangeParameter(String name, int start, int count,
+			int interval) {
+		String[] range = new String[count];
+		for (int i = 0; i < count; i++) {
+			range[i] = Integer.toString(start + i * interval);
+		}
+		return addParameter(name, Arrays.asList(range));
 	}
 
 	@Override
@@ -125,7 +146,8 @@ public class Experiment implements Iterator<Simulation> {
 
 		// special case: no params. Refuse to build.
 		if (parameters.size() == 0) {
-			throw new InvalidParametersException("No parameters specified. Cannot build.");
+			throw new InvalidParametersException(
+					"No parameters specified. Cannot build.");
 		}
 
 		// build iterator set and initial parameters.
@@ -153,8 +175,9 @@ public class Experiment implements Iterator<Simulation> {
 
 	private static String formatName(String name, Map<String, String> parameters) {
 		String formatted = new String(name);
-		for(Map.Entry<String, String> e : parameters.entrySet()) {
-			formatted = formatted.replace("%{p."+e.getKey()+"}", e.getValue());
+		for (Map.Entry<String, String> e : parameters.entrySet()) {
+			formatted = formatted.replace("%{p." + e.getKey() + "}",
+					e.getValue());
 		}
 		return formatted;
 	}
