@@ -39,6 +39,7 @@ import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventBusModule;
 import uk.ac.imperial.presage2.core.event.EventListener;
+import uk.ac.imperial.presage2.core.simulator.MultiThreadedSimulator.ThreadsValue;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -543,6 +544,14 @@ public abstract class RunnableSimulation implements Runnable {
 		// Additional modules we want for this simulation run
 		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
 		additionalModules.add(new EventBusModule());
+		additionalModules.add(new AbstractModule() {
+			@Override
+			protected void configure() {
+				ThreadsValue v = new ThreadsValue();
+				v.value = 8;
+				bind(ThreadsValue.class).toInstance(v);
+			}
+		});
 
 		DatabaseModule db = DatabaseModule.load();
 		additionalModules.add(db);
