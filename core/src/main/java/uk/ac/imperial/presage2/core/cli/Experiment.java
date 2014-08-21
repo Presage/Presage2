@@ -20,55 +20,31 @@ package uk.ac.imperial.presage2.core.cli;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
-/**
- * Describes a set of simulation parameters permutations.
- * 
- * @author Sam Macbeth
- * 
- */
-public class Experiment implements Iterator<Simulation> {
+public abstract class Experiment implements Iterator<Simulation> {
 
 	String name;
-	String simNamePattern;
-	String className;
-	int simSteps;
-	Map<String, Iterable<String>> parameters = new HashMap<String, Iterable<String>>();
+	String description;
 
-	Iterator<String> parameterIt = null;
-	String current = null;
-	Map<String, Iterator<String>> currentIterators = null;
-	Map<String, String> currentParams;
-
-	boolean hasNext = true;
-
-	public Experiment(String name, String simNamePattern, String className,
-			int simSteps) {
+	protected Experiment(String name, String description) {
 		super();
 		this.name = name;
-		this.simNamePattern = simNamePattern;
-		this.className = className;
-		this.simSteps = simSteps;
+		this.description = description;
 	}
 
-	public Experiment addParameter(String name, Iterable<String> values) {
-		parameters.put(name, values);
-		return this;
+	public String getName() {
+		return name;
 	}
 
-	public Experiment addFixedParameter(String name, String value) {
-		return addArrayParameter(name, new String[] { value });
+	public String getDescription() {
+		return description;
 	}
 
-	public Experiment addArrayParameter(String name, String... values) {
-		parameters.put(name, Arrays.asList(values));
-		return this;
-	}
+	public abstract Experiment build() throws InvalidParametersException;
+
+	public abstract Experiment addParameter(String name, Iterable<String> values);
 
 	public Experiment addArrayParameter(String name, Object... values) {
 		List<String> strVals = new ArrayList<String>();
@@ -78,6 +54,18 @@ public class Experiment implements Iterator<Simulation> {
 		return addParameter(name, strVals);
 	}
 
+	public Experiment addArrayParameter(String name, String... values) {
+		return addParameter(name, Arrays.asList(values));
+	}
+
+	public Experiment addFixedParameter(String name, String value) {
+		return addArrayParameter(name, new String[] { value });
+	}
+
+	public Experiment addFixedParameter(String name, Object value) {
+		return addFixedParameter(name, value.toString());
+	}
+
 	public Experiment addRangeParameter(String name, int start, int count,
 			int interval) {
 		String[] range = new String[count];
@@ -85,101 +73,6 @@ public class Experiment implements Iterator<Simulation> {
 			range[i] = Integer.toString(start + i * interval);
 		}
 		return addParameter(name, Arrays.asList(range));
-	}
-
-	@Override
-	public boolean hasNext() {
-		return hasNext;
-	}
-
-	@Override
-	public Simulation next() {
-		if (parameterIt == null)
-			throw new RuntimeException(
-					"Iterator not initialised, please call build()");
-		if (!hasNext)
-			throw new NoSuchElementException();
-
-		Simulation s = new Simulation();
-		s.className = className;
-		s.finishTime = simSteps;
-		s.parameters = new HashMap<String, String>(currentParams);
-		s.name = formatName(simNamePattern, s.parameters);
-
-		nextState();
-		return s;
-	}
-
-	void nextState() {
-		// increment to next state
-		if (currentIterators.get(current).hasNext()) {
-			// increment current parameter
-			currentParams.put(current, currentIterators.get(current).next());
-			return;
-		}
-		do {
-			if (parameterIt.hasNext()) {
-				current = parameterIt.next();
-			} else {
-				hasNext = false;
-				return; // no more states
-			}
-		} while (!currentIterators.get(current).hasNext());
-
-		currentParams.put(current, currentIterators.get(current).next());
-		// reset previous params
-		for (String param : parameters.keySet()) {
-			if (param.equals(current))
-				break;
-			Iterator<String> it = parameters.get(param).iterator();
-			currentIterators.put(param, it);
-			currentParams.put(param, it.next());
-		}
-		parameterIt = parameters.keySet().iterator();
-		current = parameterIt.next();
-
-	}
-
-	public Experiment build() throws InvalidParametersException {
-		currentIterators = new HashMap<String, Iterator<String>>();
-		currentParams = new HashMap<String, String>();
-
-		// special case: no params. Refuse to build.
-		if (parameters.size() == 0) {
-			throw new InvalidParametersException(
-					"No parameters specified. Cannot build.");
-		}
-
-		// build iterator set and initial parameters.
-		parameterIt = parameters.keySet().iterator();
-		while (parameterIt.hasNext()) {
-			// TODO: Error handling when keys don't match.
-			final String param = parameterIt.next();
-			Iterator<String> it = parameters.get(param).iterator();
-			currentIterators.put(param, it);
-			currentParams.put(param, it.next());
-		}
-
-		// reset parameter iterator and start at first parameter
-		parameterIt = parameters.keySet().iterator();
-		current = parameterIt.next();
-
-		return this;
-	}
-
-	@Override
-	public void remove() {
-		throw new UnsupportedOperationException(
-				"This iterator does not support removal.");
-	}
-
-	private static String formatName(String name, Map<String, String> parameters) {
-		String formatted = new String(name);
-		for (Map.Entry<String, String> e : parameters.entrySet()) {
-			formatted = formatted.replace("%{p." + e.getKey() + "}",
-					e.getValue());
-		}
-		return formatted;
 	}
 
 }

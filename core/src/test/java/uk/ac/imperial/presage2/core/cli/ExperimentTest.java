@@ -26,7 +26,7 @@ public class ExperimentTest {
 
 	@Test
 	public void testSingleParam() throws InvalidParametersException {
-		Experiment e = new Experiment("Test", "Test_%{p.test}",
+		Experiment e = new ParameterSweep("Test", "Test_%{p.test}",
 				"uk.ac.imperial.TestClass", 100);
 		final String value = "5";
 		e.addArrayParameter("test", new String[] { value });
@@ -40,16 +40,16 @@ public class ExperimentTest {
 	@Test
 	public void testNoParams() {
 		try {
-			new Experiment("Test", "Test_%{p.test}",
+			new ParameterSweep("Test", "Test_%{p.test}",
 					"uk.ac.imperial.TestClass", 100).build();
 			fail();
 		} catch (InvalidParametersException e) {
 		}
 	}
-	
+
 	@Test
 	public void testMultipleParam() throws InvalidParametersException {
-		Experiment e = new Experiment("Test", "Test_%{p.test}",
+		Experiment e = new ParameterSweep("Test", "Test_%{p.test}",
 				"uk.ac.imperial.TestClass", 100);
 		final String value = "5";
 		e.addArrayParameter("test", new String[] { value });
@@ -59,6 +59,5 @@ public class ExperimentTest {
 		assertTrue(s.parameters.get("test").equals(value));
 		assertFalse(e.hasNext());
 	}
-
 
 }
