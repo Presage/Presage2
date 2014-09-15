@@ -4,12 +4,12 @@
 	<parent>
 		<groupId>uk.ac.imperial.presage2</groupId>
 		<artifactId>presage2</artifactId>
-		<version>0.3.3</version>
+		<version>0.3.4</version>
 	</parent>
 	<artifactId>presage2-jsondb</artifactId>
 	<packaging>jar</packaging>
 
-	<name>presage2-sqldb</name>
+	<name>presage2-jsondb</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
