@@ -187,8 +187,11 @@ public class JsonStorage implements StorageService, DatabaseService {
 
 	@Override
 	public List<Long> getSimulations() {
-		// TODO Auto-generated method stub
-		return null;
+		List<Long> ids = new LinkedList<Long>();
+		for (SimulationBean sim : simulations) {
+			ids.add(sim.id);
+		}
+		return ids;
 	}
 
 	@Override
@@ -279,7 +282,7 @@ public class JsonStorage implements StorageService, DatabaseService {
 				// load agent data from json file
 				if (agentsFile.exists()) {
 					sim.agents = mapper.readValue(agentsFile,
-							new TypeReference<List<PersistentAgent>>() {
+							new TypeReference<List<Agent>>() {
 							});
 				} else {
 					sim.agents = new LinkedList<PersistentAgent>();
@@ -515,6 +518,17 @@ public class JsonStorage implements StorageService, DatabaseService {
 		public String name;
 		public Map<String, String> properties = new HashMap<String, String>();
 		public Map<Integer, Map<String, String>> state = new HashMap<Integer, Map<String, String>>();
+
+		public Agent() {
+			super();
+		}
+
+		public Agent(UUID iD, String name, Map<String, String> properties) {
+			super();
+			this.iD = iD;
+			this.name = name;
+			this.properties = properties;
+		}
 
 		@Override
 		public UUID getID() {
