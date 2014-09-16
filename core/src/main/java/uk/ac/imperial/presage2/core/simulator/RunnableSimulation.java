@@ -64,8 +64,10 @@ public abstract class RunnableSimulation implements Runnable {
 	private static final Logger logger = Logger
 			.getLogger(RunnableSimulation.class);
 	private RuntimeScenario scenario;
-	private Injector injector;
+	private Injector injector = null;
 	Set<AbstractModule> modules = new HashSet<AbstractModule>();
+	Set<Class<? extends Object>> objectClasses = new HashSet<Class<?>>();
+
 	Set<DeclaredParameter> parameters = new HashSet<DeclaredParameter>();
 
 	Set<Pair<Method, Object>> initialisors = Collections
@@ -142,11 +144,23 @@ public abstract class RunnableSimulation implements Runnable {
 	public RunnableSimulation() {
 	}
 
-	public abstract void initialiseScenario(Scenario scenario,
-			Set<AbstractModule> modules);
+	public abstract void initialiseScenario(Scenario scenario);
 
 	public void addModule(AbstractModule module) {
-		modules.add(module);
+		if (injector == null) {
+			modules.add(module);
+		} else {
+			throw new RuntimeException(
+					"Cannot add modules after injector has been created.");
+		}
+	}
+
+	public void addObjectClass(Class<? extends Object> clazz) {
+		if (injector == null) {
+			objectClasses.add(clazz);
+		} else {
+			scenario.addObject(injector.getInstance(clazz));
+		}
 	}
 
 	@Override
@@ -161,16 +175,19 @@ public abstract class RunnableSimulation implements Runnable {
 		logger.info("Generating scenario...");
 		scenario = new RuntimeScenario();
 		scenario.addObject(this);
-		Set<AbstractModule> modules = new HashSet<AbstractModule>();
-		initialiseScenario(scenario, modules);
+		initialiseScenario(scenario);
 		logger.info("Loading modules...");
-		modules.add(new ScenarioModule(scenario, parameters));
-		modules.add(DatabaseModule.load()); // database
+		addModule(new ScenarioModule(scenario, parameters));
+		addModule(DatabaseModule.load());
 		modules.remove(null);
 		injector = Guice.createInjector(modules);
 
 		logger.info("Wiring components...");
 		injector.injectMembers(this);
+		for (Class<? extends Object> c : objectClasses) {
+			addObjectClass(c);
+		}
+		objectClasses.clear();
 		scenario.inject = true;
 
 		logger.info("Scanning for schedule functions...");
