@@ -31,8 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
@@ -70,12 +68,10 @@ public abstract class RunnableSimulation implements Runnable {
 	Set<AbstractModule> modules = new HashSet<AbstractModule>();
 	Set<DeclaredParameter> parameters = new HashSet<DeclaredParameter>();
 
-	SortedSet<Pair<Method, Object>> initialisors = Collections
-			.synchronizedSortedSet(new TreeSet<Pair<Method, Object>>(
-					new NiceComparator()));
-	SortedSet<Pair<Method, Object>> steppers = Collections
-			.synchronizedSortedSet(new TreeSet<Pair<Method, Object>>(
-					new NiceComparator()));
+	Set<Pair<Method, Object>> initialisors = Collections
+			.synchronizedSet(new HashSet<Pair<Method, Object>>());
+	Set<Pair<Method, Object>> steppers = Collections
+			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 	Set<Pair<Method, Object>> finishConditions = Collections
 			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 	Set<Pair<Method, Object>> finalisors = Collections
@@ -158,6 +154,7 @@ public abstract class RunnableSimulation implements Runnable {
 		initialise();
 		step();
 		finish();
+		executor.shutdown();
 	}
 
 	protected void initialise() {
@@ -195,8 +192,12 @@ public abstract class RunnableSimulation implements Runnable {
 		logger.info("Initialising agents and environment...");
 		scenario.initialise = true;
 		synchronized (initialisors) {
-			for (Pair<Method, Object> init : initialisors) {
-				executor.submitScheduled(new TaskRunner(init),
+			LinkedList<Pair<Method, Object>> taskQueue = new LinkedList<Pair<Method, Object>>(
+					initialisors);
+			Collections.sort(taskQueue, new NiceComparator());
+			Pair<Method, Object> task;
+			while ((task = taskQueue.poll()) != null) {
+				executor.submitScheduled(new TaskRunner(task),
 						WaitCondition.PRE_STEP);
 			}
 			initialisors.clear();
@@ -209,23 +210,33 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void step() {
 		boolean step = true;
+		LinkedList<Pair<Method, Object>> taskQueue = new LinkedList<Pair<Method, Object>>();
+		Comparator<Pair<Method, Object>> niceComp = new NiceComparator();
+		Pair<Method, Object> task;
 		do {
 			logger.info("Timestep = " + t);
 			// initialise anything new
 			synchronized (initialisors) {
-				for (Pair<Method, Object> init : initialisors) {
-					executor.submitScheduled(new TaskRunner(init),
+				taskQueue.addAll(initialisors);
+				Collections.sort(taskQueue, niceComp);
+				while ((task = taskQueue.poll()) != null) {
+					executor.submitScheduled(new TaskRunner(task),
 							WaitCondition.PRE_STEP);
 				}
 				initialisors.clear();
 			}
+
+			taskQueue.addAll(steppers);
+			Collections.sort(taskQueue, niceComp);
 			executor.waitFor(WaitCondition.PRE_STEP);
 
 			// main step component
-			for (Pair<Method, Object> task : steppers) {
+			while ((task = taskQueue.poll()) != null) {
 				executor.submitScheduled(new TaskRunner(task, t),
 						WaitCondition.STEP);
 			}
+
+			taskQueue.addAll(finishConditions);
 			executor.waitFor(WaitCondition.STEP);
 
 			// state update
@@ -233,7 +244,7 @@ public abstract class RunnableSimulation implements Runnable {
 
 			// loop conditions
 			List<Future<Boolean>> conditions = new LinkedList<Future<Boolean>>();
-			for (Pair<Method, Object> task : finishConditions) {
+			while ((task = taskQueue.poll()) != null) {
 				conditions.add(executor.submitScheduledConditional(
 						new ConditionalTask(task, t), WaitCondition.POST_STEP));
 			}
