@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,28 +18,25 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+public interface ScheduleExecutor {
 
-import com.google.inject.BindingAnnotation;
+	public enum WaitCondition {
+		PRE_STEP, STEP, POST_STEP
+	}
 
-/**
- * <p>
- * Binding annotation for providing a number of threads to use for a
- * {@link Simulator}
- * </p>
- * 
- * @author Sam Macbeth
- * 
- */
-@BindingAnnotation
-@Target({ FIELD, PARAMETER, METHOD })
-@Retention(RUNTIME)
-public @interface Threads {
+	void submit(Runnable s);
 
+	void submitScheduled(Runnable s, WaitCondition condition);
+
+	Future<Boolean> submitScheduledConditional(Callable<Boolean> s,
+			WaitCondition condition);
+
+	void waitFor(WaitCondition condition);
+
+	int getThreadCount();
+
+	void shutdown();
 }

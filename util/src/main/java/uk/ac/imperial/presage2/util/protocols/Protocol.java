@@ -54,7 +54,7 @@ import uk.ac.imperial.presage2.core.network.NetworkAddress;
  * @author Sam Macbeth
  * 
  */
-public abstract class Protocol implements InputHandler, TimeDriven {
+public abstract class Protocol implements InputHandler {
 
 	protected final String name;
 
@@ -77,7 +77,8 @@ public abstract class Protocol implements InputHandler, TimeDriven {
 		if (canHandle(in)) {
 			// pass this input to all conversation that could handle it.
 			int handleCount = 0;
-			for (Iterator<Conversation> it = activeConversations.iterator(); it.hasNext();) {
+			for (Iterator<Conversation> it = activeConversations.iterator(); it
+					.hasNext();) {
 				Conversation c = it.next();
 				if (c.canHandle(in)) {
 					c.handle(in);
@@ -129,7 +130,8 @@ public abstract class Protocol implements InputHandler, TimeDriven {
 	 * @return
 	 */
 	public Set<Conversation> getActiveConversations() {
-		return Collections.unmodifiableSet(new HashSet<Conversation>(this.activeConversations));
+		return Collections.unmodifiableSet(new HashSet<Conversation>(
+				this.activeConversations));
 	}
 
 	/**
@@ -145,5 +147,7 @@ public abstract class Protocol implements InputHandler, TimeDriven {
 		}
 		return Collections.unmodifiableSet(members);
 	}
+
+	public abstract void incrementTime(int t);
 
 }

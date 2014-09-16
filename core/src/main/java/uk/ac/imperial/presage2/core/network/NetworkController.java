@@ -36,10 +36,9 @@ import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.simulator.ParticipantsComplete;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
-import uk.ac.imperial.presage2.core.simulator.ThreadPool;
-import uk.ac.imperial.presage2.core.simulator.ThreadPool.WaitCondition;
+import uk.ac.imperial.presage2.core.simulator.ScheduleExecutor;
+import uk.ac.imperial.presage2.core.simulator.ScheduleExecutor.WaitCondition;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -100,7 +99,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 
 	protected EventBus eventBus = null;
 
-	protected ThreadPool threadPool = null;
+	protected ScheduleExecutor threadPool = null;
 
 	protected List<MessageHandler> threads = Collections
 			.synchronizedList(new ArrayList<MessageHandler>());
@@ -150,7 +149,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	}
 
 	@Inject
-	public void setThreadPool(ThreadPool pool) {
+	public void setThreadPool(ScheduleExecutor pool) {
 		threadPool = pool;
 		MAX_THREADS = threadPool.getThreadCount();
 	}
@@ -180,7 +179,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 		} else if (this.threads.size() < MAX_THREADS) {
 			MessageHandler m = new MessageHandler();
 			this.threads.add(m);
-			this.threadPool.submitScheduled(m, WaitCondition.END_OF_TIME_CYCLE);
+			this.threadPool.submitScheduled(m, WaitCondition.POST_STEP);
 			logger.info("Spawning message handler. Total Handlers: "
 					+ threads.size());
 		}
@@ -385,7 +384,7 @@ public class NetworkController implements NetworkChannel, TimeDriven,
 	}
 
 	@EventListener
-	public void onParticipantsComplete(ParticipantsComplete e) {
+	public void onParticipantsComplete() {
 		// tell MessageHandler threads to shutdown
 		if (logger.isDebugEnabled()) {
 			logger.debug("Received end of time cycle event, telling threads to deliver messages");

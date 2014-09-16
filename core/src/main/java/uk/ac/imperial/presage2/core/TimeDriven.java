@@ -19,15 +19,21 @@
 
 package uk.ac.imperial.presage2.core;
 
+import uk.ac.imperial.presage2.core.simulator.Step;
+
 /**
- * <p>Interface for any element in the simulation which
- * wants to be informed of increments in the global clock.</p>
+ * <p>
+ * Interface for any element in the simulation which wants to be informed of
+ * increments in the global clock.
+ * </p>
  * 
  * @author Sam Macbeth
- *
+ * 
  */
+@Deprecated
 public interface TimeDriven {
 
+	@Step
 	public void incrementTime();
-	
+
 }

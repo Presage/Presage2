@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,18 +18,13 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.util.Random;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * @author Sam Macbeth
- * 
- */
-public class MultiThreadedSimulatorTest extends SimulatorTest {
-
-	@Override
-	public void setUp() throws Exception {
-		this.simulatorUnderTest = new MultiThreadedSimulator(scenario, time,
-				eventBus, new Random().nextInt(5) + 1);
-	}
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Initialisor {
+	public int nice() default 0;
 }

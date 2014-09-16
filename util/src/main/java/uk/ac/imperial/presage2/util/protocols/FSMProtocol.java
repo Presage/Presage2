@@ -25,7 +25,7 @@ import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.simulator.SimTime;
+import uk.ac.imperial.presage2.core.simulator.Step;
 import uk.ac.imperial.presage2.util.fsm.FSM;
 import uk.ac.imperial.presage2.util.fsm.FSMDescription;
 import uk.ac.imperial.presage2.util.fsm.FSMException;
@@ -37,12 +37,13 @@ import uk.ac.imperial.presage2.util.fsm.FSMException;
  * @author Sam Macbeth
  * 
  */
-public class FSMProtocol extends Protocol implements TimeDriven {
+public class FSMProtocol extends Protocol {
 
 	protected final FSMDescription description;
 	protected final NetworkAdaptor network;
 
-	public FSMProtocol(String name, FSMDescription description, NetworkAdaptor network) {
+	public FSMProtocol(String name, FSMDescription description,
+			NetworkAdaptor network) {
 		super(name);
 		this.description = description;
 		this.network = network;
@@ -77,7 +78,8 @@ public class FSMProtocol extends Protocol implements TimeDriven {
 
 	@Override
 	public void spawn(Message m) {
-		FSMConversation conv = new FSMConversation(description, this.name, Role.REPLIER, network);
+		FSMConversation conv = new FSMConversation(description, this.name,
+				Role.REPLIER, network, m.getTimestamp().intValue());
 		try {
 			conv.fsm.applyEvent(m);
 			activeConversations.add(conv);
@@ -87,20 +89,22 @@ public class FSMProtocol extends Protocol implements TimeDriven {
 	}
 
 	protected Conversation spawnAsInititor(Object event) throws FSMException {
-		FSMConversation conv = new FSMConversation(description, this.name, Role.INITIATOR, network);
+		FSMConversation conv = new FSMConversation(description, this.name,
+				Role.INITIATOR, network, 0);
 		conv.fsm.applyEvent(event);
 		this.activeConversations.add(conv);
 		return conv;
 	}
 
-	@Override
-	public void incrementTime() {
-		Timeout t = new Timeout(SimTime.get().intValue());
-		for (Iterator<Conversation> it = activeConversations.iterator(); it.hasNext();) {
+	@Step
+	public void incrementTime(int t) {
+		Timeout to = new Timeout(t);
+		for (Iterator<Conversation> it = activeConversations.iterator(); it
+				.hasNext();) {
 			FSMConversation c = (FSMConversation) it.next();
-			if (c.fsm.canApplyEvent(t)) {
+			if (c.fsm.canApplyEvent(to)) {
 				try {
-					c.fsm.applyEvent(t);
+					c.fsm.applyEvent(to);
 				} catch (FSMException e) {
 				}
 			}

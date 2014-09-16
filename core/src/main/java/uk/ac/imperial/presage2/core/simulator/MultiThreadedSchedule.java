@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.core.simulator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -29,18 +30,17 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
-public class ExecutorServiceThreadPool implements ThreadPool {
+public class MultiThreadedSchedule implements ScheduleExecutor {
 
-	private final Logger logger = Logger
-			.getLogger(ExecutorServiceThreadPool.class);
+	private final Logger logger = Logger.getLogger(MultiThreadedSchedule.class);
 
 	private final ExecutorService threadPool;
 
-	private final Map<WaitCondition, Queue<Future<?>>> futures = new HashMap<ThreadPool.WaitCondition, Queue<Future<?>>>();
+	private final Map<WaitCondition, Queue<Future<?>>> futures = new HashMap<WaitCondition, Queue<Future<?>>>();
 
 	private final int threads;
 
-	ExecutorServiceThreadPool(final int threads) {
+	MultiThreadedSchedule(final int threads) {
 		super();
 		this.threads = threads;
 		this.threadPool = Executors.newFixedThreadPool(this.threads);
@@ -52,6 +52,14 @@ public class ExecutorServiceThreadPool implements ThreadPool {
 	@Override
 	public void submitScheduled(Runnable s, WaitCondition condition) {
 		futures.get(condition).add(threadPool.submit(s));
+	}
+
+	@Override
+	public Future<Boolean> submitScheduledConditional(Callable<Boolean> s,
+			WaitCondition condition) {
+		Future<Boolean> f = threadPool.submit(s);
+		futures.get(condition).add(f);
+		return f;
 	}
 
 	@Override
