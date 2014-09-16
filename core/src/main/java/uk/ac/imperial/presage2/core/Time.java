@@ -29,6 +29,7 @@ import com.google.inject.AbstractModule;
  * @author Sam Macbeth
  * 
  */
+@Deprecated
 public interface Time extends Cloneable {
 
 	@Override

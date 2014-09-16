@@ -22,17 +22,16 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
-import uk.ac.imperial.presage2.core.plugin.Plugin;
+import uk.ac.imperial.presage2.core.simulator.Step;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
 
 import com.google.inject.Inject;
 
-public class LocationStoragePlugin implements Plugin {
+public class LocationStoragePlugin {
 
 	private final Logger logger = Logger.getLogger(LocationStoragePlugin.class);
 
@@ -41,26 +40,21 @@ public class LocationStoragePlugin implements Plugin {
 	private final EnvironmentMembersService membersService;
 	private final LocationService locService;
 
-	private final Time time;
-
 	public LocationStoragePlugin() {
 		super();
 		storage = null;
 		locService = null;
 		membersService = null;
-		time = null;
 		logger.info("I wasn't given a storage service, I won't do anything!");
 	}
 
 	@Inject
-	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider,
-			Time t) throws UnavailableServiceException {
+	public LocationStoragePlugin(EnvironmentServiceProvider serviceProvider) throws UnavailableServiceException {
 		this.storage = null;
 		this.membersService = serviceProvider
 				.getEnvironmentService(EnvironmentMembersService.class);
 		this.locService = serviceProvider
 				.getEnvironmentService(LocationService.class);
-		this.time = t;
 	}
 
 	@Inject(optional = true)
@@ -68,8 +62,8 @@ public class LocationStoragePlugin implements Plugin {
 		this.storage = storage;
 	}
 
-	@Override
-	public void incrementTime() {
+	@Step
+	public void incrementTime(int t) {
 		if (this.storage != null) {
 			for (UUID pid : this.membersService.getParticipants()) {
 				Location l;
@@ -82,27 +76,11 @@ public class LocationStoragePlugin implements Plugin {
 				if (l == null)
 					continue;
 
-				TransientAgentState state = this.storage.getAgentState(pid,
-						time.intValue());
+				TransientAgentState state = this.storage.getAgentState(pid, t);
 				state.setProperty("x", Double.toString(l.getX()));
 				state.setProperty("y", Double.toString(l.getY()));
 				state.setProperty("z", Double.toString(l.getZ()));
 			}
 		}
-		time.increment();
-	}
-
-	@Override
-	public void initialise() {
-	}
-
-	@Override
-	@Deprecated
-	public void execute() {
-	}
-
-	@Override
-	public void onSimulationComplete() {
-
 	}
 }

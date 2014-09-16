@@ -34,7 +34,6 @@ import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.environment.StateTransformer;
 import uk.ac.imperial.presage2.core.event.EventBus;
-import uk.ac.imperial.presage2.core.event.EventListener;
 
 import com.google.inject.Inject;
 
