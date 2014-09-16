@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
+import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
@@ -418,20 +419,32 @@ public abstract class RunnableSimulation implements Runnable {
 		return sim;
 	}
 
-	class RuntimeScenario extends Scenario {
+	class RuntimeScenario implements Scenario {
 
+		Set<Object> agents = new HashSet<Object>();
+		Set<Object> objects = new HashSet<Object>();
 		boolean inject = false;
 		boolean initialise = false;
 
-		@Override
+		RuntimeScenario() {
+			super();
+		}
+
+		public void addTimeDriven(TimeDriven object) {
+			objects.add(object);
+		}
+
+		public void addEnvironment(TimeDriven object) {
+			// Environment handled in simulator.
+		}
+
 		public void addAgent(Object o) {
-			super.addAgent(o);
+			agents.add(o);
 			processObject(o);
 		}
 
-		@Override
 		public void addObject(Object o) {
-			super.addObject(o);
+			objects.add(o);
 			processObject(o);
 		}
 

@@ -30,7 +30,6 @@ import uk.ac.imperial.presage2.core.simulator.Step;
  * @author Sam Macbeth
  * 
  */
-@Deprecated
 public interface TimeDriven {
 
 	@Step

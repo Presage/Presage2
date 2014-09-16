@@ -18,36 +18,18 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import uk.ac.imperial.presage2.core.TimeDriven;
 
-public class Scenario {
+public interface Scenario {
 
-	Set<Object> agents = new HashSet<Object>();
-	Set<Object> objects = new HashSet<Object>(); // incl finish conditions
+	public void addAgent(Object o);
 
-	Scenario() {
-		super();
-	}
-
-	public void addAgent(Object o) {
-		agents.add(o);
-	}
-
-	public void addObject(Object o) {
-		objects.add(o);
-	}
+	public void addObject(Object o);
 
 	@Deprecated
-	public void addTimeDriven(TimeDriven object) {
-		objects.add(object);
-	}
+	public void addTimeDriven(TimeDriven object);
 
 	@Deprecated
-	public void addEnvironment(TimeDriven object) {
-		// Environment handled in simulator.
-	}
+	public void addEnvironment(TimeDriven object);
 
 }
