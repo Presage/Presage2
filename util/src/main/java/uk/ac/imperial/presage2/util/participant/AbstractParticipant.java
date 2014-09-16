@@ -19,13 +19,19 @@
 
 package uk.ac.imperial.presage2.util.participant;
 
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Action;
@@ -100,6 +106,8 @@ public abstract class AbstractParticipant implements Participant,
 	 * Persistence of this agent into the database.
 	 */
 	protected PersistentAgent persist = null;
+
+	private Map<String, State<?>> dynamicFields = new HashMap<String, State<?>>();
 
 	/**
 	 * <p>
@@ -217,6 +225,25 @@ public abstract class AbstractParticipant implements Participant,
 	protected void processEnvironmentServices(Set<EnvironmentService> services) {
 		for (EnvironmentService s : services) {
 			this.services.add(s);
+			for (Method m : s.getClass().getMethods()) {
+				StateAccessor a = m.getAnnotation(StateAccessor.class);
+				if (a != null && dynamicFields.containsKey(a.value())) {
+					State<?> state = dynamicFields.get(a.value());
+					Class<?>[] params = m.getParameterTypes();
+					boolean validMethod = params.length == 1
+							&& params[0].equals(UUID.class);
+					validMethod &= m.getReturnType().equals(
+							state.initialValue.getClass());
+					if (!validMethod) {
+						logger.warn("@StateAccessor method "
+								+ m.getName()
+								+ " is not compatable with dynamic state field "
+								+ state + ", this field won't update!");
+					} else {
+						state.setDataSource(Pair.of(m, s));
+					}
+				}
+			}
 		}
 	}
 
@@ -227,7 +254,29 @@ public abstract class AbstractParticipant implements Participant,
 	 * @return
 	 */
 	protected Set<ParticipantSharedState> getSharedState() {
-		return new HashSet<ParticipantSharedState>();
+		Set<ParticipantSharedState> ss = new HashSet<ParticipantSharedState>();
+		// search for State objects
+		for (Field f : this.getClass().getFields()) {
+			if (f.getType().equals(State.class)) {
+				try {
+					State<?> state = (State<?>) f.get(this);
+					ss.add(new ParticipantSharedState(state.key,
+							(Serializable) state.initialValue, getID()));
+					if (dynamicFields.containsKey(state.key)) {
+						logger.warn("Duplicate state fields for ke "
+								+ state.key);
+						f.set(this, dynamicFields.get(state.key));
+					} else {
+						dynamicFields.put(state.key, state);
+					}
+				} catch (IllegalArgumentException e) {
+					throw new RuntimeException(e);
+				} catch (IllegalAccessException e) {
+					logger.warn("Cannot access state field " + f.getName(), e);
+				}
+			}
+		}
+		return ss;
 	}
 
 	/**
@@ -266,6 +315,38 @@ public abstract class AbstractParticipant implements Participant,
 			throw new ActionHandlingException(
 					"Agent is not registered with environment yet.");
 		this.environment.act(a, getID(), authkey);
+	}
+
+	public class State<T> {
+		final String key;
+		final T initialValue;
+		Pair<Method, ? extends Object> dataSource = null;
+
+		public State(String key, T initialValue) {
+			super();
+			this.key = key;
+			this.initialValue = initialValue;
+		}
+
+		@SuppressWarnings("unchecked")
+		public T get() {
+			if (dataSource == null) {
+				throw new RuntimeException(
+						"Uninitialised dynamic field, is there a @StateAccessor for the key "
+								+ key + "?");
+			}
+			try {
+				return (T) dataSource.getLeft().invoke(dataSource.getRight(),
+						getID());
+			} catch (Exception e) {
+				logger.warn("Dynamic field error", e);
+				throw new RuntimeException(e);
+			}
+		}
+
+		void setDataSource(Pair<Method, ? extends Object> dataSource) {
+			this.dataSource = dataSource;
+		}
 	}
 
 }
