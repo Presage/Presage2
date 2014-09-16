@@ -19,6 +19,7 @@
 package uk.ac.imperial.presage2.core.simulator;
 
 import uk.ac.imperial.presage2.core.TimeDriven;
+import uk.ac.imperial.presage2.core.participant.Participant;
 
 public interface Scenario {
 
@@ -31,5 +32,8 @@ public interface Scenario {
 
 	@Deprecated
 	public void addEnvironment(TimeDriven object);
+
+	@Deprecated
+	public void addParticipant(Participant agent);
 
 }

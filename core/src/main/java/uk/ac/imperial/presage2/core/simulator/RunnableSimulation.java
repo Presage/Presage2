@@ -47,6 +47,7 @@ import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
+import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.simulator.ScheduleExecutor.WaitCondition;
 
 import com.google.inject.AbstractModule;
@@ -365,6 +366,27 @@ public abstract class RunnableSimulation implements Runnable {
 				}
 			}
 		}
+		// legacy support for TimeDriven
+		if (o instanceof TimeDriven) {
+			try {
+				steppers.add(Pair.of(
+						TimeDriven.class.getMethod("incrementTime"), o));
+				foundFunction = true;
+			} catch (NoSuchMethodException e) {
+				throw new RuntimeException(
+						"Couldn't find incrementTime in TimeDriven!?", e);
+			}
+		}
+		// legacy support for Participant
+		if (o instanceof Participant) {
+			try {
+				initialisors.add(Pair.of(
+						Participant.class.getMethod("initialise"), o));
+			} catch (NoSuchMethodException e) {
+				throw new RuntimeException(
+						"Couldn't find initialise in Participant!?", e);
+			}
+		}
 		if (!foundFunction) {
 			logger.warn("No candidate function found in object " + o);
 			throw new RuntimeException("No candidate function found in object "
@@ -454,6 +476,11 @@ public abstract class RunnableSimulation implements Runnable {
 				findScheduleFunctions(o, initialisors, steppers, finalisors,
 						finishConditions);
 			}
+		}
+
+		@Override
+		public void addParticipant(Participant agent) {
+			addAgent(agent);
 		}
 
 	}
