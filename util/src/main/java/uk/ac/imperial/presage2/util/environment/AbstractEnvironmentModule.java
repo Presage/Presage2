@@ -255,9 +255,9 @@ public class AbstractEnvironmentModule extends AbstractModule {
 		this.processServiceDependencies();
 
 		// bind AbstractEnvironment interfaces
-		bind(EnvironmentConnector.class).to(AbstractEnvironment.class);
+		bind(EnvironmentConnector.class).to(AbstractEnvironment.class).in(Singleton.class);
 		bind(EnvironmentServiceProvider.class).to(AbstractEnvironment.class);
-		bind(SharedStateStorage.class).to(storage);
+		bind(SharedStateStorage.class).to(storage).in(Singleton.class);
 		bind(EnvironmentSharedStateAccess.class).to(storage);
 		bind(MappedSharedState.class).in(Singleton.class);
 

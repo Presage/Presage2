@@ -493,7 +493,7 @@ public class AbstractEnvironment implements EnvironmentConnector,
 		}
 
 		// Handle the action and retrieve the resultant input (if there is one)
-		Input i = null;
+		Object i = null;
 		ActionHandler a;
 		if (canHandle.size() > 1) {
 			logger.warn("More than one ActionHandler.canhandle() returned true for "

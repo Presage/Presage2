@@ -29,9 +29,6 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import uk.ac.imperial.presage2.core.Action;
-import uk.ac.imperial.presage2.core.IntegerTime;
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
@@ -42,13 +39,10 @@ import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
-import uk.ac.imperial.presage2.core.messaging.Input;
-import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
-import uk.ac.imperial.presage2.core.network.NetworkConnectorFactory;
 import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.core.simulator.Initialisor;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 
 /**
  * <p>
@@ -89,22 +83,13 @@ public abstract class AbstractParticipant implements Participant,
 	/**
 	 * Connector to the environment the participant is in.
 	 */
+	@Inject(optional = true)
 	protected EnvironmentConnector environment;
-
-	/**
-	 * Connector to the network.
-	 */
-	protected NetworkAdaptor network;
-
-	/**
-	 * The agent's perception of time.
-	 */
-	private Time time;
 
 	/**
 	 * FIFO queue of inputs to be processed.
 	 */
-	protected Queue<Input> inputQueue;
+	protected Queue<Object> inputQueue;
 
 	/**
 	 * Set of {@link EnvironmentService}s available to the agent.
@@ -115,31 +100,6 @@ public abstract class AbstractParticipant implements Participant,
 	 * Persistence of this agent into the database.
 	 */
 	protected PersistentAgent persist = null;
-
-	/**
-	 * Assisted Inject constructor.
-	 * 
-	 * @param id
-	 * @param name
-	 * @param environment
-	 * @param network
-	 * @param time
-	 */
-	protected AbstractParticipant(@Assisted UUID id, @Assisted String name,
-			EnvironmentConnector environment, NetworkAdaptor network, Time time) {
-		super();
-		this.id = id;
-		this.name = name;
-		this.environment = environment;
-		this.network = network;
-		this.time = time;
-		this.logger = Logger.getLogger(this.getName() + "(" + this.getID()
-				+ ")");
-		if (logger.isDebugEnabled()) {
-			logger.debug("Created Participant " + this.getName() + ", UUID: "
-					+ this.getID());
-		}
-	}
 
 	/**
 	 * <p>
@@ -185,34 +145,8 @@ public abstract class AbstractParticipant implements Participant,
 	}
 
 	@Override
-	public Time getTime() {
-		return this.time;
-	}
-
-	@Override
-	public void incrementTime() {
-		this.execute();
-		this.getTime().increment();
-	}
-
-	@Override
 	public String toString() {
 		return this.getName();
-	}
-
-	@Inject(optional = true)
-	public void initialiseEnvironment(EnvironmentConnector e) {
-		this.environment = e;
-	}
-
-	@Inject(optional = true)
-	public void initialiseNetwork(NetworkConnectorFactory networkFactory) {
-		this.network = networkFactory.create(this.getID());
-	}
-
-	@Inject(optional = true)
-	public void initialiseTime(Time t) {
-		this.time = t;
 	}
 
 	@Inject(optional = true)
@@ -233,16 +167,10 @@ public abstract class AbstractParticipant implements Participant,
 	 * We split these up into protected function calls in case the implementor
 	 * wishes to override only certain parts of this process.
 	 */
-	@Override
+	@Initialisor(nice = -20)
 	public void initialise() {
-		// init time
-		if (this.time == null)
-			initialiseTime(new IntegerTime());
-
 		registerWithEnvironment();
-
 		initialiseInputQueue();
-
 	}
 
 	/**
@@ -271,7 +199,7 @@ public abstract class AbstractParticipant implements Participant,
 		processEnvironmentServices(response.getServices());
 
 		if (this.persist != null) {
-			this.persist.setRegisteredAt(this.getTime().intValue());
+			this.persist.setRegisteredAt(0);
 		}
 	}
 
@@ -308,47 +236,17 @@ public abstract class AbstractParticipant implements Participant,
 	 */
 	protected void initialiseInputQueue() {
 		// Linked list provides a FIFO queue implementation
-		this.inputQueue = new LinkedList<Input>();
+		this.inputQueue = new LinkedList<Object>();
 	}
 
 	@Override
-	public void enqueueInput(Input input) {
+	public void enqueueInput(Object input) {
 		this.inputQueue.add(input);
 	}
 
 	@Override
-	public void enqueueInput(Collection<? extends Input> inputs) {
+	public void enqueueInput(Collection<? extends Object> inputs) {
 		this.inputQueue.addAll(inputs);
-	}
-
-	/**
-	 * <p>
-	 * This provides an example start to an agent's
-	 * {@link TimeDriven#incrementTime()} method. You may want to use this by
-	 * using <code>this.execute()</code> at the top of your implementation, or
-	 * not use it at all.
-	 * </p>
-	 * <p>
-	 * In this implementation we simply pull in any messages sent from the
-	 * network, then process our entire message queue. Obviously, in order for
-	 * the agent to be anything more than purely reactive you should add more to
-	 * this.
-	 * </p>
-	 * 
-	 * @deprecated Use {@link TimeDriven#incrementTime()} now.
-	 */
-	@Override
-	@Deprecated
-	public void execute() {
-
-		// pull in Messages from the network
-		enqueueInput(this.network.getMessages());
-
-		// process inputs
-		while (this.inputQueue.size() > 0) {
-			this.processInput(this.inputQueue.poll());
-		}
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -363,20 +261,6 @@ public abstract class AbstractParticipant implements Participant,
 		throw new UnavailableServiceException(type);
 	}
 
-	/**
-	 * Process the given input.
-	 * 
-	 * @param in
-	 */
-	abstract protected void processInput(Input in);
-
-	@Override
-	public void onSimulationComplete() {
-		// empty - override is optional if the participant implementor wants to
-		// use this method.
-	}
-
-	@Override
 	public void act(Action a) throws ActionHandlingException {
 		if (authkey == null)
 			throw new ActionHandlingException(

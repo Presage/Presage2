@@ -18,7 +18,6 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -185,6 +184,10 @@ public abstract class RunnableSimulation implements Runnable {
 			findScheduleFunctions(o, initialisors, steppers, finalisors,
 					finishConditions);
 		}
+		logger.info("Got " + initialisors.size() + " initialisors, "
+				+ steppers.size() + " step functions, "
+				+ finishConditions.size() + " finish conditions, and "
+				+ finalisors.size() + " finalisors.");
 
 		logger.info("Starting schedule executor...");
 		executor = new MultiThreadedSchedule(threads);
@@ -312,58 +315,56 @@ public abstract class RunnableSimulation implements Runnable {
 			Set<Pair<Method, Object>> finishConditions) {
 		boolean foundFunction = false;
 		for (Method m : o.getClass().getMethods()) {
-			for (Annotation a : m.getAnnotations()) {
-				if (a.annotationType() == Initialisor.class) {
-					if (m.getParameterTypes().length != 0) {
-						throw new RuntimeException(
-								"Initialisor function cannot take arguments. @Initialisor annotated function "
-										+ m.getName() + " takes "
-										+ m.getParameterTypes().length);
-					}
-					initialisors.add(Pair.of(m, o));
-					foundFunction = true;
-				} else if (a.annotationType() == Step.class) {
-					Class<?>[] paramTypes = m.getParameterTypes();
-					boolean valid = paramTypes.length == 0;
-					valid |= (paramTypes.length == 1 && paramTypes[0] == Integer.TYPE);
-					if (!valid) {
-						throw new RuntimeException(
-								"Step function may only take one integer arugment. @Step annotated function "
-										+ m.getName() + " takes "
-										+ m.getParameterTypes().length
-										+ " of types: "
-										+ Arrays.toString(paramTypes));
-					}
-					steppers.add(Pair.of(m, o));
-					foundFunction = true;
-				} else if (a.annotationType() == Finalisor.class) {
-					if (m.getParameterTypes().length != 0) {
-						throw new RuntimeException(
-								"Finalisor function cannot take arguments. @Finalisor annotated function "
-										+ m.getName() + " takes "
-										+ m.getParameterTypes().length);
-					}
-					finalisors.add(Pair.of(m, o));
-					foundFunction = true;
-				} else if (a.annotationType() == FinishCondition.class) {
-					Class<?>[] paramTypes = m.getParameterTypes();
-					boolean valid = paramTypes.length == 0;
-					valid |= (paramTypes.length == 1 && paramTypes[0] == Integer.TYPE);
-					valid &= m.getReturnType() == Boolean.TYPE;
-					if (!valid) {
-						throw new RuntimeException(
-								"FinishCondition function may only take one integer argument and must return a boolean. "
-										+ "@Step annotated function "
-										+ m.getName()
-										+ " takes "
-										+ m.getParameterTypes().length
-										+ " of types: "
-										+ Arrays.toString(paramTypes)
-										+ " and returns " + m.getReturnType());
-					}
-					finishConditions.add(Pair.of(m, o));
-					foundFunction = true;
+			if (m.isAnnotationPresent(Initialisor.class)) {
+				if (m.getParameterTypes().length != 0) {
+					throw new RuntimeException(
+							"Initialisor function cannot take arguments. @Initialisor annotated function "
+									+ m.getName() + " takes "
+									+ m.getParameterTypes().length);
 				}
+				initialisors.add(Pair.of(m, o));
+				foundFunction = true;
+			} else if (m.isAnnotationPresent(Step.class)) {
+				Class<?>[] paramTypes = m.getParameterTypes();
+				boolean valid = paramTypes.length == 0;
+				valid |= (paramTypes.length == 1 && paramTypes[0] == Integer.TYPE);
+				if (!valid) {
+					throw new RuntimeException(
+							"Step function may only take one integer arugment. @Step annotated function "
+									+ m.getName() + " takes "
+									+ m.getParameterTypes().length
+									+ " of types: "
+									+ Arrays.toString(paramTypes));
+				}
+				steppers.add(Pair.of(m, o));
+				foundFunction = true;
+			} else if (m.isAnnotationPresent(Finalisor.class)) {
+				if (m.getParameterTypes().length != 0) {
+					throw new RuntimeException(
+							"Finalisor function cannot take arguments. @Finalisor annotated function "
+									+ m.getName() + " takes "
+									+ m.getParameterTypes().length);
+				}
+				finalisors.add(Pair.of(m, o));
+				foundFunction = true;
+			} else if (m.isAnnotationPresent(FinishCondition.class)) {
+				Class<?>[] paramTypes = m.getParameterTypes();
+				boolean valid = paramTypes.length == 0;
+				valid |= (paramTypes.length == 1 && paramTypes[0] == Integer.TYPE);
+				valid &= m.getReturnType() == Boolean.TYPE;
+				if (!valid) {
+					throw new RuntimeException(
+							"FinishCondition function may only take one integer argument and must return a boolean. "
+									+ "@Step annotated function "
+									+ m.getName()
+									+ " takes "
+									+ m.getParameterTypes().length
+									+ " of types: "
+									+ Arrays.toString(paramTypes)
+									+ " and returns " + m.getReturnType());
+				}
+				finishConditions.add(Pair.of(m, o));
+				foundFunction = true;
 			}
 		}
 		// legacy support for TimeDriven
@@ -377,16 +378,7 @@ public abstract class RunnableSimulation implements Runnable {
 						"Couldn't find incrementTime in TimeDriven!?", e);
 			}
 		}
-		// legacy support for Participant
-		if (o instanceof Participant) {
-			try {
-				initialisors.add(Pair.of(
-						Participant.class.getMethod("initialise"), o));
-			} catch (NoSuchMethodException e) {
-				throw new RuntimeException(
-						"Couldn't find initialise in Participant!?", e);
-			}
-		}
+
 		if (!foundFunction) {
 			logger.warn("No candidate function found in object " + o);
 			throw new RuntimeException("No candidate function found in object "
