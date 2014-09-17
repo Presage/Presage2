@@ -20,16 +20,10 @@ package uk.ac.imperial.presage2.core.db;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Singleton;
-
-import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentEnvironment;
-import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
-import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
 /**
  * This a stub implementation of the StorageService interface. It is intended to
@@ -41,26 +35,7 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
  * 
  */
 @Singleton
-class StubStorageService implements StorageService {
-
-	StubSimulation current = null;
-
-	@Override
-	public PersistentSimulation createSimulation(String name, String classname,
-			String state, int finishTime) {
-		current = new StubSimulation(name, classname, state, finishTime);
-		return current;
-	}
-
-	@Override
-	public PersistentSimulation getSimulation() {
-		return current;
-	}
-
-	@Override
-	public PersistentSimulation getSimulationById(long id) {
-		return null;
-	}
+class StubStorageService extends TupleStorageService {
 
 	@Override
 	public List<Long> getSimulations() {
@@ -68,205 +43,106 @@ class StubStorageService implements StorageService {
 	}
 
 	@Override
-	public void setSimulation(PersistentSimulation sim) {
+	protected long getNextId() {
+		return 0;
 	}
 
 	@Override
-	public PersistentAgent createAgent(UUID agentID, String name) {
-		return new StubAgent(agentID);
+	protected void storeParameter(long id, String key, String value) {
+
 	}
 
 	@Override
-	public PersistentAgent getAgent(UUID agentID) {
-		return new StubAgent(agentID);
+	protected void storeTuple(long id, String key, String value) {
+
 	}
 
 	@Override
-	public TransientAgentState getAgentState(UUID agentID, int time) {
-		return new StubAgent(agentID);
+	protected void storeTuple(long id, String key, int value) {
+
 	}
 
-	class StubSimulation implements PersistentSimulation, PersistentEnvironment {
+	@Override
+	protected void storeTuple(long id, String key, double value) {
 
-		public StubSimulation(String name, String classname, String state,
-				int finishTime) {
-		}
-
-		@Override
-		public long getID() {
-			return 0;
-		}
-
-		@Override
-		public void addParameter(String name, String value) {
-		}
-
-		@Override
-		public Map<String, String> getParameters() {
-			return Collections.emptyMap();
-		}
-
-		@Override
-		public int getFinishTime() {
-			return 0;
-		}
-
-		@Override
-		public void setCurrentTime(int time) {
-		}
-
-		@Override
-		public int getCurrentTime() {
-			return 0;
-		}
-
-		@Override
-		public void setState(String newState) {
-		}
-
-		@Override
-		public String getState() {
-			return null;
-		}
-
-		@Override
-		public PersistentEnvironment getEnvironment() {
-			return this;
-		}
-
-		@Override
-		public void setParentSimulation(PersistentSimulation parent) {
-		}
-
-		@Override
-		public PersistentSimulation getParentSimulation() {
-			return null;
-		}
-
-		@Override
-		public List<Long> getChildren() {
-			return Collections.emptyList();
-		}
-
-		@Override
-		public void setFinishedAt(long time) {
-		}
-
-		@Override
-		public long getFinishedAt() {
-			return 0;
-		}
-
-		@Override
-		public void setStartedAt(long time) {
-		}
-
-		@Override
-		public long getStartedAt() {
-			return 0;
-		}
-
-		@Override
-		public long getCreatedAt() {
-			return 0;
-		}
-
-		@Override
-		public String getClassName() {
-			return null;
-		}
-
-		@Override
-		public String getName() {
-			return null;
-		}
-
-		@Override
-		public Set<PersistentAgent> getAgents() {
-			return Collections.emptySet();
-		}
-
-		@Override
-		public Map<String, String> getProperties() {
-			return Collections.emptyMap();
-		}
-
-		@Override
-		public String getProperty(String key) {
-			return null;
-		}
-
-		@Override
-		public void setProperty(String key, String value) {
-		}
-
-		@Override
-		public Map<String, String> getProperties(int timestep) {
-			return Collections.emptyMap();
-		}
-
-		@Override
-		public String getProperty(String key, int timestep) {
-			return null;
-		}
-
-		@Override
-		public void setProperty(String key, int timestep, String value) {
-		}
 	}
 
-	class StubAgent implements PersistentAgent, TransientAgentState {
+	@Override
+	protected void storeTuple(long id, String key, int t, String value) {
 
-		public StubAgent(UUID agentID) {
-		}
+	}
 
-		@Override
-		public UUID getID() {
-			return null;
-		}
+	@Override
+	protected void storeTuple(long id, String key, int t, int value) {
 
-		@Override
-		public String getName() {
-			return null;
-		}
+	}
 
-		@Override
-		public void setRegisteredAt(int time) {
-		}
+	@Override
+	protected void storeTuple(long id, String key, int t, double value) {
 
-		@Override
-		public void setDeRegisteredAt(int time) {
-		}
+	}
 
-		@Override
-		public Map<String, String> getProperties() {
-			return Collections.emptyMap();
-		}
+	@Override
+	protected void storeTuple(long id, String key, UUID agent, String value) {
 
-		@Override
-		public String getProperty(String key) {
-			return null;
-		}
+	}
 
-		@Override
-		public void setProperty(String key, String value) {
+	@Override
+	protected void storeTuple(long id, String key, UUID agent, int value) {
 
-		}
+	}
 
-		@Override
-		public TransientAgentState getState(int time) {
-			return this;
-		}
+	@Override
+	protected void storeTuple(long id, String key, UUID agent, double value) {
 
-		@Override
-		public int getTime() {
-			return 0;
-		}
+	}
 
-		@Override
-		public PersistentAgent getAgent() {
-			return this;
-		}
+	@Override
+	protected void storeTuple(long id, String key, UUID agent, int t,
+			String value) {
+
+	}
+
+	@Override
+	protected void storeTuple(long id, String key, UUID agent, int t, int value) {
+
+	}
+
+	@Override
+	protected void storeTuple(long id, String key, UUID agent, int t,
+			double value) {
+
+	}
+
+	@Override
+	protected Set<String> fetchParameterKeys(long id) {
+		return null;
+	}
+
+	@Override
+	protected String fetchParameter(long id, String key) {
+		return null;
+	}
+
+	@Override
+	protected <T> T fetchTuple(long id, String key, Class<T> type) {
+		return null;
+	}
+
+	@Override
+	protected <T> T fetchTuple(long id, String key, int t, Class<T> type) {
+		return null;
+	}
+
+	@Override
+	protected <T> T fetchTuple(long id, String key, UUID agent, Class<T> type) {
+		return null;
+	}
+
+	@Override
+	protected <T> T fetchTuple(long id, String key, UUID agent, int t,
+			Class<T> type) {
+		return null;
 	}
 
 }

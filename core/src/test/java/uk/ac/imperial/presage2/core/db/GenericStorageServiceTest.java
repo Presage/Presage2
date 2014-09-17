@@ -18,9 +18,12 @@
  */
 package uk.ac.imperial.presage2.core.db;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -66,28 +69,25 @@ public abstract class GenericStorageServiceTest {
 		final String simState = RandomStringUtils.randomAlphanumeric(Random
 				.randomInt(80));
 		final int simFinish = Random.randomInt(100);
-		final long timeBefore = System.currentTimeMillis();
 
 		final PersistentSimulation sim = sto.createSimulation(simName,
 				simClass, simState, simFinish);
 		final long simID = sim.getID();
 
 		// assert state of this simulation
-		assertTrue(sim.getAgents().isEmpty());
 		assertEquals(simClass, sim.getClassName());
-		assertTrue(sim.getCreatedAt() >= timeBefore
-				&& sim.getCreatedAt() <= System.currentTimeMillis());
 		assertEquals(0, sim.getCurrentTime());
 		assertEquals(simFinish, sim.getFinishTime());
 		assertEquals(0, sim.getFinishedAt());
 		assertEquals(simID, sim.getID());
 		assertEquals(simName, sim.getName());
-		assertTrue(sim.getParameters().isEmpty());
-		assertNull(sim.getParentSimulation());
+		assertTrue(sim.getParameters().size() == 1);
 		assertEquals(0, sim.getStartedAt());
 		assertEquals(simState, sim.getState());
 
 		// check getSimulation() returns the current sim
+		assertNull(sto.getSimulation());
+		sto.setSimulation(sim);
 		assertEquals(simID, sto.getSimulation().getID());
 
 		// check getSimulationByID() returns current sim
@@ -111,9 +111,6 @@ public abstract class GenericStorageServiceTest {
 		// assert state of agent
 		assertEquals(aid, agent.getID());
 		assertEquals(agName, agent.getName());
-		// check simulation now has an agent
-		assertFalse(sim.getAgents().isEmpty());
-		assertTrue(sim.getAgents().size() == 1);
 
 		// check transient agent state
 		final int stateTime = Random.randomInt(100);
@@ -143,10 +140,10 @@ public abstract class GenericStorageServiceTest {
 		final int newTime = Random.randomInt(Integer.MAX_VALUE);
 		sim.setCurrentTime(newTime);
 		assertEquals(newTime, sim.getCurrentTime());
-		final long newFinish = Random.getInstance().nextLong();
+		final long newFinish = Random.randomInt(Integer.MAX_VALUE);
 		sim.setFinishedAt(newFinish);
 		assertEquals(newFinish, sim.getFinishedAt());
-		final long newStart = Random.getInstance().nextLong();
+		final long newStart = Random.randomInt(Integer.MAX_VALUE);
 		sim.setStartedAt(newStart);
 		assertEquals(newStart, sim.getStartedAt());
 		final String newState = RandomStringUtils.randomAlphanumeric(Random
@@ -168,7 +165,7 @@ public abstract class GenericStorageServiceTest {
 				.randomInt(200));
 		sim.addParameter(paramName1, paramValue1);
 		Map<String, String> params = sim.getParameters();
-		assertTrue(params.size() == 1);
+		assertTrue(params.size() == 2);
 		assertTrue(params.containsKey(paramName1));
 		assertEquals(paramValue1, params.get(paramName1).toString());
 
@@ -178,37 +175,9 @@ public abstract class GenericStorageServiceTest {
 				.randomInt(200));
 		sim.addParameter(paramName2, paramValue2);
 		params = sim.getParameters();
-		assertTrue(params.size() == 2);
+		assertTrue(params.size() == 3);
 		assertTrue(params.containsKey(paramName2));
 		assertEquals(paramValue2, params.get(paramName2).toString());
-
-		// test sim parent/children
-		final PersistentSimulation sim3 = sto.createSimulation(simName,
-				simClass, simState, simFinish);
-		final PersistentSimulation sim4 = sto.createSimulation(simName,
-				simClass, simState, simFinish);
-		assertNull(sim3.getParentSimulation());
-		assertTrue(sim.getChildren().size() == 0);
-		sim3.setParentSimulation(sim);
-		assertEquals(simID, sim3.getParentSimulation().getID());
-		List<Long> children = sim.getChildren();
-		assertTrue(children.size() == 1);
-		assertEquals(sim3.getID(), children.get(0).longValue());
-
-		assertNull(sim4.getParentSimulation());
-		sim4.setParentSimulation(sim2); // same as sim
-		assertEquals(simID, sim4.getParentSimulation().getID());
-		children = sim.getChildren();
-		assertTrue(children.size() == 2);
-		assertTrue(children.contains(sim4.getID()));
-		assertTrue(children.contains(sim3.getID()));
-
-		// setting parent to null puts simulation back to root
-		sim3.setParentSimulation(null);
-		assertNull(sim3.getParentSimulation());
-		children = sim.getChildren();
-		assertTrue(children.size() == 1);
-		assertTrue(children.contains(sim4.getID()));
 	}
 
 	@Test
@@ -232,25 +201,25 @@ public abstract class GenericStorageServiceTest {
 		final String paramValue1 = RandomStringUtils.randomAlphanumeric(Random
 				.randomInt(200));
 
-		assertTrue(env.getProperties().size() == 0);
+		//assertTrue(env.getProperties().size() == 0);
 		assertNull(env.getProperty(paramName1));
 		env.setProperty(paramName1, paramValue1);
 		assertEquals(paramValue1, env.getProperty(paramName1));
-		Map<String, String> properties = env.getProperties();
-		assertEquals(1, properties.size());
-		assertEquals(paramValue1, properties.get(paramName1));
+		//Map<String, String> properties = env.getProperties();
+		//assertEquals(1, properties.size());
+		//assertEquals(paramValue1, properties.get(paramName1));
 
 		final int timestep = Random.randomInt(1000);
 		final String paramValue2 = RandomStringUtils.randomAlphanumeric(Random
 				.randomInt(200));
 		assertNull(env.getProperty(paramName1, timestep));
-		assertTrue(env.getProperties(timestep).size() == 0);
+		//assertTrue(env.getProperties(timestep).size() == 0);
 		env.setProperty(paramName1, timestep, paramValue2);
 		assertEquals(paramValue2, env.getProperty(paramName1, timestep));
 		assertNull(env.getProperty(paramName1, timestep + 1));
-		properties = env.getProperties(timestep);
-		assertEquals(1, properties.size());
-		assertEquals(paramValue2, properties.get(paramName1));
+		//properties = env.getProperties(timestep);
+		//assertEquals(1, properties.size());
+		//assertEquals(paramValue2, properties.get(paramName1));
 	}
 
 	@Test
@@ -262,17 +231,17 @@ public abstract class GenericStorageServiceTest {
 			fail();
 		} catch (RuntimeException e) {
 		}
-		sto.createSimulation(
+		sto.setSimulation(sto.createSimulation(
 				RandomStringUtils.randomAlphanumeric(Random.randomInt(20)),
 				RandomStringUtils.randomAlphanumeric(Random.randomInt(100)),
 				RandomStringUtils.randomAlphanumeric(Random.randomInt(80)),
-				Random.randomInt(100));
+				Random.randomInt(100)));
 
 		agent = sto.createAgent(Random.randomUUID(),
 				RandomStringUtils.randomAlphanumeric(10));
 
 		// test agent properties
-		assertTrue(agent.getProperties().size() == 0);
+		//assertTrue(agent.getProperties().size() == 0);
 		assertNull(agent.getProperty(RandomStringUtils.randomAlphabetic(Random
 				.randomInt(20))));
 
@@ -284,16 +253,16 @@ public abstract class GenericStorageServiceTest {
 		assertNull(agent.getProperty(RandomStringUtils.randomAlphabetic(Random
 				.randomInt(20))));
 		assertEquals(propVal, agent.getProperty(propKey).toString());
-		Map<String, String> properties = agent.getProperties();
-		assertEquals(properties.size(), 1);
-		assertEquals(propVal, properties.get(propKey));
+		//Map<String, String> properties = agent.getProperties();
+		//assertEquals(properties.size(), 1);
+		//assertEquals(propVal, properties.get(propKey));
 
 		// test agent state
 		final TransientAgentState state = agent.getState(0);
 		assertEquals(agent.getID(), state.getAgent().getID());
 		assertEquals(0, state.getTime());
 
-		assertEquals(0, state.getProperties().size());
+		//assertEquals(0, state.getProperties().size());
 		assertNull(state.getProperty(RandomStringUtils.randomAlphabetic(Random
 				.randomInt(20))));
 
@@ -306,9 +275,9 @@ public abstract class GenericStorageServiceTest {
 		assertEquals(spropVal, state.getProperty(spropKey).toString());
 		assertNull(state.getProperty(RandomStringUtils.randomAlphabetic(Random
 				.randomInt(20))));
-		properties = state.getProperties();
-		assertEquals(1, properties.size());
-		assertEquals(spropVal, properties.get(spropKey));
+		//properties = state.getProperties();
+		//assertEquals(1, properties.size());
+		//assertEquals(spropVal, properties.get(spropKey));
 
 		// get same property from state for different time
 		final TransientAgentState state2 = agent.getState(Random

@@ -99,6 +99,11 @@ public abstract class RunnableSimulation implements Runnable {
 	@Parameter(name = "finishTime")
 	public int finishTime;
 
+	@Inject(optional = true)
+	DatabaseService db = null;
+	PersistentSimulation pSim;
+	long stoId = -1;
+
 	/**
 	 * <p>
 	 * Run a single simulation from commandline arguments. Takes the following
@@ -155,8 +160,10 @@ public abstract class RunnableSimulation implements Runnable {
 	 * Run a simulation from a parameter set stored in a database, and
 	 * identified by a <code>simID</code>.
 	 * 
-	 * @param simID	long identifier of the parameter set in the database.
-	 * @param threads	int number of threads to use in the simulator
+	 * @param simID
+	 *            long identifier of the parameter set in the database.
+	 * @param threads
+	 *            int number of threads to use in the simulator
 	 * @throws Exception
 	 */
 	final public static void runSimulationID(long simID, int threads)
@@ -183,6 +190,7 @@ public abstract class RunnableSimulation implements Runnable {
 
 		RunnableSimulation run = newFromClassname(sim.getClassName());
 		run.threads = threads;
+		run.stoId = simID;
 		run.loadParameters(sim.getParameters());
 		database.stop();
 		run.run();
@@ -320,6 +328,7 @@ public abstract class RunnableSimulation implements Runnable {
 	protected void step() {
 		boolean step = true;
 		Comparator<Pair<Method, Object>> niceComp = new NiceComparator();
+		pSim.setState("RUNNING");
 		do {
 			logger.info("Timestep = " + t);
 			// initialise anything new
@@ -348,6 +357,7 @@ public abstract class RunnableSimulation implements Runnable {
 				executor.submitScheduled(new TaskRunner(task, t),
 						WaitCondition.STEP);
 			}
+			pSim.setCurrentTime(t);
 
 			executor.waitFor(WaitCondition.STEP);
 
@@ -381,11 +391,34 @@ public abstract class RunnableSimulation implements Runnable {
 					WaitCondition.POST_STEP);
 		}
 		executor.waitFor(WaitCondition.POST_STEP);
+		pSim.setState("FINISHED");
+		if (db != null) {
+			db.stop();
+		}
 	}
 
 	@FinishCondition
 	public boolean finishTimeCondition(int t) {
 		return t >= finishTime;
+	}
+
+	@Inject
+	private void initDatabase(StorageService sto) throws Exception {
+		if (db != null) {
+			db.start();
+		}
+		if (sto != null) {
+			if (stoId >= 0) {
+				this.pSim = sto.getSimulationById(stoId);
+			} else {
+				this.pSim = sto.createSimulation(getClass().getSimpleName(),
+						getClass().getCanonicalName(), "LOADING", finishTime);
+				for (DeclaredParameter p : parameters) {
+					this.pSim.addParameter(p.name, p.stringValue);
+				}
+			}
+			sto.setSimulation(this.pSim);
+		}
 	}
 
 	final private void loadParametersFromFields()
