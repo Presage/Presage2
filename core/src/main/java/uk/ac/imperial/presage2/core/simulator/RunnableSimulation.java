@@ -79,6 +79,8 @@ public abstract class RunnableSimulation implements Runnable {
 	Set<Pair<Method, Object>> finalisors = Collections
 			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 
+	LinkedList<Pair<Method, Object>> stepQueue = new LinkedList<Pair<Method, Object>>();
+
 	int threads = 8;
 	ScheduleExecutor executor;
 
@@ -169,6 +171,7 @@ public abstract class RunnableSimulation implements Runnable {
 		step();
 		finish();
 		executor.shutdown();
+		logger.info("Simulation complete.");
 	}
 
 	protected void initialise() {
@@ -227,33 +230,36 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void step() {
 		boolean step = true;
-		LinkedList<Pair<Method, Object>> taskQueue = new LinkedList<Pair<Method, Object>>();
 		Comparator<Pair<Method, Object>> niceComp = new NiceComparator();
-		Pair<Method, Object> task;
 		do {
 			logger.info("Timestep = " + t);
 			// initialise anything new
 			synchronized (initialisors) {
-				taskQueue.addAll(initialisors);
-				Collections.sort(taskQueue, niceComp);
-				while ((task = taskQueue.poll()) != null) {
-					executor.submitScheduled(new TaskRunner(task),
-							WaitCondition.PRE_STEP);
+				if (!initialisors.isEmpty()) {
+					LinkedList<Pair<Method, Object>> taskQueue = new LinkedList<Pair<Method, Object>>(
+							initialisors);
+					Collections.sort(taskQueue, niceComp);
+					for (Pair<Method, Object> task : taskQueue) {
+						executor.submitScheduled(new TaskRunner(task),
+								WaitCondition.PRE_STEP);
+					}
+					initialisors.clear();
 				}
-				initialisors.clear();
 			}
 
-			taskQueue.addAll(steppers);
-			Collections.sort(taskQueue, niceComp);
+			if (stepQueue.isEmpty()) {
+				stepQueue.addAll(steppers);
+				Collections.shuffle(stepQueue);
+				Collections.sort(stepQueue, niceComp);
+			}
 			executor.waitFor(WaitCondition.PRE_STEP);
 
 			// main step component
-			while ((task = taskQueue.poll()) != null) {
+			for (Pair<Method, Object> task : stepQueue) {
 				executor.submitScheduled(new TaskRunner(task, t),
 						WaitCondition.STEP);
 			}
 
-			taskQueue.addAll(finishConditions);
 			executor.waitFor(WaitCondition.STEP);
 
 			// state update
@@ -261,7 +267,7 @@ public abstract class RunnableSimulation implements Runnable {
 
 			// loop conditions
 			List<Future<Boolean>> conditions = new LinkedList<Future<Boolean>>();
-			while ((task = taskQueue.poll()) != null) {
+			for (Pair<Method, Object> task : finishConditions) {
 				conditions.add(executor.submitScheduledConditional(
 						new ConditionalTask(task, t), WaitCondition.POST_STEP));
 			}
@@ -411,6 +417,9 @@ public abstract class RunnableSimulation implements Runnable {
 			logger.warn("No candidate function found in object " + o);
 			throw new RuntimeException("No candidate function found in object "
 					+ o);
+		} else {
+			// reset task queue to trigger rebuild
+			stepQueue.clear();
 		}
 	}
 
