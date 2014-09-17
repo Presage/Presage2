@@ -81,7 +81,7 @@ public abstract class RunnableSimulation implements Runnable {
 
 	LinkedList<Pair<Method, Object>> stepQueue = new LinkedList<Pair<Method, Object>>();
 
-	int threads = 8;
+	protected int threads = 8;
 	ScheduleExecutor executor;
 
 	@Inject
