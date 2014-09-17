@@ -23,6 +23,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Method annotation to mark that a method specifies a finish condition for the
+ * simulation. The scheduler will run this method every timestep, ending the
+ * simulation if it returns true. The method may take a single integer argument
+ * representing the current timestep number and return a boolean.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface FinishCondition {

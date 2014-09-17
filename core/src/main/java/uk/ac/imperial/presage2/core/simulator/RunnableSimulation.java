@@ -81,6 +81,9 @@ public abstract class RunnableSimulation implements Runnable {
 
 	LinkedList<Pair<Method, Object>> stepQueue = new LinkedList<Pair<Method, Object>>();
 
+	/**
+	 * The number of threads to use for schedule execution.
+	 */
 	protected int threads = 8;
 	ScheduleExecutor executor;
 
@@ -88,9 +91,42 @@ public abstract class RunnableSimulation implements Runnable {
 	SharedStateStorage stateEngine;
 	int t = 0;
 
+	/**
+	 * Maximum number of simulation timesteps. This field is used by the
+	 * {@link #finishTimeCondition(int)} to prevent unbounded simulation
+	 * execution. Additional conditions can preempt simulation completion.
+	 */
 	@Parameter(name = "finishTime")
 	public int finishTime;
 
+	/**
+	 * <p>
+	 * Run a single simulation from commandline arguments. Takes the following
+	 * parameters:
+	 * </p>
+	 * 
+	 * <code>simulation_class_name simulation_parameter=parameter_value...</code>
+	 * <p>
+	 * Where <code>simulation_class_name</code> is the fully qualified name of a
+	 * class which implements {@link RunnableSimulation} and is visible to this
+	 * class (i.e. public), and
+	 * <code>simulation_parameter=parameter_value</code> are key/value pairs for
+	 * simulation parameters. This pairs should correspond to {@link Parameter}
+	 * annotations on fields or methods within the {@link RunnableSimulation} we
+	 * are running. The key is the name assigned to each {@link Parameter}
+	 * inside the annotations. These fields and methods must be public in order
+	 * for use to insert the provided values in.
+	 * </p>
+	 * 
+	 * @param args
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws UndefinedParameterException
+	 * @throws IllegalArgumentException
+	 */
 	final public static void main(String[] args)
 			throws IllegalArgumentException, IllegalAccessException,
 			UndefinedParameterException, ClassNotFoundException,
@@ -115,6 +151,14 @@ public abstract class RunnableSimulation implements Runnable {
 		run.run();
 	}
 
+	/**
+	 * Run a simulation from a parameter set stored in a database, and
+	 * identified by a <code>simID</code>.
+	 * 
+	 * @param simID	long identifier of the parameter set in the database.
+	 * @param threads	int number of threads to use in the simulator
+	 * @throws Exception
+	 */
 	final public static void runSimulationID(long simID, int threads)
 			throws Exception {
 		DatabaseModule db = DatabaseModule.load();
@@ -138,16 +182,49 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 
 		RunnableSimulation run = newFromClassname(sim.getClassName());
+		run.threads = threads;
 		run.loadParameters(sim.getParameters());
 		database.stop();
 		run.run();
 	}
 
+	/**
+	 * Default constructor. Does not initialise object until {@link #run()} is
+	 * called.
+	 */
 	public RunnableSimulation() {
 	}
 
+	/**
+	 * <p>
+	 * Initialise scenario elements.
+	 * </p>
+	 * <p>
+	 * Elements can be added in three ways:
+	 * </p>
+	 * <ol>
+	 * <li>Adding instantiated objects and agents through the provided
+	 * {@link Scenario}.</li>
+	 * <li>Adding modules using {@link #addModule(AbstractModule)}.</li>
+	 * <li>Adding object classes using {@link #addObjectClass(Class)} which will
+	 * be instantiated automatically by the simulator</li>
+	 * </ol>
+	 * 
+	 * @param scenario
+	 */
 	public abstract void initialiseScenario(Scenario scenario);
 
+	/**
+	 * Add a module to the simulation specification. May only be done during the
+	 * initialisation phase of the simulation, usually in an
+	 * {@link #initialiseScenario(Scenario)} implementation.
+	 * 
+	 * @param module
+	 *            {@link AbstractModule} to add.
+	 * @throws RuntimeException
+	 *             if called after the {@link Injector} has been created, and so
+	 *             this module can no longer be used for the simulation.
+	 */
 	public void addModule(AbstractModule module) {
 		if (injector == null) {
 			modules.add(module);
@@ -157,6 +234,14 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 	}
 
+	/**
+	 * Adds a class to the simulation which is automatically instantiated via
+	 * the {@link Injector}. These objects are automatically added the the
+	 * scenario objects. If called before simulation initialisation objects are
+	 * created at initialisation time, otherwise it is done immediately.
+	 * 
+	 * @param clazz
+	 */
 	public void addObjectClass(Class<? extends Object> clazz) {
 		if (injector == null) {
 			objectClasses.add(clazz);
@@ -165,6 +250,10 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 	}
 
+	/**
+	 * Runs a full simulation from the specification provided by the overriding
+	 * class implementation and provided parameters.
+	 */
 	@Override
 	public void run() {
 		initialise();
@@ -423,6 +512,29 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 	}
 
+	/**
+	 * <p>
+	 * Create a new {@link RunnableSimulation} from a provided string
+	 * representing it's fully qualified name and an array of parameters to it's
+	 * constructor.
+	 * </p>
+	 * <p>
+	 * The method will search for an appropriate constructor for the given
+	 * parameters.
+	 * </p>
+	 * 
+	 * @param className
+	 *            string representing the fully qualified name of a
+	 *            {@link RunnableSimulation}
+	 * @param ctorParams
+	 *            array of parameters to the constructor
+	 * @return {@link RunnableSimulation}
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
 	final private static RunnableSimulation newFromClassname(String className)
 			throws ClassNotFoundException, NoSuchMethodException,
 			InvocationTargetException, InstantiationException,

@@ -23,6 +23,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Method annotation to mark that a method should be called each timestep by the
+ * scheduler. The method may take a single integer argument representing the
+ * current timestep number and return void. An optional <code>nice</code>
+ * parameter can be set to specify priority in the task queue.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Step {

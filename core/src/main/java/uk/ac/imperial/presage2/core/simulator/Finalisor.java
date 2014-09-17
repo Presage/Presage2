@@ -23,6 +23,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Method annotation to mark that a method should be called when the declaring
+ * object is removed from the simulation (i.e. at the end of the simulation).
+ * The method should not take any arguments and return void.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Finalisor {

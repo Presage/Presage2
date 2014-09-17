@@ -21,18 +21,54 @@ package uk.ac.imperial.presage2.core.simulator;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
+/**
+ * The scenario defines the entities to be run by the scheduler.
+ * 
+ * @author Sam Macbeth
+ * 
+ */
 public interface Scenario {
 
+	/**
+	 * Add an agent to the scenario
+	 * 
+	 * @param o
+	 */
 	public void addAgent(Object o);
 
+	/**
+	 * Add an object to the scenario
+	 * 
+	 * @param o
+	 */
 	public void addObject(Object o);
 
+	/**
+	 * Backwards compatibility for TimeDriven entities.
+	 * 
+	 * @param object
+	 * @deprecated Use instead {@link #addObject(Object)} with {@link Step}
+	 *             annotations.
+	 */
 	@Deprecated
 	public void addTimeDriven(TimeDriven object);
 
+	/**
+	 * No-op as state engine is now handled directly by the simulator.
+	 * 
+	 * @param object
+	 * @deprecated
+	 */
 	@Deprecated
 	public void addEnvironment(TimeDriven object);
 
+	/**
+	 * Backwards compatibility for {@link Participant} entities.
+	 * 
+	 * @param agent
+	 * @deprecated Use instead {@link #addAgent(Object)} with {@link Step}
+	 *             annotations
+	 */
 	@Deprecated
 	public void addParticipant(Participant agent);
 
