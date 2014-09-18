@@ -317,7 +317,11 @@ public abstract class AbstractParticipant implements Participant,
 		this.environment.act(a, getID(), authkey);
 	}
 
-	public class State<T> {
+	<T extends Object> State<T> createState(String key, T initialValue) {
+		return this.new State<T>(key, initialValue);
+	}
+
+	public class State<T extends Object> {
 		final String key;
 		final T initialValue;
 		Pair<Method, ? extends Object> dataSource = null;
