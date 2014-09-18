@@ -20,24 +20,58 @@ package uk.ac.imperial.presage2.core.simulator;
 
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.simulator.RunnableSimulation.InjectedObjects;
+import uk.ac.imperial.presage2.core.simulator.RunnableSimulation.RuntimeScenario;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 
 class ScenarioModule extends AbstractModule {
 
-	final Scenario scenario;
+	final RuntimeScenario scenario;
 	final Set<DeclaredParameter> parameters;
-	
-	ScenarioModule(Scenario scenario, Set<DeclaredParameter> parameters) {
+	final Scheduler scheduler;
+
+	ScenarioModule(RuntimeScenario scenario, Set<DeclaredParameter> parameters,
+			Scheduler scheduler) {
 		super();
 		this.scenario = scenario;
 		this.parameters = parameters;
+		this.scheduler = scheduler;
 	}
 
 	@Override
 	protected void configure() {
 		bind(Scenario.class).toInstance(scenario);
-		for(DeclaredParameter p : parameters) {
+		bind(Scheduler.class).toInstance(scheduler);
+		for (DeclaredParameter p : parameters) {
 			install(p.handler.getBinding(p));
+		}
+		Multibinder<Object> mb = Multibinder.newSetBinder(binder(),
+				Object.class, InjectedObjects.class);
+		for (Object o : scenario.objects) {
+			mb.addBinding().toInstance(o);
+		}
+		for (Class<?> c : scenario.classes) {
+			mb.addBinding().to(c);
+		}
+	}
+
+	public static void addObjects(Binder binder, Object... objects) {
+		Multibinder<Object> mb = Multibinder.newSetBinder(binder, Object.class,
+				InjectedObjects.class);
+		for (Object o : objects) {
+			mb.addBinding().toInstance(o);
+		}
+	}
+
+	public static void addObjectClasses(Binder binder,
+			Class<? extends Object>... objects) {
+		Multibinder<Object> mb = Multibinder.newSetBinder(binder, Object.class,
+				InjectedObjects.class);
+		for (Class<? extends Object> o : objects) {
+			mb.addBinding().to(o);
 		}
 	}
 

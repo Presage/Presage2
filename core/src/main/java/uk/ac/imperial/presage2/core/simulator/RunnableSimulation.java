@@ -18,6 +18,8 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -48,6 +50,7 @@ import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.simulator.ScheduleExecutor.WaitCondition;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -59,17 +62,17 @@ import com.google.inject.Injector;
  * @author Sam Macbeth
  * 
  */
-public abstract class RunnableSimulation implements Runnable {
+public abstract class RunnableSimulation implements Runnable, Scheduler {
 
 	private static final Logger logger = Logger
 			.getLogger(RunnableSimulation.class);
 	private RuntimeScenario scenario;
 	private Injector injector = null;
 	Set<AbstractModule> modules = new HashSet<AbstractModule>();
-	Set<Class<? extends Object>> objectClasses = new HashSet<Class<?>>();
 
 	Set<DeclaredParameter> parameters = new HashSet<DeclaredParameter>();
 
+	boolean newObjects = true;
 	Set<Pair<Method, Object>> initialisors = Collections
 			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 	Set<Pair<Method, Object>> steppers = Collections
@@ -250,12 +253,8 @@ public abstract class RunnableSimulation implements Runnable {
 	 * 
 	 * @param clazz
 	 */
-	public void addObjectClass(Class<? extends Object> clazz) {
-		if (injector == null) {
-			objectClasses.add(clazz);
-		} else {
-			scenario.addObject(injector.getInstance(clazz));
-		}
+	public void addObjectClass(Class<?> clazz) {
+		scenario.addClass(clazz);
 	}
 
 	/**
@@ -273,31 +272,31 @@ public abstract class RunnableSimulation implements Runnable {
 
 	protected void initialise() {
 		logger.info("Generating scenario...");
-		scenario = new RuntimeScenario();
-		scenario.addObject(this);
-		initialiseScenario(scenario);
+		// create a base scenario and assign to this.scenario so that the
+		// accessors in RunnableSimulation can use it.
+		this.scenario = new RuntimeScenario();
+		this.scenario.addObject(this);
+		// Call to sub class for initialisation of base scenario
+		initialiseScenario(this.scenario);
+
 		logger.info("Loading modules...");
-		addModule(new ScenarioModule(scenario, parameters));
+		// Use base scenario to create a module for objects and parameters
+		addModule(new ScenarioModule(scenario, parameters, this));
 		addModule(DatabaseModule.load());
+		// ensure there are no null entries in modules set
+		// which would cause Guice to throw
 		modules.remove(null);
 		injector = Guice.createInjector(modules);
 
-		logger.info("Wiring components...");
-		injector.injectMembers(this);
-		for (Class<? extends Object> c : objectClasses) {
-			addObjectClass(c);
+		logger.info("Loading scenario...");
+		// Load the runtime scenario from the spec generated via the
+		// ScenarioModule
+		injector.injectMembers(this.scenario);
+		for(Object a : this.scenario.agents) {
+			injector.injectMembers(a);
 		}
-		objectClasses.clear();
-		scenario.inject = true;
+		this.scenario.scheduleAll();
 
-		logger.info("Scanning for schedule functions...");
-		Set<Object> functions = new HashSet<Object>(scenario.objects);
-		functions.addAll(scenario.agents);
-		for (Object o : functions) {
-			injector.injectMembers(o);
-			findScheduleFunctions(o, initialisors, steppers, finalisors,
-					finishConditions);
-		}
 		logger.info("Got " + initialisors.size() + " initialisors, "
 				+ steppers.size() + " step functions, "
 				+ finishConditions.size() + " finish conditions, and "
@@ -307,17 +306,15 @@ public abstract class RunnableSimulation implements Runnable {
 		executor = new MultiThreadedSchedule(threads);
 
 		logger.info("Initialising agents and environment...");
-		scenario.initialise = true;
+		LinkedList<Pair<Method, Object>> taskQueue;
 		synchronized (initialisors) {
-			LinkedList<Pair<Method, Object>> taskQueue = new LinkedList<Pair<Method, Object>>(
-					initialisors);
-			Collections.sort(taskQueue, new NiceComparator());
-			Pair<Method, Object> task;
-			while ((task = taskQueue.poll()) != null) {
-				executor.submitScheduled(new TaskRunner(task),
-						WaitCondition.PRE_STEP);
-			}
+			taskQueue = new LinkedList<Pair<Method, Object>>(initialisors);
 			initialisors.clear();
+		}
+		Collections.sort(taskQueue, new NiceComparator());
+		for (Pair<Method, Object> task : taskQueue) {
+			executor.submitScheduled(new TaskRunner(task),
+					WaitCondition.PRE_STEP);
 		}
 		executor.waitFor(WaitCondition.PRE_STEP);
 
@@ -332,20 +329,22 @@ public abstract class RunnableSimulation implements Runnable {
 		do {
 			logger.info("Timestep = " + t);
 			// initialise anything new
-			synchronized (initialisors) {
-				if (!initialisors.isEmpty()) {
-					LinkedList<Pair<Method, Object>> taskQueue = new LinkedList<Pair<Method, Object>>(
+			if (!initialisors.isEmpty()) {
+				LinkedList<Pair<Method, Object>> taskQueue;
+				synchronized (initialisors) {
+					taskQueue = new LinkedList<Pair<Method, Object>>(
 							initialisors);
-					Collections.sort(taskQueue, niceComp);
-					for (Pair<Method, Object> task : taskQueue) {
-						executor.submitScheduled(new TaskRunner(task),
-								WaitCondition.PRE_STEP);
-					}
 					initialisors.clear();
+				}
+				Collections.sort(taskQueue, niceComp);
+				for (Pair<Method, Object> task : taskQueue) {
+					executor.submitScheduled(new TaskRunner(task),
+							WaitCondition.PRE_STEP);
 				}
 			}
 
-			if (stepQueue.isEmpty()) {
+			if (newObjects) {
+				stepQueue.clear();
 				stepQueue.addAll(steppers);
 				Collections.shuffle(stepQueue);
 				Collections.sort(stepQueue, niceComp);
@@ -464,6 +463,12 @@ public abstract class RunnableSimulation implements Runnable {
 		}
 	}
 
+	@Override
+	public final void addToSchedule(Object o) {
+		findScheduleFunctions(o, initialisors, steppers, finalisors,
+				finishConditions);
+	}
+
 	private void findScheduleFunctions(Object o,
 			Set<Pair<Method, Object>> initialisors,
 			Set<Pair<Method, Object>> steppers,
@@ -537,11 +542,8 @@ public abstract class RunnableSimulation implements Runnable {
 
 		if (!foundFunction) {
 			logger.warn("No candidate function found in object " + o);
-			throw new RuntimeException("No candidate function found in object "
-					+ o);
 		} else {
-			// reset task queue to trigger rebuild
-			stepQueue.clear();
+			newObjects = true;
 		}
 	}
 
@@ -615,46 +617,99 @@ public abstract class RunnableSimulation implements Runnable {
 		return sim;
 	}
 
-	class RuntimeScenario implements Scenario {
+	@BindingAnnotation
+	@Retention(RetentionPolicy.RUNTIME)
+	@interface InjectedObjects {
+	}
 
+	class BaseScenario implements Scenario {
 		Set<Object> agents = new HashSet<Object>();
 		Set<Object> objects = new HashSet<Object>();
-		boolean inject = false;
-		boolean initialise = false;
+		Set<Class<?>> classes = new HashSet<Class<?>>();
 
-		RuntimeScenario() {
+		BaseScenario() {
 			super();
 		}
 
-		public void addTimeDriven(TimeDriven object) {
-			objects.add(object);
-		}
-
-		public void addEnvironment(TimeDriven object) {
-			// Environment handled in simulator.
-		}
-
+		@Override
 		public void addAgent(Object o) {
 			agents.add(o);
-			processObject(o);
 		}
 
+		@Override
 		public void addObject(Object o) {
 			objects.add(o);
-			processObject(o);
 		}
 
-		void processObject(Object o) {
-			if (inject) {
-				injector.injectMembers(o);
-				findScheduleFunctions(o, initialisors, steppers, finalisors,
-						finishConditions);
-			}
+		@Override
+		public void addClass(Class<?> c) {
+			classes.add(c);
+		}
+
+		@Override
+		public void addTimeDriven(TimeDriven object) {
+			addObject(object);
+		}
+
+		@Override
+		public void addEnvironment(TimeDriven object) {
 		}
 
 		@Override
 		public void addParticipant(Participant agent) {
 			addAgent(agent);
+		}
+
+	}
+
+	class RuntimeScenario extends BaseScenario {
+
+		final Scheduler schedule;
+		@Inject
+		Injector injector = null;
+
+		RuntimeScenario() {
+			super();
+			this.schedule = RunnableSimulation.this;
+		}
+
+		synchronized void scheduleAll() {
+			Set<Object> all = new HashSet<Object>(this.agents);
+			all.addAll(this.objects);
+			for (Object o : all) {
+				schedule.addToSchedule(o);
+			}
+		}
+
+		@Inject
+		void injectObjects(@InjectedObjects Set<Object> objects) {
+			this.objects.addAll(objects);
+		}
+
+		@Override
+		public void addAgent(Object o) {
+			if (injector != null) {
+				injector.injectMembers(o);
+				schedule.addToSchedule(o);
+			} else
+				super.addAgent(o);
+		}
+
+		@Override
+		public void addObject(Object o) {
+			if (injector != null) {
+				injector.injectMembers(o);
+				schedule.addToSchedule(o);
+			} else
+				super.addObject(o);
+		}
+
+		@Override
+		public void addClass(Class<?> c) {
+			if (injector != null) {
+				schedule.addToSchedule(injector.getInstance(c));
+			} else
+				super.addClass(c);
 		}
 
 	}

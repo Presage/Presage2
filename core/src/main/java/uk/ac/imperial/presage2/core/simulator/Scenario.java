@@ -44,6 +44,13 @@ public interface Scenario {
 	public void addObject(Object o);
 
 	/**
+	 * Add classes to be inject to the scenario.
+	 * 
+	 * @param c
+	 */
+	public void addClass(Class<?> c);
+
+	/**
 	 * Backwards compatibility for TimeDriven entities.
 	 * 
 	 * @param object
