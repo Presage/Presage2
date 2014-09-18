@@ -61,7 +61,7 @@ public abstract class TupleStorageService implements StorageService {
 
 	@Override
 	public PersistentSimulation getSimulationById(long id) {
-		if(new HashSet<Long>(getSimulations()).contains(id))
+		if (new HashSet<Long>(getSimulations()).contains(id))
 			return new Simulation(id);
 		else
 			return null;
@@ -70,6 +70,11 @@ public abstract class TupleStorageService implements StorageService {
 	@Override
 	public PersistentSimulation getSimulation() {
 		return current;
+	}
+
+	@Override
+	public PersistentSimulation get() {
+		return getSimulation();
 	}
 
 	@Override
@@ -434,6 +439,16 @@ public abstract class TupleStorageService implements StorageService {
 			return new TState(time);
 		}
 
+		@Override
+		public String getProperty(String key, int t) {
+			return fetchTuple(simId, key, id, t);
+		}
+
+		@Override
+		public void setProperty(String key, int t, String value) {
+			storeTuple(simId, key, id, t, value);
+		}
+
 		class TState implements TransientAgentState {
 
 			final int t;
@@ -461,12 +476,12 @@ public abstract class TupleStorageService implements StorageService {
 
 			@Override
 			public String getProperty(String key) {
-				return fetchTuple(simId, key, id, t);
+				return Agent.this.getProperty(key, t);
 			}
 
 			@Override
 			public void setProperty(String key, String value) {
-				storeTuple(simId, key, id, t, value);
+				Agent.this.setProperty(key, t, value);
 			}
 
 		}

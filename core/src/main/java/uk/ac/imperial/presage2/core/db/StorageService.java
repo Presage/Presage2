@@ -21,11 +21,12 @@ package uk.ac.imperial.presage2.core.db;
 import java.util.List;
 import java.util.UUID;
 
-import com.google.inject.ImplementedBy;
-
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
+
+import com.google.inject.ImplementedBy;
+import com.google.inject.Provider;
 
 /**
  * A service to provide storage of simulation data.
@@ -34,7 +35,7 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
  * 
  */
 @ImplementedBy(StubStorageService.class)
-public interface StorageService {
+public interface StorageService extends Provider<PersistentSimulation> {
 
 	/**
 	 * Create a {@link PersistentSimulation} for the given parameters and set it
