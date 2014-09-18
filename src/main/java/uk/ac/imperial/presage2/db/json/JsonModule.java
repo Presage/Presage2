@@ -23,6 +23,7 @@ import java.util.Properties;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
@@ -48,6 +49,7 @@ public class JsonModule extends DatabaseModule {
 		bind(JsonStorage.class).in(Singleton.class);
 		bind(DatabaseService.class).to(JsonStorage.class);
 		bind(StorageService.class).to(JsonStorage.class);
+		bind(PersistentSimulation.class).toProvider(StorageService.class);
 	}
 
 }
