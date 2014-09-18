@@ -22,8 +22,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import uk.ac.imperial.presage2.core.db.StorageService;
-import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
+import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.simulator.Step;
@@ -35,7 +34,7 @@ public class LocationStoragePlugin {
 
 	private final Logger logger = Logger.getLogger(LocationStoragePlugin.class);
 
-	private StorageService storage;
+	private PersistentSimulation storage;
 
 	private final EnvironmentMembersService membersService;
 	private final LocationService locService;
@@ -58,8 +57,8 @@ public class LocationStoragePlugin {
 	}
 
 	@Inject(optional = true)
-	public void setStorage(StorageService storage) {
-		this.storage = storage;
+	public void setStorage(PersistentSimulation psim) {
+		this.storage = psim;
 	}
 
 	@Step
@@ -76,10 +75,9 @@ public class LocationStoragePlugin {
 				if (l == null)
 					continue;
 
-				TransientAgentState state = this.storage.getAgentState(pid, t);
-				state.setProperty("x", Double.toString(l.getX()));
-				state.setProperty("y", Double.toString(l.getY()));
-				state.setProperty("z", Double.toString(l.getZ()));
+				this.storage.storeTuple("x", pid, t, l.getX());
+				this.storage.storeTuple("y", pid, t, l.getY());
+				this.storage.storeTuple("z", pid, t, l.getZ());
 			}
 		}
 	}
