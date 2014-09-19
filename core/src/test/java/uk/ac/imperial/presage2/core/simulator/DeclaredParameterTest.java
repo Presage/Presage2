@@ -1,8 +1,6 @@
 package uk.ac.imperial.presage2.core.simulator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.util.Random;
@@ -83,6 +81,51 @@ public class DeclaredParameterTest {
 		DeclaredParameter test = new DeclaredParameter(a1, source, f);
 		assertEquals(name, test.name);
 		assertTrue(test.optional);
+	}
+
+	@Test
+	public void testBadParameter() throws NoSuchFieldException,
+			SecurityException, IllegalArgumentException, IllegalAccessException {
+		TestSource source = new TestSource();
+
+		// int given double string
+		Field f = TestSource.class.getField("testInt");
+		Parameter a = f.getAnnotation(Parameter.class);
+		DeclaredParameter test = new DeclaredParameter(a, source, f);
+		try {
+			test.setValue("0.5");
+			fail();
+		} catch (NumberFormatException e) {
+		}
+
+		// double given word string
+		f = TestSource.class.getField("testDouble");
+		a = f.getAnnotation(Parameter.class);
+		test = new DeclaredParameter(a, source, f);
+		try {
+			test.setValue("hi");
+			fail();
+		} catch (NumberFormatException e) {
+		}
+
+		// boolean will assume anything but 'true' is false
+		f = TestSource.class.getField("testBool");
+		a = f.getAnnotation(Parameter.class);
+		test = new DeclaredParameter(a, source, f);
+		test.setValue("true");
+		assertEquals(true, f.get(source));
+		test.setValue("hi");
+		assertEquals(false, f.get(source));
+
+		// enum given value not in enum
+		f = TestSource.class.getField("testEnum");
+		a = f.getAnnotation(Parameter.class);
+		test = new DeclaredParameter(a, source, f);
+		try {
+			test.setValue("1");
+			fail();
+		} catch (IllegalArgumentException e) {
+		}
 	}
 
 }

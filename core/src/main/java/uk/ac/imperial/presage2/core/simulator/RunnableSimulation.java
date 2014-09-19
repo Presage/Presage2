@@ -430,7 +430,7 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 		}
 	}
 
-	private void loadParameters(Map<String, String> provided)
+	protected void loadParameters(Map<String, String> provided)
 			throws IllegalArgumentException, IllegalAccessException,
 			UndefinedParameterException {
 		// collect parameters from field annotations
