@@ -40,7 +40,13 @@ class DeclaredParameter {
 	DeclaredParameter(Parameter param, Object source, Field field)
 			throws IllegalArgumentException, IllegalAccessException {
 		super();
-		this.name = param.name();
+		// parameter name precedence: value > name > field name
+		if (!param.value().equals(""))
+			this.name = param.value();
+		else if (!param.name().equals(""))
+			this.name = param.name();
+		else
+			this.name = field.getName();
 		this.optional = param.optional();
 		this.source = source;
 		this.field = field;

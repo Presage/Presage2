@@ -99,7 +99,7 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 	 * {@link #finishTimeCondition(int)} to prevent unbounded simulation
 	 * execution. Additional conditions can preempt simulation completion.
 	 */
-	@Parameter(name = "finishTime")
+	@Parameter("finishTime")
 	public int finishTime;
 
 	@Inject(optional = true)
