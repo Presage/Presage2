@@ -56,10 +56,7 @@ public class MoveHandler implements ActionHandler {
 		super();
 		this.environment = environment;
 		this.serviceProvider = serviceProvider;
-
 		this.sharedState = sharedState;
-		this.areaService = serviceProvider
-				.getEnvironmentService(AreaService.class);
 	}
 
 	@Override

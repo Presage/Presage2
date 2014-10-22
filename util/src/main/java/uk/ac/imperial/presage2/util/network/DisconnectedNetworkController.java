@@ -21,7 +21,6 @@ package uk.ac.imperial.presage2.util.network;
 import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.network.NetworkController;
-import uk.ac.imperial.presage2.core.simulator.ParticipantsComplete;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 
 import com.google.inject.Inject;
@@ -46,7 +45,7 @@ class DisconnectedNetworkController extends NetworkController {
 	}
 
 	@Override
-	public void onParticipantsComplete(ParticipantsComplete e) {
+	public void onParticipantsComplete() {
 	}
 
 }

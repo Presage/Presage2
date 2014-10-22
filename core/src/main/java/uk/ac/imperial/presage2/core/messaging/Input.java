@@ -30,6 +30,7 @@ import uk.ac.imperial.presage2.core.Time;
  * @author Sam Macbeth
  * 
  */
+@Deprecated
 public interface Input {
 
 	/**

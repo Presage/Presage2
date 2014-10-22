@@ -35,6 +35,7 @@ import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.util.environment.EnvironmentMembersService;
 import uk.ac.imperial.presage2.util.participant.HasPerceptionRange;
+import uk.ac.imperial.presage2.util.participant.StateAccessor;
 
 /**
  * <p>
@@ -155,6 +156,7 @@ public class ParticipantLocationService extends LocationService {
 	}
 
 	@Override
+	@StateAccessor("util.location")
 	public Location getAgentLocation(UUID participantID) {
 		if (this.rangeProvider == null) {
 			return super.getAgentLocation(participantID);

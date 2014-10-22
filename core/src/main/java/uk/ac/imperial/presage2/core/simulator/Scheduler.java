@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,25 +18,8 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.event.Event;
+interface Scheduler {
 
-/**
- * {@link Event} to signify the end of a time cycle.
- * 
- * @author Sam Macbeth
- * 
- */
-public class EndOfTimeCycle implements Event {
-
-	final Time endedCycle;
-
-	EndOfTimeCycle(Time endedCycle) {
-		this.endedCycle = endedCycle;
-	}
-
-	public Time getTime() {
-		return endedCycle;
-	}
-
+	void addToSchedule(Object o);
+	
 }

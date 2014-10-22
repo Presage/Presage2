@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -16,86 +16,63 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package uk.ac.imperial.presage2.core.simulator;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.TimeDriven;
-import uk.ac.imperial.presage2.core.environment.EnvironmentConnector;
-import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
-import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.network.NetworkAddressFactory;
-import uk.ac.imperial.presage2.core.network.NetworkConnector;
-import uk.ac.imperial.presage2.core.network.NetworkConnectorFactory;
-import uk.ac.imperial.presage2.core.network.NetworkController;
-import uk.ac.imperial.presage2.core.participant.Participant;
-import uk.ac.imperial.presage2.core.plugin.Plugin;
+import java.util.Set;
+
+import uk.ac.imperial.presage2.core.simulator.RunnableSimulation.InjectedObjects;
+import uk.ac.imperial.presage2.core.simulator.RunnableSimulation.RuntimeScenario;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 
-/**
- * 
- * <p>
- * A ScenarioModule provides Guice bindings which allow the simulation
- * components to be loaded by an {@link InjectedScenario}.
- * </p>
- * 
- * <p>
- * Depending on your simulation you will likely need to bind the following:
- * <ul>
- * <li> {@link Time}</li>
- * <li> {@link EnvironmentConnector}</li>
- * <li> {@link EnvironmentServiceProvider}</li>
- * <li> {@link EnvironmentSharedStateAccess}</li>
- * <li> {@link NetworkConnector}</li>
- * <li> {@link NetworkController}</li>
- * <li> {@link NetworkAddress}</li>
- * <li> {@link Participant}</li>
- * <li> {@link Plugin}s</li>
- * <li> {@link TimeDriven}s</li>
- * </ul>
- * </p>
- * 
- * <p>
- * For alot of these bindings you can simply bind the interface to the
- * implementation you would like to use, e.g.:
- * 
- * <pre class="prettyprint">
- * bind(Time.class).to(IntegerTime.class);
- * </pre>
- * 
- * If you want an implementation to be a singleton use
- * <code>.in(Singleton.class</code>:
- * 
- * <pre class="prettyprint">
- * bind(BasicEnvironment.class).in(Singleton.class); // Singleton without binding
- * bind(NetworkChannel.class).to(NetworkController.class).in(Singleton.class); // Singleton
- * // and
- * // binding
- * // combined
- * </pre>
- * 
- * In some cases you will want an object parameterised via some kind of factory.
- * You can bind and inject the factory in these cases. See
- * {@link NetworkConnectorFactory} and {@link NetworkAddressFactory} for
- * examples:
- * 
- * <pre class="prettyprint">
- * install(new FactoryModuleBuilder().implement(NetworkConnector.class,
- * 		BasicNetworkConnector.class).build(NetworkConnectorFactory.class));
- * install(new FactoryModuleBuilder().implement(Participant.class,
- * 		BasicAgent.class).build(ParticipantFactory.class));
- * </pre>
- * 
- * </p>
- * 
- * @author Sam Macbeth
- * 
- */
-public abstract class ScenarioModule extends AbstractModule {
+class ScenarioModule extends AbstractModule {
+
+	final RuntimeScenario scenario;
+	final Set<DeclaredParameter> parameters;
+	final Scheduler scheduler;
+
+	ScenarioModule(RuntimeScenario scenario, Set<DeclaredParameter> parameters,
+			Scheduler scheduler) {
+		super();
+		this.scenario = scenario;
+		this.parameters = parameters;
+		this.scheduler = scheduler;
+	}
 
 	@Override
-	abstract protected void configure();
+	protected void configure() {
+		bind(Scenario.class).toInstance(scenario);
+		bind(Scheduler.class).toInstance(scheduler);
+		for (DeclaredParameter p : parameters) {
+			install(p.handler.getBinding(p));
+		}
+		Multibinder<Object> mb = Multibinder.newSetBinder(binder(),
+				Object.class, InjectedObjects.class);
+		for (Object o : scenario.objects) {
+			mb.addBinding().toInstance(o);
+		}
+		for (Class<?> c : scenario.classes) {
+			mb.addBinding().to(c);
+		}
+	}
+
+	public static void addObjects(Binder binder, Object... objects) {
+		Multibinder<Object> mb = Multibinder.newSetBinder(binder, Object.class,
+				InjectedObjects.class);
+		for (Object o : objects) {
+			mb.addBinding().toInstance(o);
+		}
+	}
+
+	public static void addObjectClasses(Binder binder,
+			Class<? extends Object>... objects) {
+		Multibinder<Object> mb = Multibinder.newSetBinder(binder, Object.class,
+				InjectedObjects.class);
+		for (Class<? extends Object> o : objects) {
+			mb.addBinding().to(o);
+		}
+	}
 
 }

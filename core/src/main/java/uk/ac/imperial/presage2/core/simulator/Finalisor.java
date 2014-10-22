@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,16 +18,21 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
+ * Method annotation to mark that a method should be called when the declaring
+ * object is removed from the simulation (i.e. at the end of the simulation).
+ * The method should not take any arguments and return void.
+ * 
  * @author Sam Macbeth
  * 
  */
-public class SingleThreadedSimulatorTest extends SimulatorTest {
-
-	@Override
-	public void setUp() throws Exception {
-		this.simulatorUnderTest = new SingleThreadedSimulator(scenario, time,
-				eventBus);
-	}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Finalisor {
 
 }

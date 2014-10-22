@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011-2012 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -24,10 +24,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.METHOD })
+@Target({ ElementType.FIELD })
 public @interface Parameter {
-	public String name();
-
+	public String name() default "";
+	public String value() default "";
 	public boolean optional() default false;
 
 }

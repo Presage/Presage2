@@ -34,8 +34,6 @@ import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.environment.StateTransformer;
 import uk.ac.imperial.presage2.core.event.EventBus;
-import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.simulator.Events;
 
 import com.google.inject.Inject;
 
@@ -211,11 +209,6 @@ public class MappedSharedState implements SharedStateStorage {
 
 	@Override
 	public void incrementTime() {
-		updateState();
-	}
-
-	@EventListener
-	public void initialise(Events.Initialised e) {
 		updateState();
 	}
 

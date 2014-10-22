@@ -48,7 +48,6 @@ import uk.ac.imperial.presage2.core.environment.ParticipantSharedState;
 import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.environment.UnregisteredParticipantException;
-import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.participant.Participant;
 import uk.ac.imperial.presage2.core.simulator.Scenario;
 import uk.ac.imperial.presage2.core.util.random.Random;
@@ -125,7 +124,7 @@ public class AbstractEnvironment implements EnvironmentConnector,
 				if (logger.isDebugEnabled())
 					logger.debug("Deferredly handling " + action + " from "
 							+ actor);
-				Input i = handler.handle(action, actor);
+				Object i = handler.handle(action, actor);
 				if (i != null)
 					registeredParticipants.get(actor).enqueueInput(i);
 			} catch (ActionHandlingException e) {
@@ -493,7 +492,7 @@ public class AbstractEnvironment implements EnvironmentConnector,
 		}
 
 		// Handle the action and retrieve the resultant input (if there is one)
-		Input i = null;
+		Object i = null;
 		ActionHandler a;
 		if (canHandle.size() > 1) {
 			logger.warn("More than one ActionHandler.canhandle() returned true for "

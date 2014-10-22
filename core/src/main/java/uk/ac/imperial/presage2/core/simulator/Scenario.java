@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -16,90 +16,67 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.participant.Participant;
-import uk.ac.imperial.presage2.core.plugin.Plugin;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
 
 /**
- * 
- * <p>
- * A Scenario describes the runtime components of a simulation which the
- * simulator must interact with. These comprise of the {@link Participant}s of
- * the system, the other {@link TimeDriven} elements, and the {@link Plugin}s.
- * The Scenario will likely have to construct other elements which the above
- * require such as network components and the environment.
- * </p>
+ * The scenario defines the entities to be run by the scheduler.
  * 
  * @author Sam Macbeth
  * 
  */
 public interface Scenario {
 
-	public Set<Participant> getParticipants();
-
-	public Set<TimeDriven> getTimeDriven();
-
-	public Set<Plugin> getPlugins();
-
-	public TimeDriven getEnvironment();
+	/**
+	 * Add an agent to the scenario
+	 * 
+	 * @param o
+	 */
+	public void addAgent(Object o);
 
 	/**
-	 * Get the time at which the simulation should finish
+	 * Add an object to the scenario
 	 * 
-	 * @return {@link Time} representing the last time step of the simulation
+	 * @param o
 	 */
-	public Time getFinishTime();
-
-	public abstract void addTimeDriven(TimeDriven t);
-
-	public abstract void addPlugin(Plugin p);
-
-	public abstract void addParticipant(Participant p);
+	public void addObject(Object o);
 
 	/**
-	 * Remove a participant from the scenario.
+	 * Add classes to be inject to the scenario.
 	 * 
-	 * @param id
-	 *            {@link UUID} of the participant to remove.
+	 * @param c
 	 */
-	public abstract void removeParticipant(UUID id);
+	public void addClass(Class<?> c);
 
-	public void addEnvironment(TimeDriven e);
+	/**
+	 * Backwards compatibility for TimeDriven entities.
+	 * 
+	 * @param object
+	 * @deprecated Use instead {@link #addObject(Object)} with {@link Step}
+	 *             annotations.
+	 */
+	@Deprecated
+	public void addTimeDriven(TimeDriven object);
 
-	static class Builder {
+	/**
+	 * No-op as state engine is now handled directly by the simulator.
+	 * 
+	 * @param object
+	 * @deprecated
+	 */
+	@Deprecated
+	public void addEnvironment(TimeDriven object);
 
-		public final Injector injector;
+	/**
+	 * Backwards compatibility for {@link Participant} entities.
+	 * 
+	 * @param agent
+	 * @deprecated Use instead {@link #addAgent(Object)} with {@link Step}
+	 *             annotations
+	 */
+	@Deprecated
+	public void addParticipant(Participant agent);
 
-		public Builder(AbstractModule... modules) {
-			final Set<AbstractModule> moduleSet = new HashSet<AbstractModule>(
-					Arrays.asList(modules));
-			moduleSet.add(new AbstractModule() {
-				@Override
-				protected void configure() {
-					bind(Scenario.class).to(ScenarioBuilder.class).in(
-							Singleton.class);
-				}
-			});
-			this.injector = Guice.createInjector(moduleSet);
-		}
-
-		public Injector getInjector() {
-			return injector;
-		}
-
-	}
 }

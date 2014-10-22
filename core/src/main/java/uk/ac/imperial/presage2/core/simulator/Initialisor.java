@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,28 +18,21 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.google.inject.BindingAnnotation;
-
 /**
- * <p>
- * Binding annotation for providing a number of threads to use for a
- * {@link Simulator}
- * </p>
+ * Method annotation to mark that a method should be called to initialise this
+ * object. The method should not take any arguments and return void. An optional
+ * <code>nice</code> parameter can be set to specify priority in the task queue.
  * 
  * @author Sam Macbeth
  * 
  */
-@BindingAnnotation
-@Target({ FIELD, PARAMETER, METHOD })
-@Retention(RUNTIME)
-public @interface Threads {
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Initialisor {
+	public int nice() default 0;
 }

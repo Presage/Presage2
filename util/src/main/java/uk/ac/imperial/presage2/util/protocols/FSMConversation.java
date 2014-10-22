@@ -28,7 +28,6 @@ import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
 import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.simulator.SimTime;
 import uk.ac.imperial.presage2.core.util.random.Random;
 import uk.ac.imperial.presage2.util.fsm.FSM;
 import uk.ac.imperial.presage2.util.fsm.FSMDescription;
@@ -46,7 +45,7 @@ public class FSMConversation implements Conversation {
 	int lastTransition;
 
 	FSMConversation(final FSMDescription desc, String protocol,
-			final Role role, final NetworkAdaptor network) {
+			final Role role, final NetworkAdaptor network, int t) {
 		this.id = Random.randomUUID();
 		this.protocol = protocol;
 		this.role = role;
@@ -54,7 +53,7 @@ public class FSMConversation implements Conversation {
 		this.networkWrapper = new NetworkAdaptorWrapper(network);
 		this.entity = null;
 		fsm = new FSM(desc, this);
-		lastTransition = SimTime.get().intValue();
+		lastTransition = t;
 	}
 
 	@Override
@@ -70,7 +69,7 @@ public class FSMConversation implements Conversation {
 	public void handle(Input in) {
 		try {
 			fsm.applyEvent(in);
-			lastTransition = SimTime.get().intValue();
+			lastTransition = in.getTimestamp().intValue();
 		} catch (FSMException e) {
 			throw new RuntimeException(e);
 		}

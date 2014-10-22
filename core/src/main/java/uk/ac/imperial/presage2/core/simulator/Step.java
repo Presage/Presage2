@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -16,35 +16,24 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package uk.ac.imperial.presage2.core.simulator;
 
-import com.google.inject.BindingAnnotation;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * 
- * <p>
- * Binding annotation for the database connection provided to the Simulator.
- * </p>
- * 
- * <p>
- * By using this we allow a separate binding to be used for databases used
- * within plugins etc inside the simulation.
- * </p>
+ * Method annotation to mark that a method should be called each timestep by the
+ * scheduler. The method may take a single integer argument representing the
+ * current timestep number and return void. An optional <code>nice</code>
+ * parameter can be set to specify priority in the task queue.
  * 
  * @author Sam Macbeth
  * 
  */
-
-@BindingAnnotation
-@Target({ FIELD, PARAMETER, METHOD })
-@Retention(RUNTIME)
-public @interface ScenarioSource {
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Step {
+	public int nice() default 0;
 }

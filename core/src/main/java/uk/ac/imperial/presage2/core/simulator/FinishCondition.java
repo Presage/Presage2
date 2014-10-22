@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,18 +18,22 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
-import java.util.Random;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * Method annotation to mark that a method specifies a finish condition for the
+ * simulation. The scheduler will run this method every timestep, ending the
+ * simulation if it returns true. The method may take a single integer argument
+ * representing the current timestep number and return a boolean.
+ * 
  * @author Sam Macbeth
  * 
  */
-public class MultiThreadedSimulatorTest extends SimulatorTest {
-
-	@Override
-	public void setUp() throws Exception {
-		this.simulatorUnderTest = new MultiThreadedSimulator(scenario, time,
-				eventBus, new Random().nextInt(5) + 1);
-	}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface FinishCondition {
 
 }

@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,158 +18,238 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
-import org.jmock.Sequence;
-import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.TimeDriven;
-import uk.ac.imperial.presage2.core.event.EventBus;
-import uk.ac.imperial.presage2.core.participant.Participant;
-import uk.ac.imperial.presage2.core.plugin.Plugin;
-import uk.ac.imperial.presage2.core.util.random.Random;
+import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 
-/**
- * @author Sam Macbeth
- * 
- */
-abstract public class SimulatorTest {
+import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
-	protected Simulator simulatorUnderTest;
+public class SimulatorTest {
 
-	// Create mock scenario
+	Random rnd = new Random();
 	final Mockery context = new Mockery();
+	final SharedStateStorage ss = context.mock(SharedStateStorage.class);
+	int time;
+	Set<TestAgent> testedObjects;
 
-	final Scenario scenario = context.mock(Scenario.class);
+	class TestSimulation extends RunnableSimulation {
+		@Parameter
+		public int param1;
+		@Parameter(optional = true)
+		public int paramOptional;
 
-	final Time time = context.mock(Time.class);
-
-	final EventBus eventBus = context.mock(EventBus.class);
-
-	@Before
-	public void mockExpectations() {
-		context.checking(new Expectations() {
-			{
-				allowing(time).clone();
-				will(returnValue(time));
-				allowing(eventBus).subscribe(with(anything()));
+		@Override
+		public void initialiseScenario(Scenario scenario) {
+			testedObjects = new HashSet<TestAgent>();
+			for (int i = 0; i < rnd.nextInt(10); i++) {
+				TestAgent a = new TestAgent(time);
+				scenario.addAgent(a);
+				testedObjects.add(a);
 			}
-		});
+			TestAgent a = new TestAgent(time);
+			scenario.addObject(a);
+			testedObjects.add(a);
+			scenario.addObject(new Condition(time));
+			scenario.addClass(TestAgent.class);
+			addModule(new AbstractModule() {
+				@Override
+				protected void configure() {
+					bind(SharedStateStorage.class).toInstance(ss);
+				}
+			});
+		}
 	}
 
-	/**
-	 * Initialise Simulator under test in the member variable
-	 * {@link #simulatorUnderTest}.
-	 * 
-	 * @throws Exception
-	 */
-	@Before
-	abstract public void setUp() throws Exception;
+	static class TestAgent {
+		boolean initialised = false;
+		boolean finalised = false;
+		int nextT = 0;
+		int expectedT;
+
+		@Inject
+		public TestAgent(@Named("params.finishTime") int time) {
+			this.expectedT = time;
+		}
+
+		@Initialisor
+		public void init() {
+			if (initialised)
+				fail();
+			initialised = true;
+		}
+
+		@Step
+		public void step(int t) {
+			if (!initialised)
+				fail();
+			assertEquals(nextT++, t);
+		}
+
+		@Step
+		void nonPublicStep() {
+			fail("Non public step function doesn't get scheduled");
+		}
+
+		@Finalisor
+		public void finalise() {
+			finalised = true;
+			assertEquals(expectedT, nextT);
+		}
+	}
+
+	static class Condition {
+		int nextT = 0;
+		int expectedT;
+
+		public Condition(int time) {
+			this.expectedT = time;
+		}
+
+		@FinishCondition
+		public boolean condition(int t) {
+			assertEquals(nextT++, t);
+			return false;
+		}
+	}
 
 	@Test
-	public void testSimulator() {
-		// create some mock scenario entities
-		final int nParticipants = Random.randomInt(10);
-		final Set<Participant> partSet = new HashSet<Participant>();
-		for (int i = 0; i < nParticipants; i++) {
-			final Participant p = context.mock(Participant.class, "participant" + i);
-			partSet.add(p);
+	public void testParameterLoading() throws IllegalArgumentException,
+			IllegalAccessException, UndefinedParameterException {
+		TestSimulation sim = new TestSimulation();
+		Map<String, String> params = new HashMap<String, String>();
+		final int p1 = rnd.nextInt();
+		final int po = rnd.nextInt();
+		final int time = rnd.nextInt();
+
+		params.put("param1", Integer.toString(p1));
+		params.put("paramOptional", Integer.toString(po));
+		params.put("finishTime", Integer.toString(time));
+
+		sim.loadParameters(params);
+
+		assertEquals(p1, sim.param1);
+		assertEquals(po, sim.paramOptional);
+		assertEquals(time, sim.finishTime);
+	}
+
+	@Test
+	public void testParameterOptional() throws IllegalArgumentException,
+			IllegalAccessException, UndefinedParameterException {
+		TestSimulation sim = new TestSimulation();
+		Map<String, String> params = new HashMap<String, String>();
+		final int p1 = rnd.nextInt();
+		final int po = rnd.nextInt();
+		final int time = rnd.nextInt();
+		sim.paramOptional = po;
+
+		params.put("param1", Integer.toString(p1));
+		params.put("finishTime", Integer.toString(time));
+
+		sim.loadParameters(params);
+
+		assertEquals(p1, sim.param1);
+		assertEquals(po, sim.paramOptional);
+		assertEquals(time, sim.finishTime);
+	}
+
+	@Test
+	public void testParameterMissing() throws IllegalArgumentException,
+			IllegalAccessException, UndefinedParameterException {
+		TestSimulation sim = new TestSimulation();
+		Map<String, String> params = new HashMap<String, String>();
+		final int time = rnd.nextInt();
+
+		params.put("finishTime", Integer.toString(time));
+
+		try {
+			sim.loadParameters(params);
+			fail();
+		} catch (UndefinedParameterException e) {
+		}
+	}
+
+	@Test
+	public void testExtraParameter() throws IllegalArgumentException,
+			IllegalAccessException, UndefinedParameterException {
+		TestSimulation sim = new TestSimulation();
+		Map<String, String> params = new HashMap<String, String>();
+		final int time = rnd.nextInt();
+		final int p1 = rnd.nextInt();
+
+		params.put("param1", Integer.toString(p1));
+		params.put("finishTime", Integer.toString(time));
+		params.put("anotherparameter", "value");
+
+		try {
+			sim.loadParameters(params);
+			fail();
+		} catch (UndefinedParameterException e) {
+		}
+	}
+
+	@Test
+	public void testSimulationRun() throws IllegalArgumentException,
+			IllegalAccessException, UndefinedParameterException {
+		TestSimulation sim = new TestSimulation();
+		Map<String, String> params = new HashMap<String, String>();
+		final int p1 = rnd.nextInt();
+		final int po = rnd.nextInt();
+		time = rnd.nextInt(100);
+
+		params.put("param1", Integer.toString(p1));
+		params.put("paramOptional", Integer.toString(po));
+		params.put("finishTime", Integer.toString(time));
+
+		sim.loadParameters(params);
+
+		context.checking(new Expectations() {
+			{
+				oneOf(ss).incrementTime();
+			}
+		});
+
+		sim.initialise();
+		context.assertIsSatisfied();
+		for (TestAgent a : testedObjects) {
+			assertTrue(a.initialised);
+			assertFalse(a.finalised);
+			assertEquals(0, a.nextT);
 		}
 
-		final int nTimDriven = Random.randomInt(10);
-		final Set<TimeDriven> tdSet = new HashSet<TimeDriven>();
-		for (int i = 0; i < nTimDriven; i++) {
-			tdSet.add(context.mock(TimeDriven.class, "timedriven" + i));
+		context.checking(new Expectations() {
+			{
+				exactly(time + 1).of(ss).incrementTime();
+			}
+		});
+		sim.step();
+		context.assertIsSatisfied();
+		for (TestAgent a : testedObjects) {
+			assertTrue(a.initialised);
+			assertFalse(a.finalised);
+			assertEquals(time + 1, a.nextT);
 		}
-		final TimeDriven env = context.mock(TimeDriven.class, "environment");
 
-		final Plugin plug1 = context.mock(Plugin.class, "plugin1");
-		final Plugin plug2 = context.mock(Plugin.class, "plugin2");
-		final Set<Plugin> plugSet = new HashSet<Plugin>();
-		plugSet.add(plug1);
-		plugSet.add(plug2);
-
-		final Time finishTime = context.mock(Time.class, "finish");
-
-		// initialisation expectations
-		context.checking(new Expectations() {
-			{
-				allowing(scenario).getParticipants();
-				will(returnValue(partSet));
-				allowing(scenario).getPlugins();
-				will(returnValue(plugSet));
-				allowing(scenario).getTimeDriven();
-				will(returnValue(tdSet));
-				allowing(scenario).getEnvironment();
-				will(returnValue(env));
-				allowing(time).increment();
-				allowing(finishTime).clone();
-				will(returnValue(finishTime));
-				for (Participant p : partSet) {
-					oneOf(p).initialise();
-				}
-				oneOf(plug1).initialise();
-				oneOf(plug2).initialise();
-				oneOf(eventBus).publish(with(any(Events.Initialised.class)));
-			}
-		});
-
-		simulatorUnderTest.initialise();
-
-		context.assertIsSatisfied();
-
-		// execution expectations
-		final Sequence loopLimit = context.sequence("loopLimit");
-		final int nCycles = Random.randomInt(10);
-		context.checking(new Expectations() {
-			{
-				allowing(scenario).getFinishTime();
-				will(returnValue(finishTime));
-				exactly(nCycles).of(finishTime).greaterThan(time);
-				will(returnValue(true));
-				inSequence(loopLimit);
-				oneOf(finishTime).greaterThan(time);
-				will(returnValue(false));
-				inSequence(loopLimit);
-				for (Participant p : partSet) {
-					exactly(nCycles).of(p).incrementTime();
-				}
-				for (TimeDriven td : tdSet) {
-					exactly(nCycles).of(td).incrementTime();
-				}
-				exactly(nCycles).of(env).incrementTime();
-				exactly(nCycles).of(plug1).incrementTime();
-				exactly(nCycles).of(plug2).incrementTime();
-				exactly(nCycles).of(eventBus).publish(with(any(ParticipantsComplete.class)));
-				exactly(nCycles).of(eventBus).publish(with(any(EndOfTimeCycle.class)));
-			}
-		});
-
-		simulatorUnderTest.run();
-
-		context.assertIsSatisfied();
-
-		// completion expectations
-		context.checking(new Expectations() {
-			{
-				oneOf(plug1).onSimulationComplete();
-				oneOf(plug2).onSimulationComplete();
-				oneOf(eventBus).publish(with(any(FinalizeEvent.class)));
-				for (Participant p : partSet) {
-					oneOf(p).onSimulationComplete();
-				}
-			}
-		});
-
-		simulatorUnderTest.complete();
-
-		context.assertIsSatisfied();
-
+		sim.finish();
+		for (TestAgent a : testedObjects) {
+			assertTrue(a.initialised);
+			assertTrue(a.finalised);
+			assertEquals(time + 1, a.nextT);
+		}
 	}
 
 }

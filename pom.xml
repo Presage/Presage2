@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.3.5</version>
+	<version>0.4.0</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
@@ -156,12 +155,24 @@
 				</executions>
 			</plugin>
 
+			<!-- Propagate version numbers to submodules. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<goals>deploy</goals>
+					<autoversionsubmodules>true</autoversionsubmodules>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 	<scm>
 		<connection>scm:git:git://github.com/Presage/Presage2.git</connection>
 		<developerConnection>scm:git:https://sammacbeth@github.com/Presage/Presage2.git</developerConnection>
-	</scm>
+	  <tag>0.4.0</tag>
+  </scm>
 
 	<distributionManagement>
 		<repository>

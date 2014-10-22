@@ -22,12 +22,6 @@ package uk.ac.imperial.presage2.core.participant;
 import java.util.Collection;
 import java.util.UUID;
 
-import uk.ac.imperial.presage2.core.Action;
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.TimeDriven;
-import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
-import uk.ac.imperial.presage2.core.messaging.Input;
-
 /**
  * 
  * This is the interface used by the simulator to interact with agents. All
@@ -36,7 +30,7 @@ import uk.ac.imperial.presage2.core.messaging.Input;
  * @author Sam Macbeth
  * 
  */
-public interface Participant extends TimeDriven {
+public interface Participant {
 
 	/**
 	 * Returns the participant's unique ID.
@@ -55,51 +49,17 @@ public interface Participant extends TimeDriven {
 	public String getName();
 
 	/**
-	 * Returns the agent's current perception of the simulation time.
-	 * 
-	 * @return agent's current perception of the simulation time
-	 */
-	public Time getTime();
-
-	/**
-	 * Called by the simulator after creating your agent. Allows you to
-	 * initialise the agent before simulation cycle starts
-	 */
-	public void initialise();
-
-	/**
-	 * Called once per simulation cycle. Gives the agent time to process inputs,
-	 * send message and perform actions.
-	 * 
-	 * @deprecated Use {@link TimeDriven#incrementTime()} now.
-	 */
-	@Deprecated
-	public void execute();
-
-	/**
-	 * Called at the end of the simulation. A chance for the Participant to tidy
-	 * itself up before the garbage collector comes for it...
-	 */
-	public void onSimulationComplete();
-
-	/**
 	 * Adds a new input to be processed by this participant.
 	 * 
 	 * @param input
 	 */
-	public void enqueueInput(Input input);
+	public void enqueueInput(Object input);
 
 	/**
 	 * Adds multiple new inputs to be processed by this participant.
 	 * 
 	 * @param inputs
 	 */
-	public void enqueueInput(Collection<? extends Input> inputs);
-	
-	/**
-	 * Perform the action <code>a</code>
-	 * @param a	action to perform
-	 */
-	public void act(Action a) throws ActionHandlingException;
+	public void enqueueInput(Collection<? extends Object> inputs);
 
 }

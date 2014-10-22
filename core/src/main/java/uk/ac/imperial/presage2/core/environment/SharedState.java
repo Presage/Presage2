@@ -48,7 +48,7 @@ public class SharedState {
 	/**
 	 * Get the value of this shared state.
 	 * 
-	 * @return Object representing this state. Type dicated by templated type.
+	 * @return Object representing this state. Type dictated by templated type.
 	 */
 	public Serializable getValue() {
 		return value;

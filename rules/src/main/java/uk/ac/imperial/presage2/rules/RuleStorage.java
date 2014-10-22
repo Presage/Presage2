@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011-2012 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -53,7 +53,6 @@ import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
 import uk.ac.imperial.presage2.core.environment.StateTransformer;
 import uk.ac.imperial.presage2.core.event.EventBus;
 import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.simulator.Events;
 import uk.ac.imperial.presage2.rules.facts.AgentStateTranslator;
 import uk.ac.imperial.presage2.rules.facts.GenericAgentStateTranslator;
 import uk.ac.imperial.presage2.rules.facts.GenericGlobalStateTranslator;
@@ -352,11 +351,6 @@ public class RuleStorage implements SharedStateStorage,
 	@Override
 	public void incrementTime() {
 		clock.advanceTime(1, TimeUnit.SECONDS);
-		updateState();
-	}
-
-	@EventListener
-	public void initialise(Events.Initialised e) {
 		updateState();
 	}
 

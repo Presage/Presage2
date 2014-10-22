@@ -18,50 +18,79 @@
  */
 package uk.ac.imperial.presage2.core.db.persistent;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.UUID;
 
 public interface PersistentSimulation {
 
-	public long getID();
+	long getID();
 
-	public void addParameter(String name, String value);
+	void addParameter(String name, String value);
 
-	public Map<String, String> getParameters();
+	Map<String, String> getParameters();
 
-	public int getFinishTime();
+	void setCurrentTime(int time);
 
-	public void setCurrentTime(int time);
+	int getCurrentTime();
 
-	public int getCurrentTime();
+	void setState(String newState);
 
-	public void setState(String newState);
+	String getState();
 
-	public String getState();
+	void setFinishedAt(long time);
 
-	public PersistentEnvironment getEnvironment();
+	long getFinishedAt();
 
-	public void setParentSimulation(PersistentSimulation parent);
+	void setStartedAt(long time);
 
-	public PersistentSimulation getParentSimulation();
+	long getStartedAt();
 
-	public List<Long> getChildren();
+	String getClassName();
 
-	public void setFinishedAt(long time);
+	String getName();
 
-	public long getFinishedAt();
+	int getFinishTime();
 
-	public void setStartedAt(long time);
+	PersistentEnvironment getEnvironment();
 
-	public long getStartedAt();
+	void storeTuple(String key, String value);
 
-	public long getCreatedAt();
+	void storeTuple(String key, int value);
 
-	public String getClassName();
+	void storeTuple(String key, double value);
 
-	public String getName();
+	void storeTuple(String key, int t, String value);
 
-	public Set<PersistentAgent> getAgents();
+	void storeTuple(String key, int t, int value);
+
+	void storeTuple(String key, int t, double value);
+
+	void storeTuple(String key, UUID agent, String value);
+
+	void storeTuple(String key, UUID agent, int value);
+
+	void storeTuple(String key, UUID agent, double value);
+
+	void storeTuple(String key, UUID agent, int t, String value);
+
+	void storeTuple(String key, UUID agent, int t, int value);
+
+	void storeTuple(String key, UUID agent, int t, double value);
+
+	String fetchTuple(String key);
+
+	<T> T fetchTuple(String key, Class<T> type);
+
+	String fetchTuple(String key, int t);
+
+	<T> T fetchTuple(String key, int t, Class<T> type);
+
+	String fetchTuple(String key, UUID agent);
+
+	<T> T fetchTuple(String key, UUID agent, Class<T> type);
+
+	String fetchTuple(String key, UUID agent, int t);
+
+	<T> T fetchTuple(String key, UUID agent, int t, Class<T> type);
 
 }

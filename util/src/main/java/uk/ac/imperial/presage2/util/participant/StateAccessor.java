@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -16,29 +16,15 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.ac.imperial.presage2.core.simulator;
+package uk.ac.imperial.presage2.util.participant;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.event.Event;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * {@link Event} to signify the end of the simulators execution to allow objects
- * to tidy up before the simulation ends.
- * 
- * @author Sam Macbeth
- * 
- */
-public class FinalizeEvent implements Event {
-
-	final Time t;
-
-	FinalizeEvent(Time t) {
-		super();
-		this.t = t;
-	}
-
-	public Time getTime() {
-		return t;
-	}
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface StateAccessor {
+	String value();
 }

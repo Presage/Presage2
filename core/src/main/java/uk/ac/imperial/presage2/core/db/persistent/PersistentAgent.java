@@ -47,6 +47,8 @@ public interface PersistentAgent {
 	 */
 	String getProperty(String key);
 
+	String getProperty(String key, int t);
+
 	/**
 	 * Set a property associated with this agent.
 	 * 
@@ -54,6 +56,8 @@ public interface PersistentAgent {
 	 * @param value
 	 */
 	void setProperty(String key, String value);
+
+	void setProperty(String key, int t, String value);
 
 	/**
 	 * Get state for this agents at <code>time</code>.

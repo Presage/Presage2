@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011-2012 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,450 +18,94 @@
  */
 package uk.ac.imperial.presage2.core.simulator;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Date;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
-import uk.ac.imperial.presage2.core.Time;
+import uk.ac.imperial.presage2.core.TimeDriven;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
-import uk.ac.imperial.presage2.core.event.EventBus;
-import uk.ac.imperial.presage2.core.event.EventBusModule;
-import uk.ac.imperial.presage2.core.event.EventListener;
-import uk.ac.imperial.presage2.core.simulator.MultiThreadedSimulator.ThreadsValue;
+import uk.ac.imperial.presage2.core.environment.SharedStateStorage;
+import uk.ac.imperial.presage2.core.participant.Participant;
+import uk.ac.imperial.presage2.core.simulator.ScheduleExecutor.WaitCondition;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 /**
- * <p>
- * A RunnableSimulation is a wrapper for a parameterised experiment we can run.
- * </p>
- * 
- * <p>
- * It gives method to monitor the progress and state of the simulation from a
- * controlling program.
- * </p>
+ * Implements the Presage2 simulation loop. Loads a simulation either from
+ * command-line invocation or database id.
  * 
  * @author Sam Macbeth
  * 
  */
-public abstract class RunnableSimulation implements Runnable {
+public abstract class RunnableSimulation implements Runnable, Scheduler {
 
-	protected final Logger logger = Logger.getLogger(RunnableSimulation.class);
+	private static final Logger logger = Logger
+			.getLogger(RunnableSimulation.class);
+	private RuntimeScenario scenario;
+	private Injector injector = null;
+	Set<AbstractModule> modules = new HashSet<AbstractModule>();
 
-	protected SimulationState state = SimulationState.LOADING;
+	Set<DeclaredParameter> parameters = new HashSet<DeclaredParameter>();
 
-	protected Scenario scenario;
+	boolean newObjects = true;
+	Set<Pair<Method, Object>> initialisors = Collections
+			.synchronizedSet(new HashSet<Pair<Method, Object>>());
+	Set<Pair<Method, Object>> steppers = Collections
+			.synchronizedSet(new HashSet<Pair<Method, Object>>());
+	Set<Pair<Method, Object>> finishConditions = Collections
+			.synchronizedSet(new HashSet<Pair<Method, Object>>());
+	Set<Pair<Method, Object>> finalisors = Collections
+			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 
-	protected Simulator simulator;
+	LinkedList<Pair<Method, Object>> stepQueue = new LinkedList<Pair<Method, Object>>();
 
-	protected DatabaseService database;
-	protected StorageService storage;
-	protected PersistentSimulation simPersist;
+	/**
+	 * The number of threads to use for schedule execution.
+	 */
+	protected int threads = 8;
+	ScheduleExecutor executor;
 
-	private Map<String, Field> fieldParameters = new HashMap<String, Field>();
+	@Inject
+	SharedStateStorage stateEngine;
+	int t = 0;
 
-	private Map<String, Method> methodParameters = new HashMap<String, Method>();
-
-	@Parameter(name = "finishTime")
+	/**
+	 * Maximum number of simulation timesteps. This field is used by the
+	 * {@link #finishTimeCondition(int)} to prevent unbounded simulation
+	 * execution. Additional conditions can preempt simulation completion.
+	 */
+	@Parameter("finishTime")
 	public int finishTime;
 
-	private long id = -1;
-
-	public enum SimulationState {
-		LOADING, READY, INITIALISING, RUNNING, PAUSED, STOPPED, FINISHING, COMPLETE
-	}
-
-	/**
-	 * Inform the simulation that parameters have been initialised and that it
-	 * should build itself ready to run.
-	 */
-	public abstract void load();
-
-	/**
-	 * Get the simulation's current state.
-	 * 
-	 * @return {@link SimulationState}
-	 */
-	public SimulationState getState() {
-		return this.state;
-	}
-
-	/**
-	 * Get the current time in the underlying running simulation.
-	 * 
-	 * @return {@link Time}
-	 */
-	public Time getCurrentSimulationTime() {
-		if (simulator == null)
-			return null;
-		else
-			return simulator.getCurrentSimulationTime();
-	}
-
-	/**
-	 * Get the time the underlying simulation should finish.
-	 * 
-	 * @return {@link Time}
-	 */
-	public Time getSimulationFinishTime() {
-		if (scenario == null)
-			return null;
-		else
-			return scenario.getFinishTime();
-	}
-
-	/**
-	 * Get the percentage completion of the simulation.
-	 * 
-	 * @return
-	 */
-	public int getSimluationPercentComplete() {
-		if (getSimulationFinishTime() == null
-				|| getCurrentSimulationTime() == null)
-			return 0;
-		else
-			return 100 * getCurrentSimulationTime().intValue()
-					/ getSimulationFinishTime().intValue();
-	}
-
-	/**
-	 * Get the underlying scenario this simulation is running.
-	 * 
-	 * @return {@link Scenario}
-	 */
-	public Scenario getScenario() {
-		return this.scenario;
-	}
-
-	/**
-	 * Get the simulator running this simulation.
-	 * 
-	 * @return {@link Simulator}
-	 */
-	public Simulator getSimulator() {
-		return this.simulator;
-	}
-
-	protected void initDatabase() {
-		if (this.database != null && !this.database.isStarted()) {
-			try {
-				this.database.start();
-			} catch (Exception e) {
-				logger.warn("Failed to start DB", e);
-				this.database = null;
-				this.storage = null;
-			}
-		}
-		if (this.storage != null) {
-			if (simPersist == null) {
-				if (this.id >= 0) {
-					simPersist = storage.getSimulationById(this.id);
-					storage.setSimulation(simPersist);
-				} else {
-					simPersist = storage.createSimulation(getClass()
-							.getSimpleName(), getClass().getCanonicalName(),
-							getState().name(), getSimulationFinishTime()
-									.intValue());
-					for (String s : getParameters().keySet()) {
-						simPersist.addParameter(s, getParameter(s));
-					}
-				}
-			}
-			simPersist.setStartedAt(new Date().getTime());
-		}
-	}
-
-	private void updateDatabase() {
-		if (this.storage != null) {
-			if (!getState().name().equals(simPersist.getState())) {
-				simPersist.setState(getState().name());
-				if (getState() == SimulationState.COMPLETE) {
-					simPersist.setFinishedAt(new Date().getTime());
-				}
-			}
-			simPersist.setCurrentTime(getCurrentSimulationTime().intValue());
-		}
-	}
-
-	@EventListener
-	public void onNewTimeCycle(EndOfTimeCycle e) {
-		updateDatabase();
-	}
-
-	final public String getParameter(String name) {
-		for (Field f : this.getClass().getFields()) {
-			Parameter param = f.getAnnotation(Parameter.class);
-			if (param != null) {
-				if (param.name().equalsIgnoreCase(name)) {
-					try {
-						return f.get(this).toString();
-					} catch (IllegalArgumentException e) {
-						logger.debug("Couldn't get value of field " + name, e);
-					} catch (IllegalAccessException e) {
-						logger.debug("Couldn't get value of field " + name, e);
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Get the {@link Parameter}s flagged in this Simulation.
-	 * 
-	 * @return
-	 */
-	final public Map<String, Class<?>> getParameters() {
-		Map<String, Class<?>> parameters = new HashMap<String, Class<?>>();
-		parameters.putAll(getParametersFromFields());
-		parameters.putAll(getParametersFromMethods());
-		if (logger.isDebugEnabled()) {
-			logger.debug("Got " + parameters.size()
-					+ " parameters in simulation "
-					+ this.getClass().getSimpleName());
-		}
-		return parameters;
-	}
-
-	final private Map<String, Class<?>> getParametersFromFields() {
-		Map<String, Class<?>> parameters = new HashMap<String, Class<?>>();
-		for (Field f : this.getClass().getFields()) {
-			Parameter param = f.getAnnotation(Parameter.class);
-
-			if (param != null) {
-				Class<?> paramType = f.getType();
-				parameters.put(param.name(), paramType);
-				fieldParameters.put(param.name(), f);
-			}
-		}
-		return parameters;
-	}
-
-	final private Map<String, Class<?>> getParametersFromMethods() {
-		Map<String, Class<?>> parameters = new HashMap<String, Class<?>>();
-		for (Method m : this.getClass().getMethods()) {
-			Parameter param = m.getAnnotation(Parameter.class);
-
-			if (param != null && m.getParameterTypes().length == 1) {
-				Class<?> paramType = m.getParameterTypes()[0];
-				parameters.put(param.name(), paramType);
-				methodParameters.put(param.name(), m);
-			}
-		}
-		return parameters;
-	}
-
-	final protected void setParameters(Map<String, String> provided)
-			throws UndefinedParameterException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException {
-		for (Map.Entry<String, Class<?>> entry : this.getParameters()
-				.entrySet()) {
-			if (!provided.containsKey(entry.getKey())) {
-				if (!optionalParameter(entry.getKey())) {
-					logger.fatal("No value provided for " + entry.getKey()
-							+ " parameter.");
-					throw new UndefinedParameterException(entry.getKey());
-				}
-				continue;
-			}
-			this.setParameter(entry.getKey(), provided.get(entry.getKey()));
-		}
-	}
-
-	private boolean optionalParameter(String key)
-			throws UndefinedParameterException {
-		if (fieldParameters.containsKey(key)) {
-			return fieldParameters.get(key).getAnnotation(Parameter.class)
-					.optional();
-		} else if (methodParameters.containsKey(key)) {
-			return methodParameters.get(key).getAnnotation(Parameter.class)
-					.optional();
-		}
-		throw new UndefinedParameterException(key);
-	}
-
-	/**
-	 * Set the value of the named parameter for this simulation.
-	 * 
-	 * @param name
-	 *            name of the {@link Parameter}
-	 * @param value
-	 *            of the parameter as a string. We try and convert this to the
-	 *            appropriate type to insert into the field.
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	final protected void setParameter(String name, String value)
-			throws IllegalArgumentException, IllegalAccessException,
-			InvocationTargetException {
-		if (fieldParameters.containsKey(name)) {
-			Class<?> type = fieldParameters.get(name).getType();
-			if (type == String.class) {
-				fieldParameters.get(name).set(this, value);
-			} else if (type == Integer.class || type == Integer.TYPE) {
-				fieldParameters.get(name).setInt(this, Integer.parseInt(value));
-			} else if (type == Double.class || type == Double.TYPE) {
-				fieldParameters.get(name).setDouble(this,
-						Double.parseDouble(value));
-			} else if (type == Boolean.class || type == Boolean.TYPE) {
-				fieldParameters.get(name).setBoolean(this,
-						Boolean.parseBoolean(value));
-			} else if (type.isEnum()) {
-				fieldParameters.get(name).set(this,
-						Enum.valueOf((Class<Enum>) type, value));
-			}
-		} else if (methodParameters.containsKey(name)) {
-			Class<?> type = methodParameters.get(name).getParameterTypes()[0];
-			if (type == String.class) {
-				methodParameters.get(name).invoke(this, value);
-			} else if (type == Integer.class || type == Integer.TYPE) {
-				methodParameters.get(name)
-						.invoke(this, Integer.parseInt(value));
-			} else if (type == Double.class || type == Double.TYPE) {
-				methodParameters.get(name).invoke(this,
-						Double.parseDouble(value));
-			} else if (type == Boolean.class || type == Boolean.TYPE) {
-				methodParameters.get(name).invoke(this,
-						Boolean.parseBoolean(value));
-			} else if (type.isEnum()) {
-				methodParameters.get(name).invoke(this,
-						Enum.valueOf((Class<Enum>) type, value));
-			}
-		}
-	}
-
-	protected void setDatabase(DatabaseService database) {
-		this.database = database;
-	}
-
-	protected void setStorage(StorageService db) {
-		this.storage = db;
-	}
-
-	protected void setEventBus(EventBus e) {
-		e.subscribe(this);
-	}
-
-	/**
-	 * <p>
-	 * Create a new {@link RunnableSimulation} from a provided string
-	 * representing it's fully qualified name and an array of parameters to it's
-	 * constructor.
-	 * </p>
-	 * <p>
-	 * The method will search for an appropriate constructor for the given
-	 * parameters.
-	 * </p>
-	 * 
-	 * @param className
-	 *            string representing the fully qualified name of a
-	 *            {@link RunnableSimulation}
-	 * @param ctorParams
-	 *            array of parameters to the constructor
-	 * @return {@link RunnableSimulation}
-	 * @throws ClassNotFoundException
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 */
-	final public static RunnableSimulation newFromClassName(String className,
-			Object... ctorParams) throws ClassNotFoundException,
-			NoSuchMethodException, InvocationTargetException,
-			InstantiationException, IllegalAccessException {
-		final Logger logger = Logger.getLogger(RunnableSimulation.class);
-
-		// Find Class and assert it is a RunnableSimulation
-		Class<? extends RunnableSimulation> clazz = null;
-		try {
-			clazz = Class.forName(className).asSubclass(
-					RunnableSimulation.class);
-		} catch (ClassNotFoundException e) {
-			logger.fatal(className + " is not on the classpath!", e);
-			throw e;
-		} catch (ClassCastException e) {
-			logger.fatal(className + " is not a RunnableSimulation!");
-			throw e;
-		}
-
-		// find ctor which matches params given.
-		Constructor<? extends RunnableSimulation> ctor = null;
-		Class<?>[] paramTypes = new Class<?>[ctorParams.length];
-		for (int i = 0; i < ctorParams.length; i++) {
-			paramTypes[i] = ctorParams[i].getClass();
-		}
-		try {
-			ctor = ObjectFactory.getConstructor(clazz, paramTypes);
-		} catch (SecurityException e) {
-			logger.fatal("Could not get constructor for " + clazz, e);
-			throw (e);
-		} catch (NoSuchMethodException e) {
-			logger.fatal("Could not find constructor for " + clazz, e);
-			throw (e);
-		}
-
-		// create RunnableSimulation object
-		RunnableSimulation simObj = null;
-		try {
-			simObj = ctor.newInstance(ctorParams);
-		} catch (IllegalArgumentException e) {
-			logger.fatal("Failed to create the RunnableSimulation", e);
-			throw e;
-		} catch (InvocationTargetException e) {
-			logger.fatal("Failed to create the RunnableSimulation", e);
-			throw e;
-		} catch (InstantiationException e) {
-			logger.fatal("Failed to create the RunnableSimulation", e);
-			throw e;
-		} catch (IllegalAccessException e) {
-			logger.fatal("Failed to create the RunnableSimulation", e);
-			throw e;
-		}
-
-		return simObj;
-	}
-
-	/**
-	 * Run this simulation.
-	 */
-	@Override
-	public void run() {
-
-		this.state = SimulationState.INITIALISING;
-		updateDatabase();
-		this.simulator.initialise();
-
-		this.state = SimulationState.RUNNING;
-		updateDatabase();
-		this.simulator.run();
-
-		this.state = SimulationState.FINISHING;
-		updateDatabase();
-		this.simulator.complete();
-		this.state = SimulationState.COMPLETE;
-		updateDatabase();
-
-		if (this.database != null) {
-			this.database.stop();
-		}
-		this.simulator.shutdown();
-	}
+	@Inject(optional = true)
+	DatabaseService db = null;
+	PersistentSimulation pSim;
+	long stoId = -1;
 
 	/**
 	 * <p>
@@ -491,35 +135,16 @@ public abstract class RunnableSimulation implements Runnable {
 	 * @throws UndefinedParameterException
 	 * @throws IllegalArgumentException
 	 */
-	final public static void main(String[] args) throws ClassNotFoundException,
+	final public static void main(String[] args)
+			throws IllegalArgumentException, IllegalAccessException,
+			UndefinedParameterException, ClassNotFoundException,
 			NoSuchMethodException, InvocationTargetException,
-			InstantiationException, IllegalAccessException,
-			IllegalArgumentException, UndefinedParameterException {
-
+			InstantiationException {
+		// check args
 		if (args.length < 1) {
-			System.err.println("No args provided, expected 1 or more.");
+			logger.error("No args provided, expected 1 or more.");
 			return;
 		}
-		System.out.println("Starting presage2 simulation: " + args[0]);
-		System.out.print("Parameters given: ");
-		if (args.length == 1) {
-			System.out.print("None.");
-		}
-		for (int i = 1; i < args.length; i++) {
-			System.out.print(args[i] + ",");
-		}
-		System.out.println();
-
-		// Additional modules we want for this simulation run
-		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
-		additionalModules.add(new EventBusModule());
-		// database module
-		AbstractModule dbModule = DatabaseModule.load();
-		if (dbModule != null)
-			additionalModules.add(dbModule);
-
-		// Create the runnable simulation assuming it's an InjectedSimulation
-		RunnableSimulation sim = newFromClassName(args[0], additionalModules);
 
 		// check for parameters in args
 		Map<String, String> providedParams = new HashMap<String, String>();
@@ -529,50 +154,26 @@ public abstract class RunnableSimulation implements Runnable {
 				providedParams.put(pieces[0], pieces[1]);
 			}
 		}
-
-		// set parameters
-		sim.setParameters(providedParams);
-
-		// go!
-		sim.load();
-		sim.run();
-
-	}
-
-	final public static void runSimulationID(long simID, int threads)
-			throws Exception {
-		// Additional modules we want for this simulation run
-		Set<AbstractModule> additionalModules = new HashSet<AbstractModule>();
-		additionalModules.add(new EventBusModule());
-		additionalModules.add(new AbstractModule() {
-			@Override
-			protected void configure() {
-				ThreadsValue v = new ThreadsValue();
-				v.value = 8;
-				bind(ThreadsValue.class).toInstance(v);
-			}
-		});
-
-		DatabaseModule db = DatabaseModule.load();
-		additionalModules.add(db);
-
-		RunnableSimulation run;
-		try {
-			run = newFromStorage(simID, db, additionalModules);
-		} catch (Exception e) {
-			throw e;
-		}
-
-		// now run
-		run.load();
+		RunnableSimulation run = newFromClassname(args[0]);
+		run.loadParameters(providedParams);
 		run.run();
 	}
 
-	public static RunnableSimulation newFromStorage(long simID,
-			DatabaseModule db, Set<AbstractModule> additionalModules)
+	/**
+	 * Run a simulation from a parameter set stored in a database, and
+	 * identified by a <code>simID</code>.
+	 * 
+	 * @param simID
+	 *            long identifier of the parameter set in the database.
+	 * @param threads
+	 *            int number of threads to use in the simulator
+	 * @throws Exception
+	 */
+	final public static void runSimulationID(long simID, int threads)
 			throws Exception {
-		// db connect and get info we need
+		DatabaseModule db = DatabaseModule.load();
 		Injector injector = Guice.createInjector(db);
+
 		DatabaseService database = injector.getInstance(DatabaseService.class);
 		StorageService storage = injector.getInstance(StorageService.class);
 		database.start();
@@ -590,51 +191,589 @@ public abstract class RunnableSimulation implements Runnable {
 					+ " has already been started. Aborting.");
 		}
 
-		RunnableSimulation run = newFromClassName(sim.getClassName(),
-				additionalModules);
-		try {
-			run.setParameters(sim.getParameters());
-		} catch (IllegalArgumentException e) {
-			sim.setState("FAILED");
-			database.stop();
-			throw new RuntimeException(e);
-		} catch (UndefinedParameterException e) {
-			sim.setState("FAILED");
-			database.stop();
-			throw new RuntimeException(e);
-		}
-		run.id = simID;
+		RunnableSimulation run = newFromClassname(sim.getClassName());
+		run.threads = threads;
+		run.stoId = simID;
+		run.loadParameters(sim.getParameters());
 		database.stop();
-		return run;
+		run.run();
 	}
 
-	private static class ObjectFactory {
+	/**
+	 * Default constructor. Does not initialise object until {@link #run()} is
+	 * called.
+	 */
+	public RunnableSimulation() {
+	}
 
-		@SuppressWarnings("unchecked")
-		static <T> Constructor<? extends T> getConstructor(
-				final Class<T> clazz, Class<?>... paramTypes)
-				throws NoSuchMethodException {
+	/**
+	 * <p>
+	 * Initialise scenario elements.
+	 * </p>
+	 * <p>
+	 * Elements can be added in three ways:
+	 * </p>
+	 * <ol>
+	 * <li>Adding instantiated objects and agents through the provided
+	 * {@link Scenario}.</li>
+	 * <li>Adding modules using {@link #addModule(AbstractModule)}.</li>
+	 * <li>Adding object classes using {@link #addObjectClass(Class)} which will
+	 * be instantiated automatically by the simulator</li>
+	 * </ol>
+	 * 
+	 * @param scenario
+	 */
+	public abstract void initialiseScenario(Scenario scenario);
 
-			for (Constructor<?> ctor : clazz.getConstructors()) {
-				Class<?>[] ctorParams = ctor.getParameterTypes();
+	/**
+	 * Add a module to the simulation specification. May only be done during the
+	 * initialisation phase of the simulation, usually in an
+	 * {@link #initialiseScenario(Scenario)} implementation.
+	 * 
+	 * @param module
+	 *            {@link AbstractModule} to add.
+	 * @throws RuntimeException
+	 *             if called after the {@link Injector} has been created, and so
+	 *             this module can no longer be used for the simulation.
+	 */
+	public void addModule(AbstractModule module) {
+		if (injector == null) {
+			modules.add(module);
+		} else {
+			throw new RuntimeException(
+					"Cannot add modules after injector has been created.");
+		}
+	}
 
-				if (ctorParams.length == paramTypes.length) {
-					boolean match = true;
-					for (int i = 0; i < ctorParams.length; i++) {
-						try {
-							paramTypes[i].asSubclass(ctorParams[i]);
-						} catch (ClassCastException e) {
-							match = false;
-							break;
-						}
-					}
-					if (match)
-						return (Constructor<? extends T>) ctor;
+	/**
+	 * Adds a class to the simulation which is automatically instantiated via
+	 * the {@link Injector}. These objects are automatically added the the
+	 * scenario objects. If called before simulation initialisation objects are
+	 * created at initialisation time, otherwise it is done immediately.
+	 * 
+	 * @param clazz
+	 */
+	public void addObjectClass(Class<?> clazz) {
+		scenario.addClass(clazz);
+	}
+
+	/**
+	 * Runs a full simulation from the specification provided by the overriding
+	 * class implementation and provided parameters.
+	 */
+	@Override
+	public void run() {
+		initialise();
+		step();
+		finish();
+		executor.shutdown();
+		logger.info("Simulation complete.");
+	}
+
+	protected void initialise() {
+		logger.info("Generating scenario...");
+		// create a base scenario and assign to this.scenario so that the
+		// accessors in RunnableSimulation can use it.
+		this.scenario = new RuntimeScenario();
+		this.scenario.addObject(this);
+		// Call to sub class for initialisation of base scenario
+		initialiseScenario(this.scenario);
+
+		logger.info("Loading modules...");
+		// Use base scenario to create a module for objects and parameters
+		addModule(new ScenarioModule(scenario, parameters, this));
+		addModule(DatabaseModule.load());
+		// ensure there are no null entries in modules set
+		// which would cause Guice to throw
+		modules.remove(null);
+		injector = Guice.createInjector(modules);
+
+		logger.info("Loading scenario...");
+		// Load the runtime scenario from the spec generated via the
+		// ScenarioModule
+		injector.injectMembers(this.scenario);
+		for(Object a : this.scenario.agents) {
+			injector.injectMembers(a);
+		}
+		this.scenario.scheduleAll();
+
+		logger.info("Got " + initialisors.size() + " initialisors, "
+				+ steppers.size() + " step functions, "
+				+ finishConditions.size() + " finish conditions, and "
+				+ finalisors.size() + " finalisors.");
+
+		logger.info("Starting schedule executor...");
+		executor = new MultiThreadedSchedule(threads);
+
+		logger.info("Initialising agents and environment...");
+		LinkedList<Pair<Method, Object>> taskQueue;
+		synchronized (initialisors) {
+			taskQueue = new LinkedList<Pair<Method, Object>>(initialisors);
+			initialisors.clear();
+		}
+		Collections.sort(taskQueue, new NiceComparator());
+		for (Pair<Method, Object> task : taskQueue) {
+			executor.submitScheduled(new TaskRunner(task),
+					WaitCondition.PRE_STEP);
+		}
+		executor.waitFor(WaitCondition.PRE_STEP);
+
+		stateEngine.incrementTime();
+		executor.waitFor(WaitCondition.POST_STEP);
+	}
+
+	protected void step() {
+		boolean step = true;
+		Comparator<Pair<Method, Object>> niceComp = new NiceComparator();
+		pSim.setState("RUNNING");
+		do {
+			logger.info("Timestep = " + t);
+			// initialise anything new
+			if (!initialisors.isEmpty()) {
+				LinkedList<Pair<Method, Object>> taskQueue;
+				synchronized (initialisors) {
+					taskQueue = new LinkedList<Pair<Method, Object>>(
+							initialisors);
+					initialisors.clear();
+				}
+				Collections.sort(taskQueue, niceComp);
+				for (Pair<Method, Object> task : taskQueue) {
+					executor.submitScheduled(new TaskRunner(task),
+							WaitCondition.PRE_STEP);
 				}
 			}
-			throw new NoSuchMethodException(
-					"Could not find constructor to match parameters for "
-							+ clazz.getSimpleName());
+
+			if (newObjects) {
+				stepQueue.clear();
+				stepQueue.addAll(steppers);
+				Collections.shuffle(stepQueue);
+				Collections.sort(stepQueue, niceComp);
+			}
+			executor.waitFor(WaitCondition.PRE_STEP);
+
+			// main step component
+			for (Pair<Method, Object> task : stepQueue) {
+				executor.submitScheduled(new TaskRunner(task, t),
+						WaitCondition.STEP);
+			}
+			pSim.setCurrentTime(t);
+
+			executor.waitFor(WaitCondition.STEP);
+
+			// state update
+			stateEngine.incrementTime();
+
+			// loop conditions
+			List<Future<Boolean>> conditions = new LinkedList<Future<Boolean>>();
+			for (Pair<Method, Object> task : finishConditions) {
+				conditions.add(executor.submitScheduledConditional(
+						new ConditionalTask(task, t), WaitCondition.POST_STEP));
+			}
+			executor.waitFor(WaitCondition.POST_STEP);
+			for (Future<Boolean> f : conditions) {
+				try {
+					if (f.get() == true) {
+						step = false;
+					}
+				} catch (Exception e) {
+					logger.warn("Error executing wait condition", e);
+				}
+			}
+			t++;
+		} while (step);
+	}
+
+	protected void finish() {
+		logger.info("Running post-simulation tasks");
+		for (Pair<Method, Object> task : finalisors) {
+			executor.submitScheduled(new TaskRunner(task),
+					WaitCondition.POST_STEP);
+		}
+		executor.waitFor(WaitCondition.POST_STEP);
+		pSim.setState("FINISHED");
+		if (db != null) {
+			db.stop();
+		}
+	}
+
+	@FinishCondition
+	public boolean finishTimeCondition(int t) {
+		return t >= finishTime;
+	}
+
+	@Inject
+	private void initDatabase(StorageService sto) throws Exception {
+		if (db != null) {
+			db.start();
+		}
+		if (sto != null) {
+			if (stoId >= 0) {
+				this.pSim = sto.getSimulationById(stoId);
+			} else {
+				this.pSim = sto.createSimulation(getClass().getSimpleName(),
+						getClass().getCanonicalName(), "LOADING", finishTime);
+				for (DeclaredParameter p : parameters) {
+					this.pSim.addParameter(p.name, p.stringValue);
+				}
+			}
+			sto.setSimulation(this.pSim);
+		}
+	}
+
+	final private void loadParametersFromFields()
+			throws IllegalArgumentException, IllegalAccessException {
+		for (Field f : this.getClass().getFields()) {
+			Parameter param = f.getAnnotation(Parameter.class);
+			if (param != null) {
+				parameters.add(new DeclaredParameter(param, this, f));
+			}
+		}
+	}
+
+	protected void loadParameters(Map<String, String> provided)
+			throws IllegalArgumentException, IllegalAccessException,
+			UndefinedParameterException {
+		// collect parameters from field annotations
+		loadParametersFromFields();
+		// fill out given parameters
+		Set<String> missing = new HashSet<String>();
+		Set<String> unknown = new HashSet<String>();
+		for (DeclaredParameter p : parameters) {
+			if (provided.containsKey(p.name)) {
+				p.setValue(provided.get(p.name));
+				provided.remove(p.name);
+			} else if (!p.optional) {
+				missing.add(p.name);
+			}
+			logger.debug("Parameter: " + p.name + "=" + p.stringValue);
+		}
+		// check for unknown or missing parameters
+		unknown.addAll(provided.keySet());
+		String error = "";
+		if (missing.size() > 0) {
+			error += "Required parameters not specified: " + missing.toString()
+					+ "; ";
+		}
+		if (unknown.size() > 0) {
+			error += "Undefined parameters specified: " + unknown.toString()
+					+ ";";
+		}
+		if (error.length() > 0) {
+			throw new UndefinedParameterException(error);
+		}
+	}
+
+	@Override
+	public final void addToSchedule(Object o) {
+		findScheduleFunctions(o, initialisors, steppers, finalisors,
+				finishConditions);
+	}
+
+	private void findScheduleFunctions(Object o,
+			Set<Pair<Method, Object>> initialisors,
+			Set<Pair<Method, Object>> steppers,
+			Set<Pair<Method, Object>> finalisors,
+			Set<Pair<Method, Object>> finishConditions) {
+		boolean foundFunction = false;
+		for (Method m : o.getClass().getMethods()) {
+			if (m.isAnnotationPresent(Initialisor.class)) {
+				if (m.getParameterTypes().length != 0) {
+					throw new RuntimeException(
+							"Initialisor function cannot take arguments. @Initialisor annotated function "
+									+ m.getName() + " takes "
+									+ m.getParameterTypes().length);
+				}
+				initialisors.add(Pair.of(m, o));
+				foundFunction = true;
+			} else if (m.isAnnotationPresent(Step.class)) {
+				Class<?>[] paramTypes = m.getParameterTypes();
+				boolean valid = paramTypes.length == 0;
+				valid |= (paramTypes.length == 1 && paramTypes[0] == Integer.TYPE);
+				if (!valid) {
+					throw new RuntimeException(
+							"Step function may only take one integer arugment. @Step annotated function "
+									+ m.getName() + " takes "
+									+ m.getParameterTypes().length
+									+ " of types: "
+									+ Arrays.toString(paramTypes));
+				}
+				steppers.add(Pair.of(m, o));
+				foundFunction = true;
+			} else if (m.isAnnotationPresent(Finalisor.class)) {
+				if (m.getParameterTypes().length != 0) {
+					throw new RuntimeException(
+							"Finalisor function cannot take arguments. @Finalisor annotated function "
+									+ m.getName() + " takes "
+									+ m.getParameterTypes().length);
+				}
+				finalisors.add(Pair.of(m, o));
+				foundFunction = true;
+			} else if (m.isAnnotationPresent(FinishCondition.class)) {
+				Class<?>[] paramTypes = m.getParameterTypes();
+				boolean valid = paramTypes.length == 0;
+				valid |= (paramTypes.length == 1 && paramTypes[0] == Integer.TYPE);
+				valid &= m.getReturnType() == Boolean.TYPE;
+				if (!valid) {
+					throw new RuntimeException(
+							"FinishCondition function may only take one integer argument and must return a boolean. "
+									+ "@Step annotated function "
+									+ m.getName()
+									+ " takes "
+									+ m.getParameterTypes().length
+									+ " of types: "
+									+ Arrays.toString(paramTypes)
+									+ " and returns " + m.getReturnType());
+				}
+				finishConditions.add(Pair.of(m, o));
+				foundFunction = true;
+			}
+		}
+		// legacy support for TimeDriven
+		if (o instanceof TimeDriven) {
+			try {
+				steppers.add(Pair.of(
+						TimeDriven.class.getMethod("incrementTime"), o));
+				foundFunction = true;
+			} catch (NoSuchMethodException e) {
+				throw new RuntimeException(
+						"Couldn't find incrementTime in TimeDriven!?", e);
+			}
+		}
+
+		if (!foundFunction) {
+			logger.warn("No candidate function found in object " + o);
+		} else {
+			newObjects = true;
+		}
+	}
+
+	/**
+	 * <p>
+	 * Create a new {@link RunnableSimulation} from a provided string
+	 * representing it's fully qualified name and an array of parameters to it's
+	 * constructor.
+	 * </p>
+	 * <p>
+	 * The method will search for an appropriate constructor for the given
+	 * parameters.
+	 * </p>
+	 * 
+	 * @param className
+	 *            string representing the fully qualified name of a
+	 *            {@link RunnableSimulation}
+	 * @param ctorParams
+	 *            array of parameters to the constructor
+	 * @return {@link RunnableSimulation}
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	final private static RunnableSimulation newFromClassname(String className)
+			throws ClassNotFoundException, NoSuchMethodException,
+			InvocationTargetException, InstantiationException,
+			IllegalAccessException {
+		// Find Class and assert it is a RunnableSimulation
+		Class<? extends RunnableSimulation> clazz = null;
+		try {
+			clazz = Class.forName(className).asSubclass(
+					RunnableSimulation.class);
+		} catch (ClassNotFoundException e) {
+			logger.fatal(className + " is not on the classpath!", e);
+			throw e;
+		} catch (ClassCastException e) {
+			logger.fatal(className + " is not a Simulation!");
+			throw e;
+		}
+		// Find default (no-args) ctor
+		Constructor<? extends RunnableSimulation> ctor;
+		try {
+			ctor = clazz.getConstructor();
+		} catch (SecurityException e) {
+			logger.fatal("Could not get constructor for " + clazz, e);
+			throw (e);
+		} catch (NoSuchMethodException e) {
+			logger.fatal("Could not find constructor for " + clazz, e);
+			throw (e);
+		}
+		// Create simulation object
+		RunnableSimulation sim = null;
+		try {
+			sim = ctor.newInstance();
+		} catch (IllegalArgumentException e) {
+			logger.fatal("Failed to create the Simulation", e);
+			throw e;
+		} catch (InvocationTargetException e) {
+			logger.fatal("Failed to create the Simulation", e);
+			throw e;
+		} catch (InstantiationException e) {
+			logger.fatal("Failed to create the Simulation", e);
+			throw e;
+		} catch (IllegalAccessException e) {
+			logger.fatal("Failed to create the Simulation", e);
+			throw e;
+		}
+		return sim;
+	}
+
+	@BindingAnnotation
+	@Retention(RetentionPolicy.RUNTIME)
+	@interface InjectedObjects {
+	}
+
+	class BaseScenario implements Scenario {
+		Set<Object> agents = new HashSet<Object>();
+		Set<Object> objects = new HashSet<Object>();
+		Set<Class<?>> classes = new HashSet<Class<?>>();
+
+		BaseScenario() {
+			super();
+		}
+
+		@Override
+		public void addAgent(Object o) {
+			agents.add(o);
+		}
+
+		@Override
+		public void addObject(Object o) {
+			objects.add(o);
+		}
+
+		@Override
+		public void addClass(Class<?> c) {
+			classes.add(c);
+		}
+
+		@Override
+		public void addTimeDriven(TimeDriven object) {
+			addObject(object);
+		}
+
+		@Override
+		public void addEnvironment(TimeDriven object) {
+		}
+
+		@Override
+		public void addParticipant(Participant agent) {
+			addAgent(agent);
+		}
+
+	}
+
+	class RuntimeScenario extends BaseScenario {
+
+		final Scheduler schedule;
+		@Inject
+		Injector injector = null;
+
+		RuntimeScenario() {
+			super();
+			this.schedule = RunnableSimulation.this;
+		}
+
+		synchronized void scheduleAll() {
+			Set<Object> all = new HashSet<Object>(this.agents);
+			all.addAll(this.objects);
+			for (Object o : all) {
+				schedule.addToSchedule(o);
+			}
+		}
+
+		@Inject
+		void injectObjects(@InjectedObjects Set<Object> objects) {
+			this.objects.addAll(objects);
+		}
+
+		@Override
+		public void addAgent(Object o) {
+			if (injector != null) {
+				injector.injectMembers(o);
+				schedule.addToSchedule(o);
+			} else
+				super.addAgent(o);
+		}
+
+		@Override
+		public void addObject(Object o) {
+			if (injector != null) {
+				injector.injectMembers(o);
+				schedule.addToSchedule(o);
+			} else
+				super.addObject(o);
+		}
+
+		@Override
+		public void addClass(Class<?> c) {
+			if (injector != null) {
+				schedule.addToSchedule(injector.getInstance(c));
+			} else
+				super.addClass(c);
+		}
+
+	}
+
+	static class TaskRunner implements Runnable {
+
+		final Pair<Method, Object> task;
+		final Object[] args;
+
+		TaskRunner(Pair<Method, Object> task, Object... args) {
+			super();
+			this.task = task;
+			if (task.getLeft().getParameterTypes().length == args.length)
+				this.args = args;
+			else
+				this.args = new Object[] {};
+		}
+
+		@Override
+		public void run() {
+			try {
+				task.getLeft().invoke(task.getRight(), args);
+			} catch (Exception e) {
+				throw new RuntimeException("Cannot invoke task method", e);
+			}
+		}
+	}
+
+	static class ConditionalTask implements Callable<Boolean> {
+
+		final Pair<Method, Object> task;
+		final Object[] args;
+
+		ConditionalTask(Pair<Method, Object> task, Object... args) {
+			super();
+			this.task = task;
+			if (task.getLeft().getParameterTypes().length == args.length)
+				this.args = args;
+			else
+				this.args = new Object[] {};
+		}
+
+		@Override
+		public Boolean call() throws Exception {
+			return (Boolean) task.getLeft().invoke(task.getRight(), args);
+		}
+
+	}
+
+	static class NiceComparator implements Comparator<Pair<Method, Object>> {
+
+		@Override
+		public int compare(Pair<Method, Object> o1, Pair<Method, Object> o2) {
+			return getNice(o1.getLeft()) - getNice(o2.getLeft());
+		}
+
+		int getNice(Method m) {
+			Step s = m.getAnnotation(Step.class);
+			if (s != null)
+				return s.nice();
+			Initialisor i = m.getAnnotation(Initialisor.class);
+			if (i != null)
+				return i.nice();
+			return 0;
 		}
 
 	}
