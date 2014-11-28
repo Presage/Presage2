@@ -75,6 +75,8 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 	boolean newObjects = true;
 	Set<Pair<Method, Object>> initialisors = Collections
 			.synchronizedSet(new HashSet<Pair<Method, Object>>());
+	Set<Pair<Method, Object>> presteppers = Collections
+			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 	Set<Pair<Method, Object>> steppers = Collections
 			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 	Set<Pair<Method, Object>> finishConditions = Collections
@@ -82,6 +84,7 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 	Set<Pair<Method, Object>> finalisors = Collections
 			.synchronizedSet(new HashSet<Pair<Method, Object>>());
 
+	LinkedList<Pair<Method, Object>> preStepQueue = new LinkedList<Pair<Method, Object>>();
 	LinkedList<Pair<Method, Object>> stepQueue = new LinkedList<Pair<Method, Object>>();
 
 	/**
@@ -292,7 +295,7 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 		// Load the runtime scenario from the spec generated via the
 		// ScenarioModule
 		injector.injectMembers(this.scenario);
-		for(Object a : this.scenario.agents) {
+		for (Object a : this.scenario.agents) {
 			injector.injectMembers(a);
 		}
 		this.scenario.scheduleAll();
@@ -344,11 +347,20 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 			}
 
 			if (newObjects) {
+				preStepQueue.clear();
+				preStepQueue.addAll(presteppers);
+				Collections.shuffle(preStepQueue);
+				Collections.sort(preStepQueue, niceComp);
 				stepQueue.clear();
 				stepQueue.addAll(steppers);
 				Collections.shuffle(stepQueue);
 				Collections.sort(stepQueue, niceComp);
 			}
+			for (Pair<Method, Object> task : preStepQueue) {
+				executor.submitScheduled(new TaskRunner(task, t),
+						WaitCondition.PRE_STEP);
+			}
+
 			executor.waitFor(WaitCondition.PRE_STEP);
 
 			// main step component
@@ -465,12 +477,13 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 
 	@Override
 	public final void addToSchedule(Object o) {
-		findScheduleFunctions(o, initialisors, steppers, finalisors,
-				finishConditions);
+		findScheduleFunctions(o, initialisors, presteppers, steppers,
+				finalisors, finishConditions);
 	}
 
 	private void findScheduleFunctions(Object o,
 			Set<Pair<Method, Object>> initialisors,
+			Set<Pair<Method, Object>> presteppers,
 			Set<Pair<Method, Object>> steppers,
 			Set<Pair<Method, Object>> finalisors,
 			Set<Pair<Method, Object>> finishConditions) {
@@ -484,6 +497,21 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 									+ m.getParameterTypes().length);
 				}
 				initialisors.add(Pair.of(m, o));
+				foundFunction = true;
+			} else if (m.isAnnotationPresent(PreStep.class)) {
+				Class<?>[] paramTypes = m.getParameterTypes();
+				boolean valid = paramTypes.length == 0;
+				valid |= (paramTypes.length == 1 && paramTypes[0] == Integer.TYPE);
+				if (!valid) {
+					throw new RuntimeException(
+							"Step function may only take one integer arugment. @PreStep annotated function "
+									+ m.getName()
+									+ " takes "
+									+ m.getParameterTypes().length
+									+ " of types: "
+									+ Arrays.toString(paramTypes));
+				}
+				presteppers.add(Pair.of(m, o));
 				foundFunction = true;
 			} else if (m.isAnnotationPresent(Step.class)) {
 				Class<?>[] paramTypes = m.getParameterTypes();
