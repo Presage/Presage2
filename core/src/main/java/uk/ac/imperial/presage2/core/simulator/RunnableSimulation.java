@@ -110,6 +110,8 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 	PersistentSimulation pSim;
 	long stoId = -1;
 
+	Comparator<Pair<Method, Object>> niceComp = new NiceComparator();
+
 	/**
 	 * <p>
 	 * Run a single simulation from commandline arguments. Takes the following
@@ -267,13 +269,13 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 	@Override
 	public void run() {
 		initialise();
-		step();
+		stepUntilFinish();
 		finish();
 		executor.shutdown();
 		logger.info("Simulation complete.");
 	}
 
-	protected void initialise() {
+	public void initialise() {
 		logger.info("Generating scenario...");
 		// create a base scenario and assign to this.scenario so that the
 		// accessors in RunnableSimulation can use it.
@@ -325,77 +327,81 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 		executor.waitFor(WaitCondition.POST_STEP);
 	}
 
-	protected void step() {
+	public void stepUntilFinish() {
 		boolean step = true;
-		Comparator<Pair<Method, Object>> niceComp = new NiceComparator();
 		pSim.setState("RUNNING");
 		do {
-			logger.info("Timestep = " + t);
-			// initialise anything new
-			if (!initialisors.isEmpty()) {
-				LinkedList<Pair<Method, Object>> taskQueue;
-				synchronized (initialisors) {
-					taskQueue = new LinkedList<Pair<Method, Object>>(
-							initialisors);
-					initialisors.clear();
-				}
-				Collections.sort(taskQueue, niceComp);
-				for (Pair<Method, Object> task : taskQueue) {
-					executor.submitScheduled(new TaskRunner(task),
-							WaitCondition.PRE_STEP);
-				}
-			}
-
-			if (newObjects) {
-				preStepQueue.clear();
-				preStepQueue.addAll(presteppers);
-				Collections.shuffle(preStepQueue);
-				Collections.sort(preStepQueue, niceComp);
-				stepQueue.clear();
-				stepQueue.addAll(steppers);
-				Collections.shuffle(stepQueue);
-				Collections.sort(stepQueue, niceComp);
-			}
-			for (Pair<Method, Object> task : preStepQueue) {
-				executor.submitScheduled(new TaskRunner(task, t),
-						WaitCondition.PRE_STEP);
-			}
-
-			executor.waitFor(WaitCondition.PRE_STEP);
-
-			// main step component
-			for (Pair<Method, Object> task : stepQueue) {
-				executor.submitScheduled(new TaskRunner(task, t),
-						WaitCondition.STEP);
-			}
-			pSim.setCurrentTime(t);
-
-			executor.waitFor(WaitCondition.STEP);
-
-			// state update
-			stateEngine.incrementTime();
-
-			// loop conditions
-			List<Future<Boolean>> conditions = new LinkedList<Future<Boolean>>();
-			for (Pair<Method, Object> task : finishConditions) {
-				conditions.add(executor.submitScheduledConditional(
-						new ConditionalTask(task, t), WaitCondition.POST_STEP));
-			}
-			executor.waitFor(WaitCondition.POST_STEP);
-			for (Future<Boolean> f : conditions) {
-				try {
-					if (f.get() == true) {
-						step = false;
-					}
-				} catch (Exception e) {
-					logger.warn("Error executing wait condition", e);
-				}
-			}
-			t++;
+			step = step();
 		} while (step);
 	}
 
-	protected void finish() {
+	public boolean step() {
+		logger.info("Timestep = " + t);
+		// initialise anything new
+		if (!initialisors.isEmpty()) {
+			LinkedList<Pair<Method, Object>> taskQueue;
+			synchronized (initialisors) {
+				taskQueue = new LinkedList<Pair<Method, Object>>(initialisors);
+				initialisors.clear();
+			}
+			Collections.sort(taskQueue, niceComp);
+			for (Pair<Method, Object> task : taskQueue) {
+				executor.submitScheduled(new TaskRunner(task),
+						WaitCondition.PRE_STEP);
+			}
+		}
+
+		if (newObjects) {
+			preStepQueue.clear();
+			preStepQueue.addAll(presteppers);
+			Collections.shuffle(preStepQueue);
+			Collections.sort(preStepQueue, niceComp);
+			stepQueue.clear();
+			stepQueue.addAll(steppers);
+			Collections.shuffle(stepQueue);
+			Collections.sort(stepQueue, niceComp);
+		}
+		for (Pair<Method, Object> task : preStepQueue) {
+			executor.submitScheduled(new TaskRunner(task, t),
+					WaitCondition.PRE_STEP);
+		}
+
+		executor.waitFor(WaitCondition.PRE_STEP);
+
+		// main step component
+		for (Pair<Method, Object> task : stepQueue) {
+			executor.submitScheduled(new TaskRunner(task, t),
+					WaitCondition.STEP);
+		}
+		pSim.setCurrentTime(t);
+
+		executor.waitFor(WaitCondition.STEP);
+
+		// state update
+		stateEngine.incrementTime();
+
+		// loop conditions
+		boolean more = true;
+		List<Future<Boolean>> conditions = new LinkedList<Future<Boolean>>();
+		for (Pair<Method, Object> task : finishConditions) {
+			conditions.add(executor.submitScheduledConditional(
+					new ConditionalTask(task, t), WaitCondition.POST_STEP));
+		}
+		executor.waitFor(WaitCondition.POST_STEP);
+		for (Future<Boolean> f : conditions) {
+			try {
+				if (f.get() == true) {
+					more = false;
+				}
+			} catch (Exception e) {
+				logger.warn("Error executing wait condition", e);
+			}
+		}
+		t++;
+		return more;
+	}
+
+	public void finish() {
 		logger.info("Running post-simulation tasks");
 		for (Pair<Method, Object> task : finalisors) {
 			executor.submitScheduled(new TaskRunner(task),
@@ -804,6 +810,10 @@ public abstract class RunnableSimulation implements Runnable, Scheduler {
 			return 0;
 		}
 
+	}
+
+	public Injector getInjector() {
+		return injector;
 	}
 
 }
