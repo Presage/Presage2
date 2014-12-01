@@ -67,7 +67,6 @@ public class TestNetworkConstraints {
 				Set<Class<? extends NetworkConstraint>> constraints = new HashSet<Class<? extends NetworkConstraint>>();
 				constraints.add(NetworkRangeConstraint.class);
 				addModule(NetworkModule.constrainedNetworkModule(constraints));
-				addObjectClass(MessageHandler.class);
 				s.addAgent(p1);
 				s.addAgent(p2);
 				s.addAgent(p3);

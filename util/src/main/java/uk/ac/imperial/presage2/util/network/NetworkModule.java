@@ -24,6 +24,7 @@ import java.util.Set;
 import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
+import uk.ac.imperial.presage2.core.simulator.ScenarioModule;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
@@ -61,6 +62,8 @@ public class NetworkModule extends AbstractModule {
 		// Bind MessageHandler as global environment service
 		Multibinder.newSetBinder(binder(), EnvironmentService.class)
 				.addBinding().to(MessageHandler.class);
+		// Bind MessageHandler as object injected to scenario schedule
+		ScenarioModule.addObjectClasses(binder(), MessageHandler.class);
 		// TODO: Bind NetworkConnect as participant environment service.
 		// Currently can't be done as binder is hidden by
 		// AbstractEnvironmentModule

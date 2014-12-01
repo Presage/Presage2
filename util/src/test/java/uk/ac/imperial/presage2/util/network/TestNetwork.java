@@ -160,7 +160,6 @@ public class TestNetwork {
 				addModule(new AbstractEnvironmentModule().addParticipantEnvironmentService(
 						BasicNetworkConnector.class));
 				addModule(NetworkModule.fullyConnectedNetworkModule());
-				addObjectClass(MessageHandler.class);
 				s.addAgent(p1);
 				s.addAgent(p2);
 				s.addAgent(p3);
