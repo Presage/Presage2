@@ -22,6 +22,9 @@ package uk.ac.imperial.presage2.core.participant;
 import java.util.Collection;
 import java.util.UUID;
 
+import uk.ac.imperial.presage2.core.Action;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
+
 /**
  * 
  * This is the interface used by the simulator to interact with agents. All
@@ -61,5 +64,13 @@ public interface Participant {
 	 * @param inputs
 	 */
 	public void enqueueInput(Collection<? extends Object> inputs);
+
+	/**
+	 * Perform an action as this agent.
+	 * 
+	 * @param action
+	 * @throws ActionHandlingException
+	 */
+	public void act(Action action) throws ActionHandlingException;
 
 }

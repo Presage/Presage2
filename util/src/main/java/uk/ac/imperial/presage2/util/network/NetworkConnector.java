@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
 import uk.ac.imperial.presage2.core.environment.StateTransformer;
@@ -41,10 +42,12 @@ public abstract class NetworkConnector extends EnvironmentService implements
 		NetworkAdaptor {
 
 	final protected NetworkAddress address;
+	final protected Participant p;
 
 	public NetworkConnector(EnvironmentSharedStateAccess sharedState,
 			Participant p) {
 		super(sharedState);
+		this.p = p;
 		this.address = new NetworkAddress(p.getID());
 		// create inbox
 		sharedState.create("network.inbox", address.getId(),
@@ -71,6 +74,11 @@ public abstract class NetworkConnector extends EnvironmentService implements
 	@Override
 	public NetworkAddress getAddress() {
 		return this.address;
+	}
+
+	@Override
+	public void sendMessage(Message m) throws ActionHandlingException {
+		p.act(m);
 	}
 
 }

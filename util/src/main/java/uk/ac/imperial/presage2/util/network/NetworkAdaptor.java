@@ -22,6 +22,9 @@ package uk.ac.imperial.presage2.util.network;
 import java.util.List;
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
+import uk.ac.imperial.presage2.core.participant.Participant;
+
 /**
  * <p>
  * A network adaptor is a participant's perception of it's communication channel
@@ -46,6 +49,17 @@ public interface NetworkAdaptor {
 	 * @return this device's network address
 	 */
 	public NetworkAddress getAddress();
+
+	/**
+	 * Sends a message through the network.
+	 * 
+	 * @param m
+	 *            {@link Message} to send.
+	 * @throws ActionHandlingException
+	 *             if an exception is thrown by the underlying call to
+	 *             {@link Participant#act(uk.ac.imperial.presage2.core.Action)}
+	 */
+	public void sendMessage(Message m) throws ActionHandlingException;
 
 	/**
 	 * The network adaptor may also provide a network node discovery service
