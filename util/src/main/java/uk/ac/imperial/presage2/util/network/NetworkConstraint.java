@@ -18,13 +18,34 @@
  */
 package uk.ac.imperial.presage2.util.network;
 
-import uk.ac.imperial.presage2.core.environment.EnvironmentService;
-import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.util.network.Message;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
 
-public class NetworkService extends EnvironmentService {
+/**
+ * @author Sam Macbeth
+ * 
+ */
+public interface NetworkConstraint {
 
-	protected NetworkService(EnvironmentSharedStateAccess sharedState) {
-		super(sharedState);
-	}
+	/**
+	 * Apply constraints to the {@link Message} m and return the modified
+	 * version of the message.
+	 * 
+	 * @param m
+	 * @return
+	 */
+	public Message constrainMessage(Message m);
+
+	/**
+	 * Block the messages from being delivered between from and to.
+	 * 
+	 * @param from
+	 *            a message sender
+	 * @param to
+	 *            a message receiver
+	 * @return True if the NetworkController should block the messages on this channel, false
+	 *         otherwise.
+	 */
+	public boolean blockMessageDelivery(NetworkAddress from, NetworkAddress to);
 
 }

@@ -23,7 +23,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
+import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
 import uk.ac.imperial.presage2.core.participant.Participant;
 
 /**
@@ -37,10 +39,22 @@ import uk.ac.imperial.presage2.core.participant.Participant;
 public class BasicNetworkConnector extends NetworkConnector {
 
 	List<Message> messages = new LinkedList<Message>();
+	protected MessageHandler network = null;
 
-	public BasicNetworkConnector(EnvironmentSharedStateAccess sharedState,
+	protected BasicNetworkConnector(EnvironmentSharedStateAccess sharedState,
 			Participant p) {
 		super(sharedState, p);
+	}
+
+	public BasicNetworkConnector(EnvironmentSharedStateAccess sharedState,
+			Participant p, EnvironmentServiceProvider serviceProvider) {
+		this(sharedState, p);
+		try {
+			network = serviceProvider
+					.getEnvironmentService(MessageHandler.class);
+		} catch (UnavailableServiceException e) {
+			// no env service, connected nodes will be disabled.
+		}
 	}
 
 	/**
@@ -67,8 +81,12 @@ public class BasicNetworkConnector extends NetworkConnector {
 	@Override
 	public Set<NetworkAddress> getConnectedNodes()
 			throws UnsupportedOperationException {
-		throw new UnsupportedOperationException(this.getClass().getSimpleName()
-				+ " does not support getConnectedNodes()");
+		if (network == null) {
+			throw new UnsupportedOperationException(this.getClass()
+					.getSimpleName() + " does not support getConnectedNodes()");
+		} else {
+			return network.getConnectedNodes(address);
+		}
 	}
 
 }

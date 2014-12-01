@@ -133,6 +133,13 @@ public class TestNetwork {
 		n1.getMessages().clear();
 		n2.getMessages().clear();
 
+		// get connected nodes unavailable
+		try {
+			n1.getConnectedNodes();
+			fail("getConnectedNodes should throw UnsupportedOperationException when there is no environment service provider for the NetworkController");
+		} catch (UnsupportedOperationException e) {
+		}
+
 	}
 
 	@Test
@@ -150,9 +157,9 @@ public class TestNetwork {
 		RunnableSimulation sim = new RunnableSimulation() {
 			@Override
 			public void initialiseScenario(Scenario s) {
-				addModule(new AbstractEnvironmentModule().addActionHandler(
-						MessageHandler.class).addParticipantEnvironmentService(
+				addModule(new AbstractEnvironmentModule().addParticipantEnvironmentService(
 						BasicNetworkConnector.class));
+				addModule(NetworkModule.fullyConnectedNetworkModule());
 				addObjectClass(MessageHandler.class);
 				s.addAgent(p1);
 				s.addAgent(p2);
@@ -168,9 +175,9 @@ public class TestNetwork {
 				.getEnvironmentService(BasicNetworkConnector.class);
 		NetworkConnector n3 = p3
 				.getEnvironmentService(BasicNetworkConnector.class);
-		
+
 		sim.step();
-		
+
 		final Message b1 = new BroadcastMessage(Performative.CFP,
 				n1.getAddress(), 1);
 		try {
@@ -178,12 +185,13 @@ public class TestNetwork {
 		} catch (ActionHandlingException e) {
 			fail();
 		}
-		
+
 		sim.step();
-		
+
 		assertEquals(0, n1.getMessages().size());
 		assertEquals(1, n2.getMessages().size());
 		assertEquals(1, n3.getMessages().size());
 
+		assertEquals(3, n1.getConnectedNodes().size());
 	}
 }
