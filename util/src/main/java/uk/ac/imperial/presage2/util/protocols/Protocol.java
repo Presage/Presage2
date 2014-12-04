@@ -25,11 +25,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import uk.ac.imperial.presage2.core.TimeDriven;
-import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.messaging.InputHandler;
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
+import uk.ac.imperial.presage2.util.network.Message;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
 
 /**
  * <p>
@@ -54,7 +52,7 @@ import uk.ac.imperial.presage2.core.network.NetworkAddress;
  * @author Sam Macbeth
  * 
  */
-public abstract class Protocol implements InputHandler {
+public abstract class Protocol {
 
 	protected final String name;
 
@@ -64,16 +62,14 @@ public abstract class Protocol implements InputHandler {
 		this.name = name;
 	}
 
-	@Override
-	public boolean canHandle(Input in) {
+	public boolean canHandle(Message in) {
 		if (in instanceof Message) {
 			return ((Message) in).getProtocol().equals(name);
 		}
 		return false;
 	}
 
-	@Override
-	public void handle(Input in) {
+	public void handle(Message in) {
 		if (canHandle(in)) {
 			// pass this input to all conversation that could handle it.
 			int handleCount = 0;
