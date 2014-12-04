@@ -232,8 +232,8 @@ public abstract class AbstractParticipant implements Participant,
 					Class<?>[] params = m.getParameterTypes();
 					boolean validMethod = params.length == 1
 							&& params[0].equals(UUID.class);
-					validMethod &= m.getReturnType().equals(
-							state.initialValue.getClass());
+					validMethod &= m.getReturnType().isInstance(
+							state.initialValue);
 					if (!validMethod) {
 						logger.warn("@StateAccessor method "
 								+ m.getName()
