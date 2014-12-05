@@ -4,9 +4,9 @@
 		<groupId>uk.ac.imperial.presage2</groupId>
 		<artifactId>presage2</artifactId>
 		<version>0.4.1-SNAPSHOT</version>
+		<relativePath>../../</relativePath>
 	</parent>
 	<artifactId>presage2-jsondb</artifactId>
-  <version>0.4.0</version>
 	<packaging>jar</packaging>
 
 	<name>presage2-jsondb</name>

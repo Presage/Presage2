@@ -16,6 +16,7 @@
 		<module>core</module>
 		<module>rules</module>
 		<module>util</module>
+		<module>storage/json</module>
 	</modules>
 
 	<url>http://www.presage2.info</url>
