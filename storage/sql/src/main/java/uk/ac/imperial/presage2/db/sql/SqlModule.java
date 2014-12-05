@@ -74,7 +74,6 @@ public class SqlModule extends DatabaseModule {
 		bind(impl).in(Singleton.class);
 		bind(DatabaseService.class).to(impl);
 		bind(StorageService.class).to(impl);
-		bind(Connection.class).toProvider(impl);
 	}
 
 }

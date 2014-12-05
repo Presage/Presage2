@@ -41,7 +41,7 @@ class Sql {
 					+ "(id bigserial NOT NULL," + "name varchar(255) NOT NULL,"
 					+ "state varchar(80) NOT NULL,"
 					+ "classname varchar(255) NOT NULL,"
-					+ "\"currentTime\" int NOT NULL DEFAULT 0,"
+					+ "\"t\" int NOT NULL DEFAULT 0,"
 					+ "\"finishTime\" int NOT NULL,"
 					+ "\"createdAt\" bigint NOT NULL DEFAULT 0,"
 					+ "\"startedAt\" bigint NOT NULL DEFAULT 0,"
@@ -52,7 +52,7 @@ class Sql {
 					+ "(id bigserial NOT NULL," + "name varchar(255) NOT NULL,"
 					+ "state varchar(80) NOT NULL,"
 					+ "classname varchar(255) NOT NULL,"
-					+ "\"currentTime\" int NOT NULL DEFAULT 0,"
+					+ "\"t\" int NOT NULL DEFAULT 0,"
 					+ "\"finishTime\" int NOT NULL,"
 					+ "\"createdAt\" bigint NOT NULL DEFAULT 0,"
 					+ "\"startedAt\" bigint NOT NULL DEFAULT 0,"
@@ -67,7 +67,7 @@ class Sql {
 					+ "`name` varchar(255) NOT NULL,"
 					+ "`state` varchar(80) NOT NULL,"
 					+ "`classname` varchar(255) NOT NULL,"
-					+ "`currentTime` int(11) NOT NULL DEFAULT 0,"
+					+ "`t` int(11) NOT NULL DEFAULT 0,"
 					+ "`finishTime` int(11) NOT NULL,"
 					+ "`createdAt` bigint(20) NOT NULL DEFAULT 0,"
 					+ "`startedAt` bigint(20) NOT NULL DEFAULT 0,"
@@ -105,8 +105,7 @@ class Sql {
 					+ "(`simId` bigint(20) NOT NULL,"
 					+ "`name` varchar(255) NOT NULL,"
 					+ "`value` varchar(255) NOT NULL,"
-					+ "PRIMARY KEY (`simId`, `name`), INDEX (`simId`),"
-					+ "FOREIGN KEY (`simID`) REFERENCES `simulations` (`ID`) ON DELETE CASCADE)";
+					+ "PRIMARY KEY (`simId`, `name`), INDEX (`simId`))";
 		}
 	}
 
@@ -138,12 +137,12 @@ class Sql {
 		switch (dialect) {
 		case POSTGRESQL:
 		case POSTGRESQL_HSTORE:
-			return "SELECT id, name, state, classname, \"currentTime\", \"finishTime\", "
+			return "SELECT id, name, state, classname, \"t\", \"finishTime\", "
 					+ "\"createdAt\", \"startedAt\", \"finishedAt\", parent "
 					+ "FROM simulations ORDER BY id ASC";
 		case MYSQL:
 		default:
-			return "SELECT `id`, `name`, `state`, `classname`, `currentTime`, `finishTime`, "
+			return "SELECT `id`, `name`, `state`, `classname`, `t`, `finishTime`, "
 					+ "`createdAt`, `startedAt`, `finishedAt`, `parent` "
 					+ "FROM simulations ORDER BY `id` ASC";
 		}

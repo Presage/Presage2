@@ -31,19 +31,19 @@ import uk.ac.imperial.presage2.core.db.persistent.TransientAgentState;
 
 public abstract class TupleStorageService implements StorageService {
 
-	static class KEYS {
-		final static String name = "name";
-		final static String classname = "classname";
-		final static String state = "state";
-		final static String finishTime = "finishTime";
-		final static String time = "t";
-		final static String startedAt = "startedAt";
-		final static String finishedAt = "finishedAt";
+	public static class KEYS {
+		public final static String name = "name";
+		public final static String classname = "classname";
+		public final static String state = "state";
+		public final static String finishTime = "finishTime";
+		public final static String time = "t";
+		public final static String startedAt = "startedAt";
+		public final static String finishedAt = "finishedAt";
 	}
 
-	final String[] reservedKeys = { KEYS.name, KEYS.classname, KEYS.state,
+	protected final String[] reservedKeys = { KEYS.name, KEYS.classname, KEYS.state,
 			KEYS.time, KEYS.startedAt, KEYS.finishedAt };
-	final String[] reservedAgentKeys = { "name" };
+	protected final String[] reservedAgentKeys = { "name" };
 
 	PersistentSimulation current = null;
 
@@ -165,11 +165,11 @@ public abstract class TupleStorageService implements StorageService {
 	protected abstract <T> T fetchTuple(long id, String key, UUID agent, int t,
 			Class<T> type);
 
-	class Simulation implements PersistentSimulation, PersistentEnvironment {
+	protected class Simulation implements PersistentSimulation, PersistentEnvironment {
 
 		final long id;
 
-		Simulation(long id) {
+		public Simulation(long id) {
 			super();
 			this.id = id;
 		}
@@ -387,7 +387,7 @@ public abstract class TupleStorageService implements StorageService {
 
 	}
 
-	class Agent implements PersistentAgent {
+	protected class Agent implements PersistentAgent {
 
 		final long simId;
 		final UUID id;
@@ -449,7 +449,7 @@ public abstract class TupleStorageService implements StorageService {
 			storeTuple(simId, key, id, t, value);
 		}
 
-		class TState implements TransientAgentState {
+		protected class TState implements TransientAgentState {
 
 			final int t;
 
