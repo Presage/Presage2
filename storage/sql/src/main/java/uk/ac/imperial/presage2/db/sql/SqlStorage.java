@@ -231,7 +231,7 @@ public class SqlStorage extends TupleStorageService implements
 			setParameter.setLong(1, id);
 			setParameter.setString(2, key);
 			setParameter.setString(3, value);
-			exec.submit(setParameter);
+			setParameter.execute();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -247,6 +247,7 @@ public class SqlStorage extends TupleStorageService implements
 								+ "` = ? WHERE `id` = ?"));
 				stmt.setString(1, value);
 				stmt.setLong(2, id);
+				stmt.executeUpdate();
 			} else {
 				stmt = conn
 						.prepareStatement(Sql
@@ -254,8 +255,8 @@ public class SqlStorage extends TupleStorageService implements
 				stmt.setLong(1, id);
 				stmt.setString(2, key);
 				stmt.setString(3, value);
+				exec.submit(stmt);
 			}
-			exec.submit(stmt);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -271,6 +272,7 @@ public class SqlStorage extends TupleStorageService implements
 								+ "` = ? WHERE `id` = ?"));
 				stmt.setInt(1, value);
 				stmt.setLong(2, id);
+				stmt.executeUpdate();
 			} else {
 				stmt = conn
 						.prepareStatement(Sql
@@ -278,8 +280,8 @@ public class SqlStorage extends TupleStorageService implements
 				stmt.setLong(1, id);
 				stmt.setString(2, key);
 				stmt.setInt(3, value);
+				exec.submit(stmt);
 			}
-			exec.submit(stmt);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -295,6 +297,7 @@ public class SqlStorage extends TupleStorageService implements
 								+ "` = ? WHERE `id` = ?"));
 				stmt.setDouble(1, value);
 				stmt.setLong(2, id);
+				stmt.executeUpdate();
 			} else {
 				stmt = conn
 						.prepareStatement(Sql
@@ -302,8 +305,8 @@ public class SqlStorage extends TupleStorageService implements
 				stmt.setLong(1, id);
 				stmt.setString(2, key);
 				stmt.setDouble(3, value);
+				exec.submit(stmt);
 			}
-			exec.submit(stmt);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
