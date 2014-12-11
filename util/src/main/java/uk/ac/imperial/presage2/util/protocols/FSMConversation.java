@@ -24,14 +24,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import uk.ac.imperial.presage2.core.messaging.Input;
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
 import uk.ac.imperial.presage2.core.util.random.Random;
 import uk.ac.imperial.presage2.util.fsm.FSM;
 import uk.ac.imperial.presage2.util.fsm.FSMDescription;
 import uk.ac.imperial.presage2.util.fsm.FSMException;
+import uk.ac.imperial.presage2.util.network.Message;
+import uk.ac.imperial.presage2.util.network.NetworkAdaptor;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
 
 public class FSMConversation implements Conversation {
 
@@ -57,7 +57,7 @@ public class FSMConversation implements Conversation {
 	}
 
 	@Override
-	public boolean canHandle(final Input in) {
+	public boolean canHandle(final Message in) {
 		if (in instanceof Message) {
 			Message m = (Message) in;
 			return m.getConversationKey().equals(id);
@@ -66,10 +66,10 @@ public class FSMConversation implements Conversation {
 	}
 
 	@Override
-	public void handle(Input in) {
+	public void handle(Message in) {
 		try {
 			fsm.applyEvent(in);
-			lastTransition = in.getTimestamp().intValue();
+			lastTransition = in.getTimestamp();
 		} catch (FSMException e) {
 			throw new RuntimeException(e);
 		}
@@ -125,7 +125,7 @@ public class FSMConversation implements Conversation {
 			return network.getMessages();
 		}
 
-		public void sendMessage(Message m) {
+		public void sendMessage(Message m) throws ActionHandlingException {
 			m.setConversationKey(id);
 			m.setProtocol(protocol);
 			network.sendMessage(m);

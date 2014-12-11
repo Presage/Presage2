@@ -21,7 +21,7 @@ package uk.ac.imperial.presage2.util.protocols;
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
 
 /**
  * Event to spawn a new conversation and initialise it with recipients.

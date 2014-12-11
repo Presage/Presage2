@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -17,9 +17,8 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.network;
+package uk.ac.imperial.presage2.util.network;
 
-import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.messaging.Performative;
 
 /**
@@ -43,7 +42,7 @@ public class BroadcastMessage extends Message {
 	 * @param timestamp
 	 */
 	public BroadcastMessage(Performative performative, NetworkAddress from,
-			Time timestamp) {
+			int timestamp) {
 		super(performative, from, timestamp);
 	}
 
@@ -55,7 +54,7 @@ public class BroadcastMessage extends Message {
 	 * @param data
 	 */
 	public BroadcastMessage(Performative performative, NetworkAddress from,
-			Time timestamp, Object data) {
+			int timestamp, Object data) {
 		super(performative, from, timestamp, data);
 	}
 
@@ -67,12 +66,12 @@ public class BroadcastMessage extends Message {
 	 * @param data
 	 */
 	public BroadcastMessage(Performative performative, String type,
-			Time timestamp, NetworkAddress from, Object data) {
+			int timestamp, NetworkAddress from, Object data) {
 		super(performative, type, timestamp, from, data);
 	}
 
 	public BroadcastMessage(Performative performative, String type,
-			Time timestamp, NetworkAddress from) {
+			int timestamp, NetworkAddress from) {
 		super(performative, type, timestamp, from);
 	}
 

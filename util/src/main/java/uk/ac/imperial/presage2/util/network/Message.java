@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -17,13 +17,11 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.network;
+package uk.ac.imperial.presage2.util.network;
 
 import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.Action;
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.messaging.Input;
 import uk.ac.imperial.presage2.core.messaging.Performative;
 
 /**
@@ -39,7 +37,7 @@ import uk.ac.imperial.presage2.core.messaging.Performative;
  * @author Sam Macbeth
  * 
  */
-public abstract class Message implements Input, Action {
+public abstract class Message implements Action {
 
 	/**
 	 * FIPA performative of the message
@@ -51,12 +49,12 @@ public abstract class Message implements Input, Action {
 	/**
 	 * Timestamp of when this message was sent.
 	 */
-	protected Time timestamp;
+	protected int timestamp;
 
 	/**
 	 * Sender of this message
 	 */
-	protected NetworkAddress from;
+	final protected NetworkAddress from;
 
 	/**
 	 * Optional conversation key.
@@ -76,26 +74,26 @@ public abstract class Message implements Input, Action {
 	 * @param timestamp
 	 */
 	public Message(Performative performative, NetworkAddress from,
-			Time timestamp) {
+			int timestamp) {
 		super();
 		this.performative = performative;
-		this.timestamp = timestamp.clone();
+		this.timestamp = timestamp;
 		this.from = from;
 		this.data = null;
 		this.type = "";
 	}
 
 	public Message(Performative performative, NetworkAddress from,
-			Time timestamp, Object data) {
+			int timestamp, Object data) {
 		super();
 		this.performative = performative;
-		this.timestamp = timestamp.clone();
+		this.timestamp = timestamp;
 		this.from = from;
 		this.data = data;
 		this.type = "";
 	}
 
-	public Message(Performative performative, String type, Time timestamp,
+	public Message(Performative performative, String type, int timestamp,
 			NetworkAddress from, Object data) {
 		super();
 		this.performative = performative;
@@ -105,7 +103,7 @@ public abstract class Message implements Input, Action {
 		this.data = data;
 	}
 
-	public Message(Performative performative, String type, Time timestamp,
+	public Message(Performative performative, String type, int timestamp,
 			NetworkAddress from) {
 		super();
 		this.performative = performative;
@@ -117,7 +115,6 @@ public abstract class Message implements Input, Action {
 	/**
 	 * @see uk.ac.imperial.presage2.core.messaging.Input#getPerformative()
 	 */
-	@Override
 	public Performative getPerformative() {
 		return this.performative;
 	}
@@ -125,8 +122,7 @@ public abstract class Message implements Input, Action {
 	/**
 	 * @see uk.ac.imperial.presage2.core.messaging.Input#getTimestamp()
 	 */
-	@Override
-	public Time getTimestamp() {
+	public int getTimestamp() {
 		return this.timestamp;
 	}
 
@@ -134,8 +130,7 @@ public abstract class Message implements Input, Action {
 	 * 
 	 * @see uk.ac.imperial.presage2.core.messaging.Input#setTimestamp(uk.ac.imperial.presage2.core.Time)
 	 */
-	@Override
-	public void setTimestamp(Time t) {
+	public void setTimestamp(int t) {
 		this.timestamp = t;
 	}
 
@@ -154,7 +149,7 @@ public abstract class Message implements Input, Action {
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + ": (Time: "
-				+ this.timestamp.toString() + ", from: " + this.from.toString()
+				+ this.timestamp + ", from: " + this.from.toString()
 				+ ", perf: " + this.performative.toString() + ")";
 	}
 
@@ -167,7 +162,6 @@ public abstract class Message implements Input, Action {
 		return data;
 	}
 
-	@Override
 	public String getType() {
 		return this.type;
 	}

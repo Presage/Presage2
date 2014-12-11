@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -21,13 +21,12 @@ package uk.ac.imperial.presage2.util.network;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.ac.imperial.presage2.core.environment.ActionHandler;
 import uk.ac.imperial.presage2.core.environment.EnvironmentService;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
-import uk.ac.imperial.presage2.core.network.*;
+import uk.ac.imperial.presage2.core.simulator.ScenarioModule;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 
 /**
@@ -36,18 +35,9 @@ import com.google.inject.multibindings.Multibinder;
  * @author Sam Macbeth
  * 
  */
-public final class NetworkModule extends AbstractModule {
+public class NetworkModule extends AbstractModule {
 
-	private Class<? extends NetworkConnector> connector;
-	private Class<? extends NetworkController> controller;
 	private Set<Class<? extends NetworkConstraint>> constraints = new HashSet<Class<? extends NetworkConstraint>>();
-
-	NetworkModule(Class<? extends NetworkConnector> connector,
-			Class<? extends NetworkController> controller) {
-		super();
-		this.connector = connector;
-		this.controller = controller;
-	}
 
 	final NetworkModule withConstraints(
 			Set<Class<? extends NetworkConstraint>> constraints) {
@@ -55,44 +45,28 @@ public final class NetworkModule extends AbstractModule {
 		return this;
 	}
 
-	/**
-	 * Module to bind a fully connected network, where every agent can message
-	 * every other agent with no limitations.
-	 * 
-	 * @return {@link AbstractModule} binding network interfaces.
-	 */
 	public static NetworkModule fullyConnectedNetworkModule() {
-		return new NetworkModule(BasicNetworkConnector.class,
-				NetworkController.class);
+		return new NetworkModule();
 	}
 
-	/**
-	 * Module to bind a constrained network. This uses a
-	 * {@link ConstrainedNetworkController} and a set of
-	 * {@link NetworkConstraint}s to limit message passing in some way.
-	 * 
-	 * @param constraints
-	 *            {@link NetworkConstraint}s to use.
-	 * @return {@link AbstractModule} binding network interfaces.
-	 */
 	public static NetworkModule constrainedNetworkModule(
 			final Set<Class<? extends NetworkConstraint>> constraints) {
-		return new NetworkModule(BasicNetworkConnector.class,
-				ConstrainedNetworkController.class)
-				.withConstraints(constraints);
-	}
-
-	public static NetworkModule noNetworkModule() {
-		return new NetworkModule(DisconnectedNetworkConnector.class,
-				DisconnectedNetworkController.class);
+		return new NetworkModule().withConstraints(constraints);
 	}
 
 	@Override
 	protected void configure() {
-		install(new FactoryModuleBuilder().implement(NetworkConnector.class,
-				this.connector).build(NetworkConnectorFactory.class));
-		bind(NetworkChannel.class).to(this.controller).in(Singleton.class);
-		install(new FactoryModuleBuilder().build(NetworkAddressFactory.class));
+		// Bind MessageHandler as action hander
+		Multibinder.newSetBinder(binder(), ActionHandler.class).addBinding()
+				.to(MessageHandler.class);
+		// Bind MessageHandler as global environment service
+		Multibinder.newSetBinder(binder(), EnvironmentService.class)
+				.addBinding().to(MessageHandler.class);
+		// Bind MessageHandler as object injected to scenario schedule
+		ScenarioModule.addObjectClasses(binder(), MessageHandler.class);
+		// TODO: Bind NetworkConnect as participant environment service.
+		// Currently can't be done as binder is hidden by
+		// AbstractEnvironmentModule
 
 		if (this.constraints.size() > 0) {
 			Multibinder<NetworkConstraint> constraintBinder = Multibinder
@@ -101,7 +75,6 @@ public final class NetworkModule extends AbstractModule {
 					.newSetBinder(binder(), EnvironmentService.class);
 			for (Class<? extends NetworkConstraint> c : constraints) {
 				constraintBinder.addBinding().to(c);
-
 				if (c.isAnnotationPresent(ServiceDependencies.class)) {
 					for (Class<? extends EnvironmentService> dep : c
 							.getAnnotation(ServiceDependencies.class).value()) {
@@ -109,13 +82,7 @@ public final class NetworkModule extends AbstractModule {
 					}
 				}
 			}
-
 		}
-	}
-
-	public NetworkModule withNodeDiscovery() {
-		this.connector = NetworkConnectorWithNodeDiscovery.class;
-		return this;
 	}
 
 }

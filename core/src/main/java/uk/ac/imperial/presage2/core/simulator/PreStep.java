@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -16,49 +16,25 @@
  *     You should have received a copy of the GNU Lesser Public License
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
+package uk.ac.imperial.presage2.core.simulator;
 
-package uk.ac.imperial.presage2.core.network;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Top level network exception. All network exceptions are children of this.
+ * Method annotation to mark that a method should be called each timestep by the
+ * scheduler, <b>before</b> {@link Step} functions. The method may take a single
+ * integer argument representing the current timestep number and return void. An
+ * optional <code>nice</code> parameter can be set to specify priority in the
+ * task queue.
  * 
  * @author Sam Macbeth
  * 
  */
-abstract class NetworkException extends RuntimeException {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4763573206484504212L;
-
-	/**
-	 * 
-	 */
-	public NetworkException() {
-		super();
-	}
-
-	/**
-	 * @param message
-	 * @param cause
-	 */
-	public NetworkException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	/**
-	 * @param message
-	 */
-	public NetworkException(String message) {
-		super(message);
-	}
-
-	/**
-	 * @param cause
-	 */
-	public NetworkException(Throwable cause) {
-		super(cause);
-	}
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface PreStep {
+	public int nice() default 0;
 }

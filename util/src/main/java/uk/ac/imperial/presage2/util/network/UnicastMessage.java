@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -17,9 +17,8 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.network;
+package uk.ac.imperial.presage2.util.network;
 
-import uk.ac.imperial.presage2.core.Time;
 import uk.ac.imperial.presage2.core.messaging.Performative;
 
 /**
@@ -49,25 +48,25 @@ public class UnicastMessage extends Message {
 	 * @param to
 	 */
 	public UnicastMessage(Performative performative, NetworkAddress from,
-			NetworkAddress to, Time timestamp) {
+			NetworkAddress to, int timestamp) {
 		super(performative, from, timestamp);
 		this.to = to;
 	}
 
 	public UnicastMessage(Performative performative, NetworkAddress from,
-			NetworkAddress to, Time timestamp, Object data) {
+			NetworkAddress to, int timestamp, Object data) {
 		super(performative, from, timestamp, data);
 		this.to = to;
 	}
 
 	public UnicastMessage(Performative performative, String type,
-			Time timestamp, NetworkAddress from, NetworkAddress to, Object data) {
+			int timestamp, NetworkAddress from, NetworkAddress to, Object data) {
 		super(performative, type, timestamp, from, data);
 		this.to = to;
 	}
 
 	public UnicastMessage(Performative performative, String type,
-			Time timestamp, NetworkAddress from, NetworkAddress to) {
+			int timestamp, NetworkAddress from, NetworkAddress to) {
 		super(performative, type, timestamp, from);
 		this.to = to;
 	}
@@ -82,13 +81,13 @@ public class UnicastMessage extends Message {
 	}
 
 	/**
-	 * @see uk.ac.imperial.presage2.core.network.Message#toString()
+	 * @see uk.ac.imperial.presage2.util.network.Message#toString()
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ": (Time: "
-				+ this.timestamp.toString() + ", from: " + this.from.toString()
-				+ ", to: " + this.to.toString() + ", perf: "
+		return this.getClass().getSimpleName() + ": (Time: " + this.timestamp
+				+ ", from: " + this.from.toString() + ", to: "
+				+ this.to.toString() + ", perf: "
 				+ this.performative.toString() + ")";
 	}
 

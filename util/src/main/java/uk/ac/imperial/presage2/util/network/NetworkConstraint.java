@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -18,34 +18,34 @@
  */
 package uk.ac.imperial.presage2.util.network;
 
-import uk.ac.imperial.presage2.core.Time;
-import uk.ac.imperial.presage2.core.environment.EnvironmentSharedStateAccess;
-import uk.ac.imperial.presage2.core.network.NetworkController;
-import uk.ac.imperial.presage2.core.simulator.Scenario;
-
-import com.google.inject.Inject;
+import uk.ac.imperial.presage2.util.network.Message;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
 
 /**
- * {@link NetworkController} whose incrementTime method is blanked so it
- * won't deliver any messages.
- * 
  * @author Sam Macbeth
  * 
  */
-class DisconnectedNetworkController extends NetworkController {
+public interface NetworkConstraint {
 
-	@Inject
-	public DisconnectedNetworkController(Time time,
-			EnvironmentSharedStateAccess environment, Scenario s) {
-		super(time, environment, s);
-	}
+	/**
+	 * Apply constraints to the {@link Message} m and return the modified
+	 * version of the message.
+	 * 
+	 * @param m
+	 * @return
+	 */
+	public Message constrainMessage(Message m);
 
-	@Override
-	public void incrementTime() {
-	}
-
-	@Override
-	public void onParticipantsComplete() {
-	}
+	/**
+	 * Block the messages from being delivered between from and to.
+	 * 
+	 * @param from
+	 *            a message sender
+	 * @param to
+	 *            a message receiver
+	 * @return True if the NetworkController should block the messages on this channel, false
+	 *         otherwise.
+	 */
+	public boolean blockMessageDelivery(NetworkAddress from, NetworkAddress to);
 
 }

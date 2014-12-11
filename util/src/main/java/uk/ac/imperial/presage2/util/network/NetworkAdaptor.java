@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -17,10 +17,13 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.network;
+package uk.ac.imperial.presage2.util.network;
 
 import java.util.List;
 import java.util.Set;
+
+import uk.ac.imperial.presage2.core.environment.ActionHandlingException;
+import uk.ac.imperial.presage2.core.participant.Participant;
 
 /**
  * <p>
@@ -41,18 +44,22 @@ public interface NetworkAdaptor {
 	public List<Message> getMessages();
 
 	/**
-	 * Send a message
-	 * 
-	 * @param m
-	 */
-	public void sendMessage(Message m);
-
-	/**
 	 * Gets this device's network address
 	 * 
 	 * @return this device's network address
 	 */
 	public NetworkAddress getAddress();
+
+	/**
+	 * Sends a message through the network.
+	 * 
+	 * @param m
+	 *            {@link Message} to send.
+	 * @throws ActionHandlingException
+	 *             if an exception is thrown by the underlying call to
+	 *             {@link Participant#act(uk.ac.imperial.presage2.core.Action)}
+	 */
+	public void sendMessage(Message m) throws ActionHandlingException;
 
 	/**
 	 * The network adaptor may also provide a network node discovery service

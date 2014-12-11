@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -17,16 +17,27 @@
  *     along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.imperial.presage2.core.network;
-
-import java.util.UUID;
+package uk.ac.imperial.presage2.util.network;
 
 /**
  * @author Sam Macbeth
  * 
  */
-public interface NetworkConnectorFactory {
+public class UnknownMessageTypeException extends RuntimeException {
 
-	public NetworkConnector create(UUID id);
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6075812255856879414L;
+
+	final protected Message message;
+
+	/**
+	 * @param message
+	 */
+	public UnknownMessageTypeException(Message message) {
+		super("Unknown message: " + message.toString());
+		this.message = message;
+	}
 
 }

@@ -27,7 +27,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.multibindings.Multibinder;
 
-class ScenarioModule extends AbstractModule {
+public class ScenarioModule extends AbstractModule {
 
 	final RuntimeScenario scenario;
 	final Set<DeclaredParameter> parameters;
@@ -67,7 +67,7 @@ class ScenarioModule extends AbstractModule {
 	}
 
 	public static void addObjectClasses(Binder binder,
-			Class<? extends Object>... objects) {
+			Class<?>... objects) {
 		Multibinder<Object> mb = Multibinder.newSetBinder(binder, Object.class,
 				InjectedObjects.class);
 		for (Class<? extends Object> o : objects) {
