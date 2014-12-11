@@ -569,7 +569,7 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 		return null;
 	}
 
-	private <T> T returnAsType(ResultSet rs, Class<T> type) throws SQLException {
+	private <T> T returnTupleAsType(ResultSet rs, Class<T> type) throws SQLException {
 		if (type == String.class)
 			return type.cast(rs.getString(1));
 		else if (type == Integer.class || type == Integer.TYPE)
@@ -578,6 +578,19 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 			return type.cast(rs.getDouble(3));
 		else if (type == Boolean.class || type == Boolean.TYPE)
 			return type.cast(rs.getString(1));
+
+		throw new RuntimeException("Unknown type cast request");
+	}
+	
+	private <T> T returnAsType(ResultSet rs, Class<T> type, int ind) throws SQLException {
+		if (type == String.class)
+			return type.cast(rs.getString(ind));
+		else if (type == Integer.class || type == Integer.TYPE)
+			return type.cast(rs.getInt(ind));
+		else if (type == Double.class || type == Double.TYPE)
+			return type.cast(rs.getDouble(ind));
+		else if (type == Boolean.class || type == Boolean.TYPE)
+			return type.cast(rs.getBoolean(ind));
 
 		throw new RuntimeException("Unknown type cast request");
 	}
@@ -594,7 +607,7 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 				stmt.setLong(1, id);
 				rs = stmt.executeQuery();
 				if (rs.next()) {
-					return rs.getObject(1, type);
+					return returnAsType(rs, type, 1);
 				}
 			} else {
 				stmt = conn
@@ -604,7 +617,7 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 				stmt.setString(2, key);
 				rs = stmt.executeQuery();
 				if (rs.next()) {
-					return returnAsType(rs, type);
+					return returnTupleAsType(rs, type);
 				}
 			}
 		} catch (SQLException e) {
@@ -642,7 +655,7 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 			stmt.setInt(3, t);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
-				return returnAsType(rs, type);
+				return returnTupleAsType(rs, type);
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -679,7 +692,7 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 			stmt.setString(3, agent.toString());
 			rs = stmt.executeQuery();
 			if (rs.next()) {
-				return returnAsType(rs, type);
+				return returnTupleAsType(rs, type);
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -718,7 +731,7 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 			stmt.setInt(4, t);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
-				return returnAsType(rs, type);
+				return returnTupleAsType(rs, type);
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
