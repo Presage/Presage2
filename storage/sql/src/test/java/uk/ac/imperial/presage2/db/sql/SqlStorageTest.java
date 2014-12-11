@@ -30,9 +30,9 @@ public class SqlStorageTest extends GenericStorageServiceTest {
 	public void getDatabase() {
 		Properties jdbcInfo = new Properties();
 		jdbcInfo.put("driver", "com.mysql.jdbc.Driver");
-		jdbcInfo.put("url", "jdbc:mysql://localhost/presage_test");
-		jdbcInfo.put("user", "presage_test");
-		jdbcInfo.put("password", "test_user");
+		jdbcInfo.put("url", "jdbc:mysql://127.0.0.1/presage_test");
+		jdbcInfo.put("user", "travis");
+		jdbcInfo.put("password", "");
 		this.sqlSto = new SqlStorage(jdbcInfo);
 		this.db = sqlSto;
 		this.sto = sqlSto;
