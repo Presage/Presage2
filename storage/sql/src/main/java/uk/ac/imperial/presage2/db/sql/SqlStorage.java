@@ -571,13 +571,13 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 
 	private <T> T returnAsType(ResultSet rs, Class<T> type) throws SQLException {
 		if (type == String.class)
-			return rs.getObject(1, type);
+			return type.cast(rs.getString(1));
 		else if (type == Integer.class || type == Integer.TYPE)
-			return rs.getObject(2, type);
+			return type.cast(rs.getInt(2));
 		else if (type == Double.class || type == Double.TYPE)
-			return rs.getObject(3, type);
+			return type.cast(rs.getDouble(3));
 		else if (type == Boolean.class || type == Boolean.TYPE)
-			return rs.getObject(1, type);
+			return type.cast(rs.getString(1));
 
 		throw new RuntimeException("Unknown type cast request");
 	}
