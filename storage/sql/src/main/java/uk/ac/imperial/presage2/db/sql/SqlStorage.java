@@ -46,8 +46,7 @@ import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-public class SqlStorage extends TupleStorageService implements
-		DatabaseService {
+public class SqlStorage extends TupleStorageService implements DatabaseService {
 
 	protected final Logger logger = Logger.getLogger(SqlStorage.class);
 	protected Properties jdbcInfo;
@@ -120,27 +119,38 @@ public class SqlStorage extends TupleStorageService implements
 			createParameters.execute(Sql.createParametersTable());
 			createParameters.close();
 			createTuples = conn.createStatement();
-			createTuples.execute(Sql.formatQuery("CREATE TABLE IF NOT EXISTS `tuples` ("
-					+ "`sid` bigint NOT NULL," + "`key` varchar(255) NOT NULL,"
-					+ "`val_str` varchar(512) NULL," + "`val_int` int NULL,"
-					+ "`val_dbl` float NULL," + "PRIMARY KEY (`sid`, `key`));"));
-			createTuples.execute(Sql.formatQuery("CREATE TABLE IF NOT EXISTS `tuples_t` ("
-					+ "`sid` bigint NOT NULL," + "`key` varchar(255) NOT NULL,"
-					+ "	`t` int NOT NULL," + "`val_str` varchar(512) NULL,"
-					+ "	`val_int` int NULL," + "`val_dbl` float NULL,"
-					+ "	PRIMARY KEY (`sid`, `key`, `t`));"));
-			createTuples.execute(Sql.formatQuery("CREATE TABLE IF NOT EXISTS `tuples_ag` ("
-					+ "`sid` bigint NOT NULL," + "`key` varchar(255) NOT NULL,"
-					+ "`aid` varchar(36) NOT NULL,"
-					+ "`val_str` varchar(512) NULL," + "`val_int` int NULL,"
-					+ "`val_dbl` float NULL,"
-					+ "PRIMARY KEY (`sid`, `key`, `aid`));"));
-			createTuples.execute(Sql.formatQuery("CREATE TABLE IF NOT EXISTS `tuples_ag_t` ("
-					+ "`sid` bigint NOT NULL," + "`key` varchar(255) NOT NULL,"
-					+ "`aid` varchar(36) NOT NULL," + "`t` int NOT NULL,"
-					+ "`val_str` varchar(512) NULL," + "`val_int` int NULL,"
-					+ "`val_dbl` float NULL,"
-					+ "PRIMARY KEY (`sid`, `key`, `aid`, `t`));"));
+			createTuples.execute(Sql
+					.formatQuery("CREATE TABLE IF NOT EXISTS `tuples` ("
+							+ "`sid` bigint NOT NULL,"
+							+ "`key` varchar(255) NOT NULL,"
+							+ "`val_str` varchar(512) NULL,"
+							+ "`val_int` int NULL," + "`val_dbl` float NULL,"
+							+ "PRIMARY KEY (`sid`, `key`));"));
+			createTuples.execute(Sql
+					.formatQuery("CREATE TABLE IF NOT EXISTS `tuples_t` ("
+							+ "`sid` bigint NOT NULL,"
+							+ "`key` varchar(255) NOT NULL,"
+							+ "	`t` int NOT NULL,"
+							+ "`val_str` varchar(512) NULL,"
+							+ "	`val_int` int NULL," + "`val_dbl` float NULL,"
+							+ "	PRIMARY KEY (`sid`, `key`, `t`));"));
+			createTuples.execute(Sql
+					.formatQuery("CREATE TABLE IF NOT EXISTS `tuples_ag` ("
+							+ "`sid` bigint NOT NULL,"
+							+ "`key` varchar(255) NOT NULL,"
+							+ "`aid` varchar(36) NOT NULL,"
+							+ "`val_str` varchar(512) NULL,"
+							+ "`val_int` int NULL," + "`val_dbl` float NULL,"
+							+ "PRIMARY KEY (`sid`, `key`, `aid`));"));
+			createTuples.execute(Sql
+					.formatQuery("CREATE TABLE IF NOT EXISTS `tuples_ag_t` ("
+							+ "`sid` bigint NOT NULL,"
+							+ "`key` varchar(255) NOT NULL,"
+							+ "`aid` varchar(36) NOT NULL,"
+							+ "`t` int NOT NULL,"
+							+ "`val_str` varchar(512) NULL,"
+							+ "`val_int` int NULL," + "`val_dbl` float NULL,"
+							+ "PRIMARY KEY (`sid`, `key`, `aid`, `t`));"));
 			createTuples.close();
 		} catch (SQLException e) {
 			logger.fatal("Couldn't create tables", e);
@@ -225,13 +235,32 @@ public class SqlStorage extends TupleStorageService implements
 
 	@Override
 	protected void storeParameter(long id, String key, String value) {
-		PreparedStatement setParameter = null;
 		try {
-			setParameter = conn.prepareStatement(Sql.insertIntoParameters());
-			setParameter.setLong(1, id);
-			setParameter.setString(2, key);
-			setParameter.setString(3, value);
-			setParameter.execute();
+			PreparedStatement setParameter = conn.prepareStatement(Sql
+					.insertIntoParameters());
+			switch (Sql.dialect) {
+			case POSTGRESQL:
+				setParameter.setLong(1, id);
+				setParameter.setString(2, key);
+				setParameter.setString(3, value);
+				setParameter.setLong(4, id);
+				setParameter.setString(5, key);
+				setParameter.execute();
+				PreparedStatement updateParameter = conn.prepareStatement(Sql
+						.updateParameters());
+				updateParameter.setString(1, value);
+				updateParameter.setLong(2, id);
+				updateParameter.setString(3, key);
+				updateParameter.close();
+				break;
+			case MYSQL:
+			default:
+				setParameter.setLong(1, id);
+				setParameter.setString(2, key);
+				setParameter.setString(3, value);
+				setParameter.execute();
+			}
+			setParameter.close();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -752,9 +781,9 @@ public class SqlStorage extends TupleStorageService implements
 
 		public synchronized void waitForEmptyQueue() {
 			synchronized (queryQ) {
-				logger.info("Check exec...");
+				logger.trace("Check exec...");
 				while (inTransaction.get() || !queryQ.isEmpty()) {
-					logger.info("Exec in transaction");
+					logger.trace("Exec in transaction");
 					try {
 						queryQ.wait();
 					} catch (InterruptedException e) {
@@ -798,7 +827,7 @@ public class SqlStorage extends TupleStorageService implements
 						} catch (SQLException e) {
 						}
 					}
-					synchronized(queryQ) {
+					synchronized (queryQ) {
 						queryQ.notify();
 					}
 				}

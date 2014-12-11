@@ -10,7 +10,5 @@ script: mvn verify
 
 services:
   - mysql
-  - postgresql
 before_script:
   - mysql -e 'create database presage_test;' # mysql test database
-  - psql -c 'create database presage_test' -U postgres # postgres test database
