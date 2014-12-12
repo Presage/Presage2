@@ -591,6 +591,8 @@ public class SqlStorage extends TupleStorageService implements DatabaseService {
 			return type.cast(rs.getDouble(ind));
 		else if (type == Boolean.class || type == Boolean.TYPE)
 			return type.cast(rs.getBoolean(ind));
+		else if (type == Long.class || type == Long.TYPE)
+			return type.cast(rs.getLong(ind));
 
 		throw new RuntimeException("Unknown type cast request");
 	}
