@@ -21,14 +21,13 @@ package uk.ac.imperial.presage2.util.protocols;
 import java.util.Iterator;
 import java.util.Set;
 
-import uk.ac.imperial.presage2.core.TimeDriven;
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.NetworkAdaptor;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
 import uk.ac.imperial.presage2.core.simulator.Step;
 import uk.ac.imperial.presage2.util.fsm.FSM;
 import uk.ac.imperial.presage2.util.fsm.FSMDescription;
 import uk.ac.imperial.presage2.util.fsm.FSMException;
+import uk.ac.imperial.presage2.util.network.Message;
+import uk.ac.imperial.presage2.util.network.NetworkAdaptor;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
 
 /**
  * {@link Protocol} implementation using an {@link FSM} to control state changes
@@ -79,7 +78,7 @@ public class FSMProtocol extends Protocol {
 	@Override
 	public void spawn(Message m) {
 		FSMConversation conv = new FSMConversation(description, this.name,
-				Role.REPLIER, network, m.getTimestamp().intValue());
+				Role.REPLIER, network, m.getTimestamp());
 		try {
 			conv.fsm.applyEvent(m);
 			activeConversations.add(conv);

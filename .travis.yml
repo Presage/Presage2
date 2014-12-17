@@ -1,0 +1,14 @@
+# build description for travis-ci.org
+language: java
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk7
+  - openjdk6
+
+script: mvn verify
+
+services:
+  - mysql
+before_script:
+  - mysql -e 'create database presage_test;' # mysql test database

@@ -236,7 +236,7 @@ public class SimulatorTest {
 				exactly(time + 1).of(ss).incrementTime();
 			}
 		});
-		sim.step();
+		sim.stepUntilFinish();
 		context.assertIsSatisfied();
 		for (TestAgent a : testedObjects) {
 			assertTrue(a.initialised);

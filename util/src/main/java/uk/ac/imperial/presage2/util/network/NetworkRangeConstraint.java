@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2014 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -22,38 +22,27 @@ import java.util.UUID;
 
 import uk.ac.imperial.presage2.core.environment.EnvironmentServiceProvider;
 import uk.ac.imperial.presage2.core.environment.ServiceDependencies;
-import uk.ac.imperial.presage2.core.environment.SharedStateAccessException;
 import uk.ac.imperial.presage2.core.environment.UnavailableServiceException;
-import uk.ac.imperial.presage2.core.event.EventBus;
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.network.NetworkConstraint;
 import uk.ac.imperial.presage2.util.environment.CommunicationRangeService;
-import uk.ac.imperial.presage2.util.location.CannotSeeAgent;
 import uk.ac.imperial.presage2.util.location.Location;
 import uk.ac.imperial.presage2.util.location.LocationService;
 
 import com.google.inject.Inject;
 
-/**
- * @author Sam Macbeth
- * 
- */
 @ServiceDependencies({ LocationService.class, CommunicationRangeService.class })
 public class NetworkRangeConstraint implements NetworkConstraint {
 
 	private LocationService locService;
-
 	private CommunicationRangeService commRangeService;
 
 	@Inject
-	public NetworkRangeConstraint(EnvironmentServiceProvider serviceProvider,
-			EventBus eb) throws UnavailableServiceException {
+	NetworkRangeConstraint(EnvironmentServiceProvider serviceProvider)
+			throws UnavailableServiceException {
+		super();
 		locService = serviceProvider
 				.getEnvironmentService(LocationService.class);
 		commRangeService = serviceProvider
 				.getEnvironmentService(CommunicationRangeService.class);
-		eb.subscribe(this);
 	}
 
 	@Override
@@ -63,39 +52,20 @@ public class NetworkRangeConstraint implements NetworkConstraint {
 	}
 
 	@Override
-	public boolean blockMessageDelivery(NetworkAddress to, Message m) {
-		final UUID sender = m.getFrom().getId();
-		final UUID receiver = to.getId();
-		boolean result = areLinked(sender, receiver);
+	public boolean blockMessageDelivery(NetworkAddress from, NetworkAddress to) {
+		final UUID a1 = from.getId();
+		final UUID a2 = to.getId();
+		final Location senderLoc = locService.getAgentLocation(a1);
+		final Location receiverLoc = locService.getAgentLocation(a2);
+		final double senderRange = commRangeService
+				.getAgentCommunicationRange(a1);
+		final double receiverRange = commRangeService
+				.getAgentCommunicationRange(a2);
+		// return true if distance between sender and receiver > the
+		// smallest of their comm ranges.
+		boolean result = (senderLoc.distanceTo(receiverLoc) > Math.min(
+				senderRange, receiverRange));
 		return result;
-	}
-
-	protected boolean areLinked(UUID a1, UUID a2) {
-		try {
-			// retrieve locations and comms ranges of sender and receiver.
-			final Location senderLoc = locService.getAgentLocation(a1);
-			final Location receiverLoc = locService.getAgentLocation(a2);
-			final double senderRange = commRangeService
-					.getAgentCommunicationRange(a1);
-			final double receiverRange = commRangeService
-					.getAgentCommunicationRange(a2);
-
-			// return true if distance between sender and receiver > the
-			// smallest of their comm ranges.
-			boolean result = (senderLoc.distanceTo(receiverLoc) > Math.min(
-					senderRange, receiverRange));
-
-			return result;
-		} catch (CannotSeeAgent e) {
-			// this should not happen!
-			throw new RuntimeException(
-					"LocationService threw CannotSeeAgent for NetworkRangeConstraint",
-					e);
-		} catch (SharedStateAccessException e) {
-			// someone doesn't have location or communication range state, allow
-			// in this case
-			return false;
-		}
 	}
 
 }

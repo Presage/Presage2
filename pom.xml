@@ -3,7 +3,7 @@
 
 	<groupId>uk.ac.imperial.presage2</groupId>
 	<artifactId>presage2</artifactId>
-	<version>0.4.0</version>
+	<version>0.4.1</version>
 	<packaging>pom</packaging>
 
 	<name>Presage2</name>
@@ -16,6 +16,8 @@
 		<module>core</module>
 		<module>rules</module>
 		<module>util</module>
+		<module>storage/json</module>
+		<module>storage/sql</module>
 	</modules>
 
 	<url>http://www.presage2.info</url>
@@ -111,10 +113,8 @@
 						${project.build.directory}/site/apidocs
 						-title Presage2
 						-apiversion ${project.version}
-						-since http://presage.github.com/docs/api/0.3.0.xml 0.3.0
-						-since http://presage.github.com/docs/api/0.3.1.xml 0.3.1
-						-since http://presage.github.com/docs/api/0.3.2.xml 0.3.2
-						-since http://presage.github.com/docs/api/0.3.3.xml 0.3.3
+						-since http://presage.github.com/docs/api/0.3.5.xml 0.3.5
+						-since http://presage.github.com/docs/api/0.4.0.xml 0.4.0
 					</additionalparam>
 					<useStandardDocletOptions>false</useStandardDocletOptions>
 					<!-- | Apple's JVM sometimes requires more memory -->
@@ -171,7 +171,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/Presage/Presage2.git</connection>
 		<developerConnection>scm:git:https://sammacbeth@github.com/Presage/Presage2.git</developerConnection>
-	  <tag>0.4.0</tag>
+	  <tag>0.4.1</tag>
   </scm>
 
 	<distributionManagement>

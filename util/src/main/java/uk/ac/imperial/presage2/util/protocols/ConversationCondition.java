@@ -18,9 +18,9 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.util.fsm.State;
 import uk.ac.imperial.presage2.util.fsm.TransitionCondition;
+import uk.ac.imperial.presage2.util.network.Message;
 
 /**
  * A FSM {@link TransitionCondition} which ensures that the message passed in

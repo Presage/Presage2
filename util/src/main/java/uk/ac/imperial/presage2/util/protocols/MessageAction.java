@@ -18,9 +18,9 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.util.fsm.Action;
 import uk.ac.imperial.presage2.util.fsm.Transition;
+import uk.ac.imperial.presage2.util.network.Message;
 
 /**
  * Wraps an FSM {@link Action} to correctly cast event and entity to a

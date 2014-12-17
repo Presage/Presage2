@@ -21,8 +21,8 @@ package uk.ac.imperial.presage2.util.protocols;
 import java.util.Set;
 import java.util.UUID;
 
-import uk.ac.imperial.presage2.core.messaging.InputHandler;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
+import uk.ac.imperial.presage2.util.network.Message;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
 
 /**
  * A Conversation is a stateful exchange of messages between 2 or more agents.
@@ -30,7 +30,7 @@ import uk.ac.imperial.presage2.core.network.NetworkAddress;
  * @author Sam Macbeth
  * 
  */
-public interface Conversation extends InputHandler {
+public interface Conversation {
 
 	/**
 	 * @return The conversation's unique key.
@@ -60,5 +60,9 @@ public interface Conversation extends InputHandler {
 	 *         conversation
 	 */
 	Set<NetworkAddress> getMembers();
+
+	boolean canHandle(Message in);
+
+	void handle(Message in);
 
 }

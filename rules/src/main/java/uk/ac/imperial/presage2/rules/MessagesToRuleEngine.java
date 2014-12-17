@@ -20,11 +20,11 @@ package uk.ac.imperial.presage2.rules;
 
 import org.drools.runtime.StatefulKnowledgeSession;
 
-import com.google.inject.Inject;
+import uk.ac.imperial.presage2.util.network.Message;
+import uk.ac.imperial.presage2.util.network.NetworkAddress;
+import uk.ac.imperial.presage2.util.network.NetworkConstraint;
 
-import uk.ac.imperial.presage2.core.network.Message;
-import uk.ac.imperial.presage2.core.network.NetworkAddress;
-import uk.ac.imperial.presage2.core.network.NetworkConstraint;
+import com.google.inject.Inject;
 
 public class MessagesToRuleEngine implements NetworkConstraint {
 
@@ -43,7 +43,7 @@ public class MessagesToRuleEngine implements NetworkConstraint {
 	}
 
 	@Override
-	public boolean blockMessageDelivery(NetworkAddress to, Message m) {
+	public boolean blockMessageDelivery(NetworkAddress from, NetworkAddress to) {
 		return false;
 	}
 

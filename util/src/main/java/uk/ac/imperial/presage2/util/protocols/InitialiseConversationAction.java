@@ -18,8 +18,8 @@
  */
 package uk.ac.imperial.presage2.util.protocols;
 
-import uk.ac.imperial.presage2.core.network.Message;
 import uk.ac.imperial.presage2.util.fsm.Transition;
+import uk.ac.imperial.presage2.util.network.Message;
 
 /**
  * An implementation of a {@link MessageAction} designed to initialise the
@@ -35,7 +35,7 @@ public abstract class InitialiseConversationAction extends MessageAction {
 	 * Initialises the conversation key and recipient of the given
 	 * {@link FSMConversation} from the {@link Message} <code>message</code>.
 	 * 
-	 * @see uk.ac.imperial.presage2.util.protocols.MessageAction#processMessage(uk.ac.imperial.presage2.core.network.Message,
+	 * @see uk.ac.imperial.presage2.util.protocols.MessageAction#processMessage(uk.ac.imperial.presage2.util.network.Message,
 	 *      uk.ac.imperial.presage2.util.protocols.FSMConversation,
 	 *      uk.ac.imperial.presage2.util.fsm.Transition)
 	 */
